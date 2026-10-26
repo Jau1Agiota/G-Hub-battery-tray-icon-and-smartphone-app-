@@ -10,7 +10,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - run: dotnet restore PeripheralBatteryCompanion.slnx --locked-mode
+      - run: dotnet restore PeripheralBatteryCompanion.sln --locked-mode
+      - run: dotnet build PeripheralBatteryCompanion.sln -c Debug --no-restore
       - run: dotnet test tests/PeripheralBatteryCompanion.Tests -c Release --no-restore --logger "trx;LogFileName=stage3.trx"
       - run: ./scripts/Publish-Windows.ps1
         shell: pwsh

@@ -6,12 +6,18 @@ Stage 3 uses C# / .NET 10, Windows Forms and a read-only SQLite connection. It s
 
 The icon is green at 51–100%, yellow at 21–50%, red at 0–20%, and gray when unavailable. The menu distinguishes the reported timestamp, successful database access, cached values after failures, and unknown device connectivity. Stored values have no arbitrary expiry. G305 battery reporting is **not yet supported**; no percentage or qualitative condition is invented.
 
+## Debug in Visual Studio
+
+Open `PeripheralBatteryCompanion.sln` in an **up-to-date Visual Studio 2026** with the **.NET desktop development** workload and the pinned .NET 10 SDK. Set `PeripheralBatteryCompanion.Windows` as the startup project, select **Debug / x64** and the **Peripheral Battery Companion** launch profile, then press **F5**. Use the tray icon to open the menu; no main form is expected. Stop any previously running copy before debugging, because the single-instance guard intentionally closes duplicate launches.
+
+Debug builds use portable symbols and disable optimization. Open **Test → Test Explorer** to run/debug the hardware-independent tests. See [detailed debugging instructions](docs/BUILD.md#visual-studio-debugging), including useful breakpoints and database error handling. Visual Studio 2022 cannot target .NET 10; changing the solution format does not remove that SDK requirement.
+
 ## Build and try
 
 On Windows 11 x64 with the .NET 10.0.402 SDK (or a newer 10.0.4xx patch):
 
 ```powershell
-dotnet restore PeripheralBatteryCompanion.slnx --locked-mode
+dotnet restore PeripheralBatteryCompanion.sln --locked-mode
 dotnet test tests/PeripheralBatteryCompanion.Tests -c Release --no-restore
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Windows.ps1
 ```

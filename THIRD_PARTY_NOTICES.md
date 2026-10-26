@@ -25,4 +25,4 @@ Direct dependencies: Microsoft.NET.Test.Sdk 17.14.1 (MIT), xUnit 2.9.3 (Apache-2
 
 ## Security maintenance
 
-The initial Microsoft.Data.Sqlite 10.0.0 dependency resolved a native SQLite package flagged by NuGet advisory GHSA-2m69-gcr7-jv3q. It was replaced with 10.0.14, which resolves SQLitePCLRaw 2.1.13. No warning or integrity check was suppressed. Re-run `dotnet list PeripheralBatteryCompanion.slnx package --vulnerable --include-transitive` before releases; advisory results can change after this build.
+The initial Microsoft.Data.Sqlite 10.0.0 dependency resolved a native SQLite package flagged by NuGet advisory GHSA-2m69-gcr7-jv3q. It was replaced with 10.0.14, which resolves SQLitePCLRaw 2.1.13. No warning or integrity check was suppressed. Re-run `dotnet list PeripheralBatteryCompanion.sln package --vulnerable --include-transitive` before releases; advisory results can change after this build.

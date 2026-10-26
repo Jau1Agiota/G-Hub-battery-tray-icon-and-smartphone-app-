@@ -9,12 +9,25 @@
 
 The runtime is pinned to 10.0.14 for the self-contained Windows build. Update the runtime pin, dependency pins and lockfiles together as part of maintenance, then revalidate. Do not disable package verification, TLS checks or NuGet auditing.
 
+## Visual Studio debugging
+
+1. Install an **up-to-date Visual Studio 2026** and select **.NET desktop development** in Visual Studio Installer. Install SDK 10.0.402 or a later 10.0.4xx patch if it is not already present, and use a Visual Studio servicing release that supports that SDK feature band. Visual Studio 2022 cannot build/debug this .NET 10 target.
+2. Use **File → Open → Project/Solution** and select `PeripheralBatteryCompanion.sln`. Restore NuGet packages if prompted. The Windows, Core and Tests projects are all included in the conventional solution.
+3. In Solution Explorer, right-click **PeripheralBatteryCompanion.Windows → Set as Startup Project**. Select **Debug** and **x64** in the solution toolbar, then the **Peripheral Battery Companion** Project launch profile. The project targets x64 explicitly; the solution's Any CPU configuration also maps to this x64 application.
+4. Exit any already running copy through its tray menu. Press **F5**. The Debug build includes portable PDBs and disabled optimization for application and core code. F5 launches the regular build output under `bin/Debug/net10.0-windows/win-x64/`, not the published single-file artifact. The self-contained/single-file project settings apply packaging on Publish and do not stop Visual Studio from debugging the normal build output.
+5. Set breakpoints in `Program.Main` (startup/mutex), `GHubSqliteBatteryProvider.Read` / `Parse` (database/parsing), `BatteryMonitoringService.RefreshAsync` (polling), and `TrayApplicationContext.Display` / `CloseAsync` (UI/shutdown). Click the tray icon and choose Refresh to trigger another read. Async provider work runs on a thread-pool thread; use the Threads/Tasks windows when useful.
+6. In **Debug → Windows → Exception Settings**, optionally break on thrown `Microsoft.Data.Sqlite.SqliteException` or `System.Text.Json.JsonException` to inspect expected errors before they are caught. Missing databases are represented as an unavailable result, not a thrown exception. Do not add real database contents or personal paths to bug reports.
+7. Open **Test → Test Explorer**. Run all tests, or right-click a parsing/monitoring test and select Debug. The tests require no G HUB installation or Logitech hardware, so these are the easiest debugging entry points on another Windows development machine.
+8. Use the tray's Exit command to exercise graceful cancellation/resource disposal. **Shift+F5** forcibly stops the debugger target and is not a graceful-shutdown test. If a new F5 process exits immediately, check for an older copy and the breakpoint at the single-instance guard.
+
+The IDE itself cannot be exercised on this Linux cloud machine. Debug compilation and the test assembly can be checked here; Windows F5/tray behavior must be confirmed locally.
+
 ## Windows commands
 
 Run in the existing checkout; no new repository or worktree is needed:
 
 ```powershell
-dotnet restore PeripheralBatteryCompanion.slnx --locked-mode
+dotnet restore PeripheralBatteryCompanion.sln --locked-mode
 dotnet test tests/PeripheralBatteryCompanion.Tests -c Release --no-restore --logger "trx;LogFileName=stage3.trx"
 dotnet build src/PeripheralBatteryCompanion.Windows -c Release --no-restore
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Windows.ps1
@@ -38,7 +51,7 @@ export DOTNET_CLI_HOME=/workspace/.dotnet-home
 export NUGET_PACKAGES=/workspace/.nuget/packages
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-dotnet restore PeripheralBatteryCompanion.slnx --locked-mode
+dotnet restore PeripheralBatteryCompanion.sln --locked-mode
 dotnet test tests/PeripheralBatteryCompanion.Tests -c Release --no-restore --logger 'trx;LogFileName=stage3.trx'
 dotnet build src/PeripheralBatteryCompanion.Windows -c Release --no-restore
 dotnet publish src/PeripheralBatteryCompanion.Windows -c Release \

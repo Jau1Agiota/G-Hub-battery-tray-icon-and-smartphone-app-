@@ -12,8 +12,9 @@ Core and Windows projects are separate; see ARCHITECTURE.md for models, provider
 
 - SDK: 10.0.403 on Linux, satisfying the 10.0.402 / latestPatch SDK pin.
 - Solution restore in locked mode: passed.
-- Release Windows build: passed, zero warnings/errors.
-- xUnit: **38 passed, 0 failed, 0 skipped**, using synthetic payloads and temporary databases. Includes malformed/missing/empty data, percentage boundaries and invalid types/ranges, UTC handling, warning disagreement, unsupported devices, absent/corrupt/locked/incompatible databases, live committed WAL with an open synthetic writer, unchanged values, cached failures, non-overlapping refresh, caller cancellation, recurring polling, shutdown waiting for in-flight work, and idempotent disposal.
+- Release Windows publish and full Debug Visual Studio solution build: passed, zero warnings/errors.
+- Visual Studio support: conventional `.sln`, explicit x64 app target, Project F5 launch profile, portable Debug symbols, optimizations disabled in Debug, and step-by-step Test Explorer/breakpoint guidance in BUILD.md. The IDE itself has not been run on Linux.
+- xUnit in each of Release and Debug: **38 passed, 0 failed, 0 skipped**, using synthetic payloads and temporary databases. Includes malformed/missing/empty data, percentage boundaries and invalid types/ranges, UTC handling, warning disagreement, unsupported devices, absent/corrupt/locked/incompatible databases, live committed WAL with an open synthetic writer, unchanged values, cached failures, non-overlapping refresh, caller cancellation, recurring polling, shutdown waiting for in-flight work, and idempotent disposal.
 - Self-contained single-file Windows x64 publish: passed; trimming disabled.
 - Executable PE header: confirmed AMD64 and Windows GUI subsystem. This is a binary-format check, not evidence of Windows execution.
 - Final advisory check: no vulnerable packages reported by the current NuGet sources, including transitive dependencies.
@@ -24,8 +25,8 @@ Core and Windows projects are separate; see ARCHITECTURE.md for models, provider
 
 - `artifacts/win-x64/PeripheralBatteryCompanion.exe` (about 113 MB, self-contained .NET 10.0.14 and native SQLite).
 - `artifacts/PeripheralBatteryCompanion-win-x64.zip` (about 45 MiB) includes notices/licenses.
-- Executable SHA256: `6c3767fb1754636047cf25cb6de905db35f7b13b13d2537185cd25878a2c5df1`.
-- Test result: `tests/PeripheralBatteryCompanion.Tests/TestResults/stage3.trx`.
+- Executable SHA256: `96830f45b3f76421e0a0cd60efe8384dbfe42c8a0dff2fe32b48e2b2a9aa273d`.
+- Test result: `tests/PeripheralBatteryCompanion.Tests/TestResults/stage3.trx` (Release) and `stage3-debug.trx` (Debug).
 
 Artifacts and test outputs are deliberately ignored by Git. CI publishes a downloadable build artifact when its Windows workflow succeeds; no release, default-branch merge, or publication was performed by this task.
 
@@ -44,7 +45,7 @@ Added:
 - `.github/workflows/build.yml`
 - `.gitignore`
 - `Directory.Build.props`
-- `PeripheralBatteryCompanion.slnx`
+- `PeripheralBatteryCompanion.sln`
 - `THIRD_PARTY_NOTICES.md`
 - `docs/ARCHITECTURE.md`
 - `docs/BUILD.md`
@@ -65,6 +66,7 @@ Added:
 - `src/PeripheralBatteryCompanion.Windows/BatteryIcon.cs`
 - `src/PeripheralBatteryCompanion.Windows/PeripheralBatteryCompanion.Windows.csproj`
 - `src/PeripheralBatteryCompanion.Windows/Program.cs`
+- `src/PeripheralBatteryCompanion.Windows/Properties/launchSettings.json`
 - `src/PeripheralBatteryCompanion.Windows/TrayApplicationContext.cs`
 - `src/PeripheralBatteryCompanion.Windows/app.manifest`
 - `src/PeripheralBatteryCompanion.Windows/packages.lock.json`
