@@ -27,8 +27,9 @@ public interface IHidMetadataBackend
 }
 
 public sealed record InspectionReport(IReadOnlyList<CollectionInspection> Collections,
-    IReadOnlyList<InspectionFailure> EnumerationFailures)
+    IReadOnlyList<InspectionFailure> EnumerationFailures, HidInspectionTarget? Target = null)
 {
+    public HidInspectionTarget EffectiveTarget => Target ?? HidInspectionTarget.G305;
     public int ExitCode => EnumerationFailures.Any(error => error.Step == InspectionStep.UnsupportedPlatform) ? 2 :
         EnumerationFailures.Count > 0 || Collections.Any(item => item.Failure is not null || item.Capabilities is null) ? 1 :
         Collections.Count == 0 ? 3 : 0;

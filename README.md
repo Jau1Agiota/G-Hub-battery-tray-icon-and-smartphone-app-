@@ -36,6 +36,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-g305.ps1 -Cop
 
 The report lists actual usage IDs, report byte lengths and capability counts, omitting instance identifiers from terminal and clipboard. Device handles use zero desired access; there are no HID report read/write commands or broader-access fallbacks. See [scope, errors, and local validation](docs/G305_HID_INSPECTOR.md). Hardware verification remains local.
 
+## HyperX Cloud III Wireless capability diagnostics
+
+Stage 4.0B shares the passive inspector with a fixed `03F0:05B7 / MI_03 / COL01-COL03` HyperX profile. COL01 is inspected first; all matching collections are reported for comparison. The existing G305 launcher retains its original scope.
+
+```powershell
+.\diagnose-hyperx.ps1 -CopySummary
+```
+
+If policy blocks execution, use `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-hyperx.ps1 -CopySummary`. See [HyperX hardware identifiers, report interpretation, and validation](docs/HYPERX_HID_INSPECTOR.md). This is descriptor/capability inspection only; no battery decoding, input sampling, commands, audio changes, or production monitoring integration is added.
+
 ## Build and try
 
 On Windows 11 x64 with the .NET 10.0.402 SDK (or a newer 10.0.4xx patch):

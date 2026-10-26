@@ -2,21 +2,27 @@ using System.ComponentModel;
 
 namespace PeripheralBatteryCompanion.G305Inspector;
 
-public sealed class CapabilityInspector(IHidMetadataBackend backend)
+public sealed class CapabilityInspector(IHidMetadataBackend backend, HidInspectionTarget? target = null)
 {
+    private readonly HidInspectionTarget _target = target ?? HidInspectionTarget.G305;
+
     public InspectionReport Inspect()
     {
         InterfaceEnumeration enumeration;
         try { enumeration = backend.EnumerateInterfaces(); }
         catch (Win32Exception error)
         {
-            return new([], [new(InspectionStep.EnumerateInterfaces, error.NativeErrorCode)]);
+            return new([], [new(InspectionStep.EnumerateInterfaces, error.NativeErrorCode)], _target);
         }
         var results = new List<CollectionInspection>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var matches = new List<(string Path, ReceiverCollection Collection)>();
         foreach (var path in enumeration.Paths)
+            if (ReceiverFilter.TryMatch(path, _target, out var collection) && seen.Add(path)) matches.Add((path, collection));
+        // Preserve the G305 inspection order; HyperX's vendor collection is the first research target.
+        var ordered = _target == HidInspectionTarget.HyperX ? matches.OrderBy(item => item.Collection) : matches.AsEnumerable();
+        foreach (var (path, collection) in ordered)
         {
-            if (!ReceiverFilter.TryMatch(path, out var collection) || !seen.Add(path)) continue;
             try
             {
                 var read = backend.ReadCapabilities(path);
@@ -29,6 +35,6 @@ public sealed class CapabilityInspector(IHidMetadataBackend backend)
                 results.Add(new(collection, null, new(InspectionStep.ReadCollection, error.NativeErrorCode)));
             }
         }
-        return new(results, enumeration.Failures);
+        return new(results, enumeration.Failures, _target);
     }
 }

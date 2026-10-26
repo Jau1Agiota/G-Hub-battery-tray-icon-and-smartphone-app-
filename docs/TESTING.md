@@ -95,6 +95,12 @@ The new `HidInspectorTests` preserve all existing tests and exercise the indepen
 
 For actual Windows/receiver metadata and a sanitized clipboard report, separately run `.\diagnose-g305.ps1 -CopySummary`. The execution-policy alternative and the passive API contract are in [G305_HID_INSPECTOR.md](G305_HID_INSPECTOR.md). A passing synthetic test run is not evidence of successful native HID access.
 
+## Stage 4.0B HyperX profile regressions
+
+`HyperXInspectorTests` adds synthetic coverage for exact `03F0:05B7 / MI_03` collection filtering, optional revision tokens, all three expected usage pairs, priority inspection, capability formatting, missing versus failed interfaces, redaction, multiple receivers, failures and CLI selection. Mixed-device tests verify that G305 defaults and scope stay isolated from HyperX. All original G305 tests are retained.
+
+Run `.\test.ps1 -Release -CopySummary` on Windows for the complete suite. Then run `.\diagnose-hyperx.ps1 -CopySummary` and `.\diagnose-g305.ps1 -CopySummary` separately, pasting each clipboard result before the next replaces it. Follow the [HyperX native validation checklist](HYPERX_HID_INSPECTOR.md#verification-and-owner-handoff). Synthetic metadata tests do not establish actual HID access, telemetry, audio coexistence or physical device behavior.
+
 ## Test-runner contract checks
 
 The runner has a small, framework-free smoke harness:
