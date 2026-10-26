@@ -18,7 +18,7 @@ Debug builds use portable symbols and disable optimization. Open **Test → Test
 .\test.ps1 -Release -CopySummary
 ```
 
-The runner restores locked dependencies, builds, runs all automated tests, saves bounded logs in gitignored `test-results/`, and copies an actual result/failure summary to the clipboard. It also supports Debug (default), `-BuildOnly`, and `-Verbose`. See [testing instructions and the Windows tray checklist](docs/TESTING.md). Stage 3.1 is awaiting the owner's full local regression and native interaction validation.
+The runner restores locked dependencies, builds, runs all automated tests, saves bounded logs in gitignored `test-results/`, and copies an actual result/failure summary to the clipboard. It also supports Debug (default), `-BuildOnly`, and `-Verbose`. See [testing instructions and the Windows tray checklist](docs/TESTING.md). Stage 3.1.1 popup-width and WAL-test fixes are awaiting the owner's full Windows regression and native interaction validation. The runner now also discovers the Windows-only form layout tests.
 
 ## Build and try
 

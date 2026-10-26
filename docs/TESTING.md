@@ -1,6 +1,6 @@
 # Local verification and regression policy
 
-Stage 3.1 separates the information popup from application lifecycle controls. Complete local regression and real Windows interaction checks are required before this stage is fully validated. The developer's Linux compilation/focused tests are not a substitute for these checks.
+Stage 3.1 separates the information popup from application lifecycle controls; Stage 3.1.1 corrects its width sizing and a Windows-only WAL test sharing violation. Complete local regression and real Windows interaction checks are required before this stage is fully validated. The developer's Linux compilation/focused tests are not a substitute for these checks.
 
 ## Run verification
 
@@ -66,7 +66,7 @@ The runner owns `test-results/automated/` and recreates it before every run, so 
 
 ## Automated coverage and its boundaries
 
-Existing reader/monitoring tests remain unchanged: verified primary JSON value, warning disagreement, malformed/missing/empty payloads, ranges/types, UTC parsing, missing/corrupt/locked/incompatible SQLite databases, live synthetic WAL reads, unchanged timestamps/values, cached failures, cancellation, polling and shutdown waiting for in-flight work.
+Existing reader/monitoring coverage is retained: verified primary JSON value, warning disagreement, malformed/missing/empty payloads, ranges/types, UTC parsing, missing/corrupt/locked/incompatible SQLite databases, live synthetic WAL reads, unchanged timestamps/values, cached failures, cancellation, polling and shutdown waiting for in-flight work.
 
 Stage 3.1 adds pure state/presentation/geometry tests for:
 
@@ -76,6 +76,18 @@ Stage 3.1 adds pure state/presentation/geometry tests for:
 - Refresh updating the presentation while its visibility state is hidden, including recovery from unavailable data.
 
 These tests **do not simulate real Windows tray events**, count native windows, verify the Windows clipboard, or prove icon/resource disposal or focus ordering. One popup is constructed and retained by the context; closing/hiding it does not dispose the context. The monitor's existing shutdown tests cover the asynchronous lifetime logic. The native adapter/resource lifetime requires the manual checklist.
+
+## Stage 3.1.1 layout and WAL regressions
+
+The owner's Stage 3.1 Windows Release baseline was Restore PASS, Build PASS, 62 tests passed / 1 failed, Clipboard PASS. The failed `ReadsCommittedWalWhileWriterRemainsOpenWithoutChangingData` assertion opened the WAL using `File.ReadAllBytes`, whose read-only sharing mode denies SQLite's already-open writable handle on Windows. This was a test observation error, not evidence of a battery-reader defect.
+
+That test still checks the live committed WAL, primary percentage, unchanged consecutive reports, exact WAL bytes and row count. Its snapshots now use a short-lived read stream with `FileShare.ReadWrite | FileShare.Delete`; the writer remains open and idle during the comparisons. It also compares the main database bytes and verifies a subsequent commit through the original writer. An additional synthetic sharing test reproduces the old helper's exception on Windows, verifies shared snapshots preserve writer position/access, and verifies handles close before an exclusive reopen and cleanup. No sleeps, retry loops, checkpoints or production-reader changes were introduced. These snapshots are only for controlled synthetic test fixtures, not a method for backing up a live G HUB database.
+
+Popup dimension tests now cover a nonzero 360-DIP client-width baseline at 100/125/150/200/250% scaling and fitting actual popup dimensions before positioning at screen edges, including smaller working areas and negative coordinates. The popup form no longer auto-sizes its width from its own top-docked child: it owns a DPI-scaled client width, measures the single-column content height, and fits the outer window (including caption/borders) to the working area.
+
+A new **Windows-only** test project, `PeripheralBatteryCompanion.Windows.Tests`, constructs real WinForms popups on STA threads. It checks readable initial and shown widths, visible information/actions, long status wrapping and recovery, and reopening at the edges of available screens. These tests may briefly display **synthetic** popup windows; they do not run the tray application or access G HUB. The unchanged `test.ps1` discovers this project automatically, and Windows CI uses the same runner. Native layout tests are compiled but cannot execute on Linux. The original hardware-independent test project can still run there separately.
+
+These tests do not establish that the actual system-tray click/focus sequence or physical DPI transitions work. Complete the manual checks below and share the full Windows Release summary before calling the fixes validated.
 
 ## Test-runner contract checks
 
@@ -99,8 +111,9 @@ Stop older copies, build/run the Windows startup project in Visual Studio (Debug
 6. **Real G915:** while G HUB is running, compare the displayed primary percentage with G HUB's UI. An unchanged/older record time is allowed. Turning off the keyboard must not cause a fabricated connectivity claim. The popup may show the stored last report. Never substitute the warning percentage.
 7. **Unavailable data:** use the existing synthetic tests for bad/locked data. Optionally run the app under a separate test account without a G HUB database: gray/unavailable state, responsive Refresh and Close, and no database creation. After access failure, any cached percentage must be labeled cached, with a gray current indicator.
 8. **Position and DPI:** test primary/secondary monitors (including a monitor left of/above the primary), tray overflow, normal display resolutions, and Windows scaling such as 100%, 150%, and 200%. The popup stays in the selected monitor's working area; labels/buttons fit or remain reachable by scrolling. Test top/left/right taskbars only if the Windows/taskbar configuration supports them; mark unavailable configurations NOT RUN. Moving/changing display settings must not cause repeated activation or offscreen windows.
+   For the narrow-strip regression specifically, open the panel on first launch, hide/reopen it repeatedly, and verify that both device sections, the battery bar, timestamp, Refresh and Close are visible. Normal width is about **360 logical client pixels** (roughly 360/540/720 physical client pixels at 100/150/200%, plus caption/borders); a smaller working area caps it. Check long unavailable/cached messages wrap, a hidden status does not collapse width, and switching from unavailable to a valid value retains readable dimensions. At screen edges the full outer window must remain onscreen; on unusually small work areas, scroll to both actions and confirm they remain reachable.
 9. **Lifetime/resources:** open/close many times, then use Exit Application, including during Refresh. Monitoring cancels, the process exits, and the tray icon disappears. Relaunch successfully (mutex released). Confirm hiding/closing the popup never creates another process or stops monitoring. With Visual Studio diagnostics/Task Manager, check repeated popup cycles do not leave growing window/icon/GDI handle counts.
-10. **Runner and clipboard:** run `.\test.ps1 -Release -CopySummary`, confirm clipboard contents match `test-results/summary.txt`, then share that summary plus checked/failed/NOT RUN desktop items. `-BuildOnly` must explicitly report tests NOT RUN. Do not describe an unobserved Actions run as passed.
+10. **Runner and clipboard:** run `.\test.ps1 -Release -CopySummary`, confirm clipboard contents match `test-results/summary.txt`, and verify that both the core tests and the Windows layout project execute (see `Result files read` and the TRX folders). Confirm the formerly failing WAL test passes without touching G HUB files, then share that summary plus checked/failed/NOT RUN desktop items. `-BuildOnly` must explicitly report tests NOT RUN. Do not describe an unobserved Actions run as passed.
 
 ## Permanent regression workflow
 

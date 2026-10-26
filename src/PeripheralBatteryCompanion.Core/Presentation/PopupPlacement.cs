@@ -4,6 +4,21 @@ namespace PeripheralBatteryCompanion.Core.Presentation;
 
 public static class PopupPlacement
 {
+    // A docked layout must not be the authority for the window's preferred width.
+    public static int ClientWidthForDpi(int dpi)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(dpi);
+        return checked((int)Math.Round(360d * dpi / 96, MidpointRounding.AwayFromZero));
+    }
+
+    public static Size FitSize(Size preferred, Size workingArea)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(workingArea.Width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(workingArea.Height);
+        return new(Math.Clamp(preferred.Width, 1, workingArea.Width),
+            Math.Clamp(preferred.Height, 1, workingArea.Height));
+    }
+
     // Use the clicked tray monitor, including negative coordinates and non-bottom taskbars.
     // The native adapter also constrains the form's MaximumSize to the working area.
     public static Point NearTray(Rectangle screen, Rectangle work, Size popup, Point anchor, int gap)

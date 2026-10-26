@@ -15,6 +15,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>PeripheralBatteryCompanion</AssemblyName>
   </PropertyGroup>
+  <ItemGroup><InternalsVisibleTo Include="PeripheralBatteryCompanion.Windows.Tests" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../PeripheralBatteryCompanion.Core/PeripheralBatteryCompanion.Core.csproj" /></ItemGroup>
   <ItemGroup>
     <Content Include="../../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />

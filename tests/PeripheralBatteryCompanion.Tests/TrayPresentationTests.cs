@@ -161,6 +161,34 @@ public sealed class TrayPresentationTests
         Assert.Equal("Battery: 62%", view.BatteryText);
     }
 
+    [Theory]
+    [InlineData(96, 360)]
+    [InlineData(120, 450)]
+    [InlineData(144, 540)]
+    [InlineData(192, 720)]
+    [InlineData(240, 900)]
+    public void PopupWidthHasAnExplicitDpiScaledBaseline(int dpi, int expectedWidth) =>
+        Assert.Equal(expectedWidth, PopupPlacement.ClientWidthForDpi(dpi));
+
+    [Theory]
+    [InlineData(0, 0, 1920, 1040, 368, 340, 368, 340)]
+    [InlineData(0, 40, 1280, 680, 736, 720, 736, 680)]
+    [InlineData(-800, -600, 800, 560, 900, 700, 800, 560)]
+    [InlineData(-400, 0, 400, 280, 736, 680, 400, 280)]
+    public void ActualPopupSizeIsFittedBeforeEdgePositioning(int x, int y, int w, int h,
+        int preferredWidth, int preferredHeight, int expectedWidth, int expectedHeight)
+    {
+        var work = new Rectangle(x, y, w, h);
+        var fitted = PopupPlacement.FitSize(new(preferredWidth, preferredHeight), work.Size);
+        Assert.Equal(new Size(expectedWidth, expectedHeight), fitted);
+        // Includes top/left/right/bottom anchors even when the preferred window exceeds the screen.
+        foreach (var anchor in new[] { work.Location, new Point(work.Right - 1, work.Bottom - 1) })
+        {
+            var location = PopupPlacement.NearTray(new(x, y, w, h + 40), work, fitted, anchor, 8);
+            Assert.True(work.Contains(new Rectangle(location, fitted)));
+        }
+    }
+
     private sealed class FakeProvider(Func<BatteryReadResult> read) : IBatteryProvider
     {
         public Task<BatteryReadResult> ReadAsync(CancellationToken cancellationToken) => Task.FromResult(read());
