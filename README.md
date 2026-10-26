@@ -46,6 +46,16 @@ Stage 4.0B shares the passive inspector with a fixed `03F0:05B7 / MI_03 / COL01-
 
 If policy blocks execution, use `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-hyperx.ps1 -CopySummary`. See [HyperX hardware identifiers, report interpretation, and validation](docs/HYPERX_HID_INSPECTOR.md). This is descriptor/capability inspection only; no battery decoding, input sampling, commands, audio changes, or production monitoring integration is added.
 
+## Isolated HyperX battery POC (Stage 4.0C)
+
+A separate experimental project preserves passive inspection as its default. Its first review step is a hardware-free payload preview:
+
+```powershell
+.\hyperx-battery-poc.ps1 -PreviewRequest -CopySummary
+```
+
+The proposed request is 62 bytes: `66 89` followed by 60 zeros. Confirm that entire tail against the full original USB capture before any active test. An active attempt requires explicit request and NGENUITY-closure flags, validates only HyperX COL01/capabilities, uses a three-second one-shot exchange and never retries or polls. No production battery provider is added. Follow the [protocol evidence, API limitations and staged physical-test checklist](docs/HYPERX_BATTERY_POC.md), one hardware command/result at a time.
+
 ## Build and try
 
 On Windows 11 x64 with the .NET 10.0.402 SDK (or a newer 10.0.4xx patch):

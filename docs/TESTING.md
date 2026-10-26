@@ -101,6 +101,12 @@ For actual Windows/receiver metadata and a sanitized clipboard report, separatel
 
 Run `.\test.ps1 -Release -CopySummary` on Windows for the complete suite. Then run `.\diagnose-hyperx.ps1 -CopySummary` and `.\diagnose-g305.ps1 -CopySummary` separately, pasting each clipboard result before the next replaces it. Follow the [HyperX native validation checklist](HYPERX_HID_INSPECTOR.md#verification-and-owner-handoff). Synthetic metadata tests do not establish actual HID access, telemetry, audio coexistence or physical device behavior.
 
+## Stage 4.0C isolated POC tests
+
+`HyperXBatteryPocTests` adds simulated capture A/B candidates (64/66), full request bytes/zero padding, response lengths/IDs/command/range rejection, exact COL01 selection/ambiguity, capability gating, explicit opt-in, one read/send, early buffered-input refusal, errors, shared deadlines, cancellation and cleanup. The active interop module is separate from the passive module; a whitelist test checks its three imports and the fixed output IOCTL. A Windows-only framework OVERLAPPED layout assertion is guarded by the actual OS. Tests do not call the native active transport.
+
+The owner can run the existing full local runner when ready. It builds the POC and runs synthetic tests; it does not invoke its active Main. For now, run only the [payload preview and review](HYPERX_BATTERY_POC.md#first-command-payload-preview-only) before any physical test. Unit tests cannot prove actual control-transfer bytes, driver cancellation/completion behavior, response freshness, safe off-state semantics, or true battery accuracy. Those require the individually reviewed Windows/device checklist, not test mocks. Existing passive diagnostics, `test.ps1` and production monitoring remain unchanged.
+
 ## Test-runner contract checks
 
 The runner has a small, framework-free smoke harness:

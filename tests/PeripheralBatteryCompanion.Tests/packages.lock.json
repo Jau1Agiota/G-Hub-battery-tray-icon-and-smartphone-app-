@@ -146,6 +146,12 @@
       },
       "peripheralbatterycompanion.g305inspector": {
         "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxbatterypoc": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.G305Inspector": "[1.0.0, )"
+        }
       }
     }
   }
