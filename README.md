@@ -2,15 +2,23 @@
 
 An unofficial, independent Windows 11 tray utility that displays the G915 keyboard's last reported battery percentage from Logitech G HUB. It is not affiliated with, endorsed by, or supported by Logitech.
 
-Stage 3 uses C# / .NET 10, Windows Forms and a read-only SQLite connection. It starts without a main window, polls every 30 seconds, and provides a compact tray menu on left or right click with **Refresh** and **Exit**. A per-session mutex prevents duplicate instances. No elevation, account, network access, installer or background service is required.
+The app uses C# / .NET 10, Windows Forms and a read-only SQLite connection. It starts without a main window and polls every 30 seconds. **Left-click** toggles a compact battery popup with a horizontal indicator, Refresh and Close. Escape, its caption X, or clicking elsewhere hides it while monitoring continues. **Right-click** opens a separate menu: Open Battery Panel, Refresh, and **Exit Application**. Only that explicit exit command ends the process. A per-session mutex prevents duplicate instances. No elevation, account, network access, installer or background service is required.
 
-The icon is green at 51–100%, yellow at 21–50%, red at 0–20%, and gray when unavailable. The menu distinguishes the reported timestamp, successful database access, cached values after failures, and unknown device connectivity. Stored values have no arbitrary expiry. G305 battery reporting is **not yet supported**; no percentage or qualitative condition is invented.
+The icon is green at 51–100%, yellow at 21–50%, red at 0–20%, and gray when unavailable. The popup prioritizes device names, battery information and the last-reported time. Failures show unavailable data and explicitly label any cached value. Database-access timestamps and unknown connectivity remain separate internally; no unverified connectivity claim appears in the popup. Stored values have no arbitrary expiry. G305 battery reporting is **not yet supported**; no percentage or qualitative condition is invented.
 
 ## Debug in Visual Studio
 
-Open `PeripheralBatteryCompanion.sln` in an **up-to-date Visual Studio 2026** with the **.NET desktop development** workload and the pinned .NET 10 SDK. Set `PeripheralBatteryCompanion.Windows` as the startup project, select **Debug / x64** and the **Peripheral Battery Companion** launch profile, then press **F5**. Use the tray icon to open the menu; no main form is expected. Stop any previously running copy before debugging, because the single-instance guard intentionally closes duplicate launches.
+Open `PeripheralBatteryCompanion.sln` in an **up-to-date Visual Studio 2026** with the **.NET desktop development** workload and the pinned .NET 10 SDK. Set `PeripheralBatteryCompanion.Windows` as the startup project, select **Debug / x64** and the **Peripheral Battery Companion** launch profile, then press **F5**. Left-click the tray icon to open the battery popup; no main form is expected. Stop any previously running copy before debugging, because the single-instance guard intentionally closes duplicate launches.
 
 Debug builds use portable symbols and disable optimization. Open **Test → Test Explorer** to run/debug the hardware-independent tests. See [detailed debugging instructions](docs/BUILD.md#visual-studio-debugging), including useful breakpoints and database error handling. Visual Studio 2022 cannot target .NET 10; changing the solution format does not remove that SDK requirement.
+
+## Verify locally
+
+```powershell
+.\test.ps1 -Release -CopySummary
+```
+
+The runner restores locked dependencies, builds, runs all automated tests, saves bounded logs in gitignored `test-results/`, and copies an actual result/failure summary to the clipboard. It also supports Debug (default), `-BuildOnly`, and `-Verbose`. See [testing instructions and the Windows tray checklist](docs/TESTING.md). Stage 3.1 is awaiting the owner's full local regression and native interaction validation.
 
 ## Build and try
 
@@ -30,7 +38,8 @@ The Windows project can be cross-compiled on Linux, and the core tests run on Li
 
 - [Architecture and decisions](docs/ARCHITECTURE.md)
 - [Independent research and compatibility risks](docs/RESEARCH.md)
-- [Build, publishing, and exact physical-device checks](docs/BUILD.md)
+- [Build, publishing, and Visual Studio debugging](docs/BUILD.md)
+- [Local verification, regression policy, and manual tray checklist](docs/TESTING.md)
 - [Third-party dependencies and notices](THIRD_PARTY_NOTICES.md)
 
 There is no Android app, LAN API, WebSocket integration, startup registration, or settings window in this milestone. G HUB's database is an undocumented interface that may change between releases.

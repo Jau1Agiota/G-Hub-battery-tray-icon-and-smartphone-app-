@@ -1,4 +1,5 @@
 using PeripheralBatteryCompanion.Core;
+using PeripheralBatteryCompanion.Core.Presentation;
 
 namespace PeripheralBatteryCompanion.Windows;
 
@@ -7,74 +8,93 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly Control _dispatcher = new();
     private readonly NotifyIcon _tray;
     private readonly ContextMenuStrip _menu = new();
-    private readonly ToolStripMenuItem _battery = new("Battery: Loading…");
-    private readonly ToolStripMenuItem _reported = new("Last reported: Unknown");
-    private readonly ToolStripMenuItem _status = new("Reading G HUB database…");
-    private readonly ToolStripMenuItem _access = new("Last database access: None");
     private readonly ToolStripMenuItem _refresh = new("Refresh");
+    private readonly BatteryPopupForm _popup = new(); // One instance, retained until application exit.
+    private readonly TrayPanelState _interaction = new();
     private readonly BatteryMonitoringService _monitor = new(new GHubSqliteBatteryProvider());
     private Icon _icon;
     private int? _iconPercentage;
-    private bool _closing;
+    private bool _refreshing;
+    private bool Closing => _interaction.IsExitRequested;
 
     public TrayApplicationContext()
     {
         _dispatcher.CreateControl();
         _icon = BatteryIcon.Create(null);
-        AddLabel("Peripheral Battery Companion");
-        _menu.Items.Add(new ToolStripSeparator());
-        AddLabel("G915 Keyboard");
-        foreach (var item in new[] { _battery, _reported, _status, _access })
-        {
-            item.Enabled = false;
-            _menu.Items.Add(item);
-        }
-        AddLabel("Connectivity: Unknown");
-        _menu.Items.Add(new ToolStripSeparator());
-        AddLabel(BatteryDevice.UnsupportedMouse.Name);
-        AddLabel("Battery: Unknown — Not yet supported");
-        _menu.Items.Add(new ToolStripSeparator());
+        _menu.Items.Add("Open Battery Panel", null, (_, _) =>
+            _dispatcher.BeginInvoke((Action)(() =>
+            {
+                _interaction.OpenPanel();
+                ApplyPanelVisibility();
+            })));
         _menu.Items.Add(_refresh);
-        _menu.Items.Add("Exit", null, async (_, _) => await CloseAsync());
+        _menu.Items.Add("Exit Application", null, async (_, _) => await CloseAsync());
+        _menu.Opening += (_, e) =>
+        {
+            if (Closing) { e.Cancel = true; return; }
+            _interaction.OpenContextMenu();
+            ApplyPanelVisibility();
+        };
         _tray = new NotifyIcon
         {
             Icon = _icon, Visible = true, Text = "G915: Unavailable", ContextMenuStrip = _menu
         };
-        _tray.MouseClick += (_, e) =>
+        _tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) TogglePanel(); };
+        // NotifyIcon suppresses the second MouseClick when Windows classifies it as a double-click.
+        _tray.MouseDoubleClick += (_, e) => { if (e.Button == MouseButtons.Left) TogglePanel(); };
+        _popup.DismissRequested += (_, _) =>
         {
-            if (!_closing && e.Button == MouseButtons.Left) _menu.Show(Cursor.Position);
+            _interaction.DismissPanel();
+            ApplyPanelVisibility();
         };
-        _refresh.Click += async (_, _) =>
-        {
-            _refresh.Enabled = false;
-            try { await _monitor.RefreshAsync(); }
-            catch (OperationCanceledException) { }
-            finally { if (!_closing) _refresh.Enabled = true; }
-        };
+        _popup.RefreshRequested += async (_, _) => await RefreshAsync();
+        _refresh.Click += async (_, _) => await RefreshAsync();
         _monitor.Updated += OnUpdated;
         _monitor.Start();
     }
 
-    private void AddLabel(string text) => _menu.Items.Add(new ToolStripMenuItem(text) { Enabled = false });
+    private void TogglePanel()
+    {
+        _interaction.TogglePanel();
+        ApplyPanelVisibility();
+    }
+
+    private void ApplyPanelVisibility()
+    {
+        if (!Closing && _interaction.IsPanelVisible) _popup.ShowNearTray(Cursor.Position);
+        else _popup.Hide();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (Closing || _refreshing) return;
+        _refreshing = true;
+        _refresh.Enabled = false;
+        _popup.SetRefreshing(true);
+        try { await _monitor.RefreshAsync(); }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            _refreshing = false;
+            if (!Closing)
+            {
+                _refresh.Enabled = true;
+                _popup.SetRefreshing(false);
+            }
+        }
+    }
 
     private void OnUpdated(BatteryMonitoringState state)
     {
-        // Dispose waits for monitoring to stop before destroying this dispatcher.
-        _dispatcher.BeginInvoke((Action)(() => { if (!_closing) Display(state); }));
+        // Shutdown waits for monitoring to stop before destroying this dispatcher.
+        _dispatcher.BeginInvoke((Action)(() => { if (!Closing) Display(state); }));
     }
 
     private void Display(BatteryMonitoringState state)
     {
-        var keyboard = state.Current.Keyboard;
-        var available = keyboard.Availability == BatteryAvailability.Available;
-        var shown = available ? keyboard : state.LastKnownKeyboard;
-        _battery.Text = shown?.Percentage is int percentage
-            ? $"Battery: {percentage}%{(available ? " (last reported)" : " (cached; unavailable)")}"
-            : "Battery: Unavailable";
-        _reported.Text = $"Last reported: {FormatTime(shown?.LastReported)}";
-        _status.Text = keyboard.Status;
-        _access.Text = $"Last database access: {FormatTime(state.LastSuccessfulDatabaseAccess)}";
-        var iconValue = available ? keyboard.Percentage : null;
+        var view = BatteryPanelView.From(state);
+        _popup.Display(view); // Hidden panels update without activation or extra database reads.
+        var iconValue = view.Percentage;
         if (iconValue != _iconPercentage)
         {
             var next = BatteryIcon.Create(iconValue);
@@ -83,17 +103,15 @@ internal sealed class TrayApplicationContext : ApplicationContext
             _icon = next;
             _iconPercentage = iconValue;
         }
-        _tray.Text = available ? $"G915: {keyboard.Percentage}% (last reported)" : "G915: Unavailable";
+        _tray.Text = iconValue.HasValue ? $"G915: {iconValue}% (last reported)" : "G915: Unavailable";
     }
-
-    private static string FormatTime(DateTimeOffset? time) =>
-        time?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown";
 
     private async Task CloseAsync()
     {
-        if (_closing) return;
-        _closing = true;
+        if (Closing) return;
+        _interaction.RequestExit();
         _menu.Enabled = false;
+        ApplyPanelVisibility();
         await _monitor.DisposeAsync();
         _monitor.Updated -= OnUpdated;
         _tray.Visible = false;
@@ -105,6 +123,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (disposing)
         {
             _tray.Dispose();
+            _popup.Dispose();
             _menu.Dispose();
             _icon.Dispose();
             _dispatcher.Dispose();

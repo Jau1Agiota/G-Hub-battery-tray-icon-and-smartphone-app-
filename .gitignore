@@ -7,3 +7,7 @@ TestResults/
 *.db
 *.db-wal
 *.db-shm
+
+# Local verification runner owns this bounded output directory.
+/test-results/
+*.suo
