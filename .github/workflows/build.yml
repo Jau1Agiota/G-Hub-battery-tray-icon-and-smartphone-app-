@@ -1,5 +1,9 @@
-name: Build and test Stage 3
-on: [push, pull_request, workflow_dispatch]
+name: Windows verification
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -10,10 +14,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - run: dotnet restore PeripheralBatteryCompanion.sln --locked-mode
-      - run: dotnet build PeripheralBatteryCompanion.sln -c Debug --no-restore
-      - run: dotnet test tests/PeripheralBatteryCompanion.Tests -c Release --no-restore --logger "trx;LogFileName=stage3.trx"
-      - run: ./scripts/Publish-Windows.ps1
+      - name: Check local runner contracts
+        run: |
+          ./scripts/Test-VerificationRunner.ps1
+          exit $LASTEXITCODE
+        shell: pwsh
+      - name: Restore, build and run all automated tests
+        run: |
+          ./test.ps1 -Release
+          exit $LASTEXITCODE
+        shell: pwsh
+      - name: Publish Windows x64
+        run: ./scripts/Publish-Windows.ps1
         shell: pwsh
       - uses: actions/upload-artifact@v4
         with:
@@ -22,5 +34,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
-          path: tests/**/TestResults/*.trx
+          name: verification-results
+          path: |
+            test-results/latest.log
+            test-results/summary.txt
+            test-results/automated/**/*.trx
+          if-no-files-found: warn

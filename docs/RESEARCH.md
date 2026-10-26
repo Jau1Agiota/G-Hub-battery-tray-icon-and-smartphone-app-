@@ -54,3 +54,9 @@ G HUB's database and observed endpoints are undocumented interfaces. Keys, schem
 Future stages: independently verify G305; then design a securely paired/authenticated LAN API with constrained interfaces and documented firewall behavior; then a Kotlin/Jetpack Compose Android companion for Xiaomi 17T. None is implemented here.
 
 Official technical references: [Microsoft.Data.Sqlite overview](https://learn.microsoft.com/dotnet/standard/data/sqlite/), [async limitations](https://learn.microsoft.com/dotnet/standard/data/sqlite/async), [connection strings](https://learn.microsoft.com/dotnet/standard/data/sqlite/connection-strings), [SQLite read-only WAL requirements](https://sqlite.org/wal.html#read_only_databases), and [NotifyIcon](https://learn.microsoft.com/dotnet/api/system.windows.forms.notifyicon).
+
+## Stage 4.0A: owner-supplied receiver findings
+
+The owner supplied candidate Logitech receiver `VID_046D / PID_C53F`, USB interface `MI_02`, with vendor-defined collections COL01 `FF00:0001`, COL02 `FF00:0002`, and COL03 `FF00:0004`, sharing the same USB parent interface. The G915 uses a separate `046D:C547` receiver, which the inspector excludes. These are supplied experimental findings, not hardware results produced by the cloud task.
+
+The independent [passive capability inspector](G305_HID_INSPECTOR.md) enumerates those candidate interfaces and reads only preparsed capability metadata with zero-access handles. Its output does not independently verify physical parent grouping, expose instance identifiers, identify a battery field, or establish device connectivity. Nonzero feature/output lengths are descriptor facts, not evidence of a usable battery protocol. No feature requests, report writes, live input reads or production provider are part of Stage 4.0A.

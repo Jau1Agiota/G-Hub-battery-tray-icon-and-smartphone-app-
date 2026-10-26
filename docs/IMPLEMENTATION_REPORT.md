@@ -1,4 +1,6 @@
-# Stage 3 implementation report
+# Stage 3 implementation report (historical)
+
+This records the original Stage 3 delivery. See [Stage 3.1 report](STAGE3_1_REPORT.md) for the current popup and local-verification changes.
 
 Branch: `feature/stage3-windows-tray`. The final commit identifier is provided in the implementation response / Git history.
 

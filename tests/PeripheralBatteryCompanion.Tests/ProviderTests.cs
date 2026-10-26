@@ -90,16 +90,57 @@ public sealed class ProviderTests
             insert.ExecuteNonQuery();
         }
         Assert.True(File.Exists(db.Path + "-wal"));
-        var before = File.ReadAllBytes(db.Path + "-wal");
+        // Only this fixture's writer exists, and it is idle during these snapshots.
+        // File.ReadAllBytes uses FileShare.Read, incompatible with SQLite's writable
+        // handle on Windows. Permit normal writer access; do not change SQLite locks.
+        var before = ReadSharedSnapshot(db.Path + "-wal");
+        var databaseBefore = ReadSharedSnapshot(db.Path);
         var provider = new GHubSqliteBatteryProvider(db.Path);
         var first = await provider.ReadAsync(default);
         var second = await provider.ReadAsync(default);
         Assert.Equal(45, first.Keyboard.Percentage);
         Assert.Equal(first.Keyboard, second.Keyboard);
-        Assert.Equal(before, File.ReadAllBytes(db.Path + "-wal"));
+        Assert.Equal(before, ReadSharedSnapshot(db.Path + "-wal"));
+        Assert.Equal(databaseBefore, ReadSharedSnapshot(db.Path));
         using var count = writer.CreateCommand();
         count.CommandText = "SELECT COUNT(*) FROM data";
         Assert.Equal(1L, count.ExecuteScalar());
+
+        // A subsequent commit must still work through the original writer connection.
+        Execute(writer, """UPDATE data SET file = CAST('{"battery/g915/percentage":{"percentage":62,"time":"2026-10-26T13:42:42Z"}}' AS BLOB) WHERE _id = 1""");
+        Assert.Equal(62, (await provider.ReadAsync(default)).Keyboard.Percentage);
+    }
+
+    [Fact]
+    public void SnapshotPermitsAnExistingWritableHandleAndReleasesItsOwnHandle()
+    {
+        using var db = new TemporaryDatabase();
+        var path = db.Path + "-wal";
+        var expected = Encoding.UTF8.GetBytes("synthetic sharing-mode fixture");
+        using (var writer = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite))
+        {
+            writer.Write(expected);
+            writer.Flush();
+            // Reproduce the original helper's Windows sharing violation explicitly.
+            if (OperatingSystem.IsWindows()) Assert.Throws<IOException>(() => File.ReadAllBytes(path));
+            Assert.Equal(expected, ReadSharedSnapshot(path));
+            Assert.Equal(expected.Length, writer.Position);
+            writer.WriteByte(42); // Snapshot did not close/reposition/block the writer.
+            writer.Flush();
+            Assert.Equal(expected.Append((byte)42).ToArray(), ReadSharedSnapshot(path));
+        }
+        // Both snapshot handles have closed: exclusive reopen and normal cleanup work.
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.Equal(expected.Length + 1, exclusive.Length);
+    }
+
+    private static byte[] ReadSharedSnapshot(string path)
+    {
+        using var source = new FileStream(path, FileMode.Open, FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete);
+        using var snapshot = new MemoryStream();
+        source.CopyTo(snapshot);
+        return snapshot.ToArray();
     }
 
     [Theory]

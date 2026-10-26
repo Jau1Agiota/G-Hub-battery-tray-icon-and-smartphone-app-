@@ -13,10 +13,7 @@ internal static class BatteryIcon
         using var bitmap = new Bitmap(32, 32);
         using var graphics = Graphics.FromImage(bitmap);
         graphics.Clear(Color.Transparent);
-        var color = percentage switch
-        {
-            > 50 => Color.LimeGreen, > 20 => Color.Gold, >= 0 => Color.IndianRed, _ => Color.Gray
-        };
+        var color = BatteryLevelBar.GetColor(percentage);
         using var outline = new Pen(color, 3);
         using var fill = new SolidBrush(color);
         graphics.DrawRectangle(outline, 3, 7, 24, 18);
