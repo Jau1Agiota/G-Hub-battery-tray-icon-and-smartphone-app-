@@ -89,6 +89,12 @@ A new **Windows-only** test project, `PeripheralBatteryCompanion.Windows.Tests`,
 
 These tests do not establish that the actual system-tray click/focus sequence or physical DPI transitions work. Complete the manual checks below and share the full Windows Release summary before calling the fixes validated.
 
+## Stage 4.0A inspector tests
+
+The new `HidInspectorTests` preserve all existing tests and exercise the independent diagnostic project's filter, formatter, partial/error outcomes, redaction, native structure sizes and metadata-only import list using synthetic data. No HID device is opened by these tests. `test.ps1` includes them automatically through the existing hardware-independent test project; its behavior and clipboard implementation are unchanged.
+
+For actual Windows/receiver metadata and a sanitized clipboard report, separately run `.\diagnose-g305.ps1 -CopySummary`. The execution-policy alternative and the passive API contract are in [G305_HID_INSPECTOR.md](G305_HID_INSPECTOR.md). A passing synthetic test run is not evidence of successful native HID access.
+
 ## Test-runner contract checks
 
 The runner has a small, framework-free smoke harness:

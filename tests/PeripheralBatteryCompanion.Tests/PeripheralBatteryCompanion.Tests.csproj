@@ -5,4 +5,5 @@
 <PackageReference Include="xunit" Version="2.9.3" />
 <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5"><PrivateAssets>all</PrivateAssets></PackageReference>
 <ProjectReference Include="../../src/PeripheralBatteryCompanion.Core/PeripheralBatteryCompanion.Core.csproj" />
+<ProjectReference Include="../../src/PeripheralBatteryCompanion.G305Inspector/PeripheralBatteryCompanion.G305Inspector.csproj" />
 </ItemGroup></Project>

@@ -143,6 +143,9 @@
         "dependencies": {
           "Microsoft.Data.Sqlite": "[10.0.14, )"
         }
+      },
+      "peripheralbatterycompanion.g305inspector": {
+        "type": "Project"
       }
     }
   }

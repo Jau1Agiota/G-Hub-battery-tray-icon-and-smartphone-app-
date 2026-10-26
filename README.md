@@ -20,6 +20,22 @@ Debug builds use portable symbols and disable optimization. Open **Test → Test
 
 The runner restores locked dependencies, builds, runs all automated tests, saves bounded logs in gitignored `test-results/`, and copies an actual result/failure summary to the clipboard. It also supports Debug (default), `-BuildOnly`, and `-Verbose`. See [testing instructions and the Windows tray checklist](docs/TESTING.md). Stage 3.1.1 popup-width and WAL-test fixes are awaiting the owner's full Windows regression and native interaction validation. The runner now also discovers the Windows-only form layout tests.
 
+## Passive G305 capability diagnostics
+
+Stage 4.0A adds a separate, metadata-only HID inspector for the candidate `046D:C53F / MI_02 / COL01-COL03` receiver interfaces. It excludes the G915 `046D:C547` receiver and does not add battery reporting to the tray app.
+
+```powershell
+.\diagnose-g305.ps1 -CopySummary
+```
+
+If execution policy blocks the script:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-g305.ps1 -CopySummary
+```
+
+The report lists actual usage IDs, report byte lengths and capability counts, omitting instance identifiers from terminal and clipboard. Device handles use zero desired access; there are no HID report read/write commands or broader-access fallbacks. See [scope, errors, and local validation](docs/G305_HID_INSPECTOR.md). Hardware verification remains local.
+
 ## Build and try
 
 On Windows 11 x64 with the .NET 10.0.402 SDK (or a newer 10.0.4xx patch):
@@ -48,4 +64,4 @@ There is no Android app, LAN API, WebSocket integration, startup registration, o
 
 MIT is proposed for original project code, **pending repository-owner approval**. No project `LICENSE` has been added, and no license grant for original code is implied. Resolve this before public distribution. Dependency licenses are separate and included in the notices.
 
-The app reads only the local battery entry. It sends no telemetry, opens no network listeners, and writes no logs or database copies. Do not contribute real G HUB databases, personal paths, device identifiers, or secrets. Tests use synthetic JSON and temporary databases only.
+The tray app reads only the local battery entry. It sends no telemetry, opens no network listeners, and writes no logs or database copies. Do not contribute real G HUB databases, personal paths, device identifiers, or secrets. Tests use synthetic JSON and temporary databases only.
