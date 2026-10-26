@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PeripheralBatteryCompanion.Core/PeripheralBatteryCompanion.Core.csproj" />
+    <Project Path="src/PeripheralBatteryCompanion.Windows/PeripheralBatteryCompanion.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj" />
+  </Folder>
+</Solution>
