@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Peripheral Battery Companion": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
