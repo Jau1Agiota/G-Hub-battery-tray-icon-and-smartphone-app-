@@ -1,4 +1,4 @@
-# Stage 4.0C implementation report: ready for payload review, not hardware-validated
+# Stage 4.0C implementation report: physical comparison passed; wire verification pending
 
 Branch: `feature/stage4-0c-hyperx-battery-poc`, based on `d7a496b` (the existing Stage 4.0B branch; origin/main still contained Stage 4.0A when this task started). Final commit is provided in the delivery response / Git history. No default-branch merge is performed.
 
@@ -27,19 +27,15 @@ Supplied hardware evidence: 62-byte output prefix 66/89, responses 66 89 0F 1B 4
 - PowerShell parser: **passed**. Actual CLI and launcher preview: **passed**, payload checked byte-for-byte as 62 bytes without HID access. Invalid flag combinations and Linux/platform guards: **passed**, no device I/O. Final preview explicitly flags the zero-tail assumption.
 - The unsafe native I/O implementation was statically reviewed against SDK signatures, buffer ownership, callback/API-return races and cancellation. This is not proof of real driver behavior. No active invocation was executed on hardware, no full outgoing USB packet equivalence was claimed, and remote CI has not been observed.
 
-## Review handoff: only the preview command now
+## Owner validation update (2026-10-27)
 
-Once the branch is checked out, the next owner command is hardware-free:
+The owner inspected the original `hyperx-battery-66.pcap` with TShark. Frame 9 confirmed SET_REPORT 21/09, wValue 0266, wIndex 0003, wLength 62, and the complete body `66 89` plus exactly 60 zero bytes. Other captured initialization commands remain excluded.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\hyperx-battery-poc.ps1 -PreviewRequest -CopySummary
-```
+The owner then executed the isolated POC on the physical device. It returned `CandidateReceived`, 56%, with response prefix `66 89 0E E4 38` followed by zeros. NGENUITY opened afterward also displayed 56%. This establishes a successful independent comparison for that observation. It does not establish the POC's exact USB transfer, response freshness in other states, charging semantics, long-running cleanup or disconnection behavior. Bytes 2/3 remain uninterpreted. The cloud environment did not perform this hardware test or inspect a newly supplied capture.
 
-Paste the preview and confirm the entire 60-zero tail against the original capture. **Wait for review before a hardware request.** Do not infer permission to retry from an error or timeout. Actual physical commands will be supplied one at a time, awaiting output.
+The build/test results above describe implementation-time verification; no new build or test run is needed for this documentation-only update. Earlier pending-hardware statements above describe the implementation handoff, superseded only by the specific owner results recorded here.
 
-The [technical guide and physical-device checklist](HYPERX_BATTERY_POC.md) explain exact bytes, SET_REPORT setup/data verification, NGENUITY/helper closure, repeated-percentage comparisons, unplug/off/absent/timeout tests and audio checks. Initial wire validation must confirm 21/09, wValue 0266, wIndex 3, wLength 62 and the complete body. Address 20, root hub assignment and endpoint 84 are supplied observations, not hardcoded target selectors.
-
-After actual request/capture agreement, compare the candidate against NGENUITY reopened **after** stopping that capture. Only later successful physical validation can justify extracting a provider, polling, NGENUITY coexistence or tray integration. None is included here.
+Next: the [controlled USBPcap procedure](HYPERX_USBPCAP_VERIFICATION.md), one request and result review at a time. POC executable, launchers and production behavior remain unchanged. No production integration or polling is authorized by this update. After wire verification, plan conservative polling, unavailable/disconnected semantics, cancellation and resource-lifetime validation separately.
 
 ## Files changed
 

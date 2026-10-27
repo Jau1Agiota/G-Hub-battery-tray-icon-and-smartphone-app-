@@ -1,6 +1,6 @@
 # Stage 4.0C: isolated active HyperX battery proof of concept
 
-**Implementation/build only; no independent active hardware request has been verified.** The default remains passive inspection. Production battery monitoring, G305/G915 providers, tray UI and polling are unchanged.
+**Owner-reported physical validation succeeded: the isolated POC returned 56%, matching NGENUITY opened afterward. Exact POC on-wire transport verification remains pending.** The default remains passive inspection. Production battery monitoring, G305/G915 providers, tray UI and polling are unchanged.
 
 ## Sources reviewed and evidence limits
 
@@ -26,7 +26,7 @@ The second capture explicitly matched the `66 89` outgoing request and incoming 
 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ```
 
-**Review assumption:** the handoff abbreviates the captured outgoing packet with an ellipsis. The implementation proposes zero padding for all 60 trailing bytes. Confirm that the **full original captured request** has exactly that tail before approving transmission; full request-packet equivalence has not been verified by cloud code or these unit tests.
+**Payload verified by the owner:** TShark inspection of frame 9 in the original `hyperx-battery-66.pcap` confirmed all 62 bytes: `66 89` followed by exactly 60 zero bytes. The original SET_REPORT setup fields were 21/09, wValue 0266, wIndex 0003, wLength 62. This verifies the reference request, not the transfer emitted by the POC; that separate capture remains pending.
 
 The only output buffer builder creates this exact packet afresh. There is no parameter for report IDs, commands, arbitrary bytes, VID/PID, endpoint, device address or timeout. Other observed initialization commands 8F/82/84/85/86/8A/83 are not sent. No feature request, initializer, retry, flush, queue drain or polling loop is implemented.
 
@@ -72,7 +72,7 @@ Cancellation does not prove non-delivery. A timeout/output error may occur after
 
 Only an exactly 62-byte response with byte 0 `66`, byte 1 `89`, and byte 4 in 0–100 yields a **candidate** percentage. Unknown fields are not constrained or interpreted. Malformed lengths, other IDs/commands and out-of-range values are rejected without displaying/interpreting an invalid report. A validated response alone is displayed as bounded 62-byte hex; there are no file logs or arbitrary input dumps.
 
-A new file handle and pre-armed read reduce some stale-data risks, but matching headers alone cannot prove correlation/freshness. Unknown bytes 2/3 are not used as invented transaction counters. Treat the candidate as unvalidated until captured request/response and the independent NGENUITY comparison agree. Headset-off/disconnected status responses might need further characterization even when byte 4 happens to fall in range.
+A new file handle and pre-armed read reduce some stale-data risks, but matching headers alone cannot prove correlation/freshness. Unknown bytes 2/3 are not used as invented transaction counters. The owner independently confirmed one POC result against NGENUITY (56%); captured POC request/response correlation and wire equivalence still require verification. Headset-off/disconnected status responses might need further characterization even when byte 4 happens to fall in range.
 
 Reports use fixed status names and numeric Win32/HID status codes without interface instance IDs or raw exception messages. Status distinguishes refusal, timeout, cancellation, invalid response and validated candidate. Request-attempted means the coordinator requested submission, not proof of a physical USB write; an additional native gate/cancellation can still refuse it. Output-completed means the API operation completed, not independently verified wire equivalence.
 
@@ -80,7 +80,9 @@ Exit codes: 0 candidate received (or successful passive/preview); 2 unsupported 
 
 ## Physical-device checklist: one command at a time
 
-**Phase A, current step:** review the exact preview and confirm the entire zero tail against the original capture. Build and simulated tests are not hardware validation. Preserve the temporary inspector/backup and ordinary passive launcher as fallbacks.
+**Phase A, completed by the owner:** full reference payload verified; isolated POC returned `CandidateReceived`, 56%, with response prefix `66 89 0E E4 38` followed by zeros. NGENUITY opened after the test also displayed 56%. This is one successful physical comparison, not verification of the POC USB setup fields or disconnected/freshness semantics. Preserve the temporary inspector/backup and ordinary passive launcher as fallbacks.
+
+**Current step:** follow the [USBPcap verification procedure](HYPERX_USBPCAP_VERIFICATION.md). Keep the POC and production application unchanged until transport verification is reviewed.
 
 **Phase B, only after that review:**
 
