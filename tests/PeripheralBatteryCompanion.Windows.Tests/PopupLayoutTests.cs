@@ -143,12 +143,12 @@ public sealed class PopupLayoutTests
             PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 4, "Paused after failures"));
         var controls = Descendants(form).ToArray();
         Assert.True(controls.OfType<CheckBox>().Single(box => box.Text.StartsWith("Automatic HyperX")).Checked);
-        Assert.Equal("300 seconds", controls.OfType<ComboBox>().Single().SelectedItem);
+        Assert.Equal("300 seconds", controls.OfType<ComboBox>().Single(combo => combo.AccessibleName != "Dashboard theme").SelectedItem);
         Assert.True(controls.OfType<Button>().Single(button => button.Text == "Resume HyperX monitoring").Enabled);
         Assert.Contains(controls.OfType<Label>(), label => label.Text.Contains("Next check: None"));
         Assert.Equal(0, edits); Assert.Equal(0, queries);
         form.SetHyperXQuerying(true);
-        Assert.False(controls.OfType<ComboBox>().Single().Enabled);
+        Assert.False(controls.OfType<ComboBox>().Single(combo => combo.AccessibleName != "Dashboard theme").Enabled);
         Assert.True(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Enabled);
     });
 
@@ -178,7 +178,7 @@ public sealed class PopupLayoutTests
         var height = form.Height;
         form.SetHyperXAdvancedVisible(true); Application.DoEvents();
         Assert.True(form.HyperXAdvancedVisible);
-        Assert.Equal("60 seconds", controls.OfType<ComboBox>().Single().SelectedItem);
+        Assert.Equal("60 seconds", controls.OfType<ComboBox>().Single(combo => combo.AccessibleName != "Dashboard theme").SelectedItem);
         Assert.True(controls.OfType<CheckBox>().Single(box => box.Text == "Experimental HyperX queries").Checked);
         Assert.False(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Visible);
         Assert.False(controls.OfType<Button>().Single(button => button.Text == "Resume HyperX monitoring").Visible);
@@ -205,6 +205,51 @@ public sealed class PopupLayoutTests
         AssertReadableAndOnScreen(form); AssertControlsReachable(form);
         form.SetHyperXAdvancedVisible(false); Application.DoEvents();
         AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+    });
+
+    [Theory]
+    [InlineData(DashboardThemeMode.System)] [InlineData(DashboardThemeMode.Dark)] [InlineData(DashboardThemeMode.Light)]
+    public void DashboardThemesAndSettingsKeepCardsAndMonitoringChoice(DashboardThemeMode mode) => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var edits = 0; var requests = 0;
+        form.HyperXMonitoringRequested += (_, _) => edits++;
+        form.HyperXQueryRequested += (_, _) => requests++;
+        form.Display(new(38, "Battery: 38%", DateTimeOffset.UtcNow, ""));
+        form.DisplayHyperXMonitoring(new(true, 300, false, false, null, DateTimeOffset.UtcNow.AddSeconds(300),
+            PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 0, "Waiting"));
+        form.DisplayHyperXCompact(new("Battery estimate: 50%", 50, "Updated: 18:25", "Auto monitoring · every 300s", "",
+            HyperXCompactView.Uncertainty, "Estimated; source ambiguous", "Full timestamp"));
+        form.SelectTheme(mode);
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        Assert.Equal(mode, form.ThemeMode);
+        var controls = Descendants(form).ToArray();
+        Assert.Equal(3, controls.OfType<DashboardCard>().Count());
+        Assert.DoesNotContain(controls.OfType<ComboBox>(), combo => combo.Visible);
+        Assert.DoesNotContain(controls.OfType<CheckBox>(), box => box.Visible);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.SetHyperXAdvancedVisible(true); Application.DoEvents();
+        Assert.True(controls.OfType<ComboBox>().Single(combo => combo.AccessibleName == "Dashboard theme").Visible);
+        Assert.Equal("300 seconds", controls.OfType<ComboBox>().Single(combo => combo.AccessibleName != "Dashboard theme").SelectedItem);
+        form.SetHyperXAdvancedVisible(false); Application.DoEvents();
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        Assert.Equal(0, edits); Assert.Equal(0, requests);
+    });
+
+    [Fact]
+    public void NativeTooltipAcceptsWorstCaseCachedStateWithoutTruncation() => OnSta(() =>
+    {
+        var keyboard = new PeripheralBatteryCompanion.Core.BatteryMonitoringState(
+            new(new("G915", null, null, PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable, ""), null),
+            new("G915", 100, null, PeripheralBatteryCompanion.Core.BatteryAvailability.Available, ""), null);
+        var headset = new PeripheralBatteryCompanion.Core.BatteryDevice("HyperX", 100, null,
+            PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable, "", PeripheralBatteryCompanion.Core.BatteryObservationState.Stale);
+        var text = TrayTooltipView.Build(keyboard, headset);
+        using var icon = new NotifyIcon(); // Not visible: does not add a notification-area icon.
+        icon.Text = text;
+        Assert.Equal(text, icon.Text); Assert.True(icon.Text.Length <= TrayTooltipView.MaximumLength);
+        Assert.Contains("~100% stale", icon.Text);
     });
 
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)

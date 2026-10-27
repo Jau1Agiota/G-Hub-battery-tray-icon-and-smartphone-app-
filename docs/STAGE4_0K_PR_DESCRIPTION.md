@@ -1,0 +1,13 @@
+# Stage 4.0K: native battery dashboard, themes and tray hover readings
+
+The tray popup currently presents flat device text and its hover tooltip only shows G915. This change recreates the supplied concept as a compact native WinForms dashboard: rounded device cards, local vector glyphs, antialiased battery bars, coherent spacing and System/Dark/Light themes. G915 retains last-reported semantics, G305 stays unsupported/neutral, and HyperX remains an estimate with stale/receiver/error distinctions and source-uncertainty details. No Online/charging claims are introduced.
+
+Normal view hides engineering controls. Header gear, lower Advanced settings and tray menu open the retained settings panel, including diagnostics, session acknowledgement, automatic mode/interval, manual query and applicable Cancel/Resume. Theme preference is a separate file and cannot reset monitoring preferences. System theme/high contrast notifications update only appearance.
+
+The pure cached-state native tooltip displays G915, HyperX (`~` estimate marker) and G305 within 63 characters, including stale/Unknown states. Existing state updates refresh it on the UI thread and identical strings skip native work. Hover never starts I/O. Existing icon bitmap/meaning, tray click/lifetime and Refresh behavior are preserved.
+
+Base: latest main `14ad74c` already contains F/H/I through PR #4; no Stage J branch/implementation or open dependency was found. This UI stage preserves main's default-off/session-preflight policy instead of inventing default-on behavior. Existing saved monitoring preference/cadence, protocol, NGENUITY rules, native helper supervision, backoff and Logitech readers remain unchanged.
+
+Validation: Release solution/win-x64 build passed with zero warnings/errors; **333 portable tests passed, 0 failed/skipped**. **20 Windows-specific cases compiled but were not run on Linux**, including new settings/theme/card tests and worst-case native tooltip assignment. Existing interval assertions select the interval control explicitly now that a theme selector also exists. Debug self-contained win-x64 artifact includes the isolated helper; run the static artifact gate. No physical battery queries, Windows screenshots or runtime verification are claimed.
+
+Outstanding owner validation: real 100/125/150/200% DPI/text scaling, light/dark/high-contrast controls, small/multiple monitors, keyboard/screen-reader/focus behavior, native tooltip hover/truncation, unchanged device values/monitoring preferences and clean tray exit. See `docs/STAGE4_0K_REPORT.md` for the full implementation and checklist. Keep draft until review; do not merge/delete branches automatically.

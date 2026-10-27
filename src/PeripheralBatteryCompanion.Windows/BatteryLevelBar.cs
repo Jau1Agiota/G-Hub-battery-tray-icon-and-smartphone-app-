@@ -6,6 +6,8 @@ internal sealed class BatteryLevelBar : Control
 {
     private int? _percentage;
     private bool _estimateMode;
+    private Color _track = SystemColors.Control, _border = Color.Gray;
+    private bool _highContrast;
     public BatteryLevelBar()
     {
         DoubleBuffered = true;
@@ -43,15 +45,24 @@ internal sealed class BatteryLevelBar : Control
         _ => Color.Gray
     };
 
+    public void SetPalette(Color track, Color border, bool highContrast)
+    {
+        _track = track; _border = border; _highContrast = highContrast; Invalidate();
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        var border = new Rectangle(0, 0, Math.Max(0, Width - 1), Math.Max(0, Height - 1));
-        var color = _estimateMode && _percentage.HasValue ? Color.Gold : GetColor(_percentage);
-        using var outline = new Pen(color);
-        e.Graphics.DrawRectangle(outline, border);
-        var fillWidth = _percentage is int number ? (Width - 4) * number / 100 : _estimateMode ? 0 : Width - 4;
+        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        var bounds = new RectangleF(.5f, .5f, Math.Max(1, Width - 1), Math.Max(1, Height - 1));
+        using var outline = DashboardDrawing.Rounded(bounds, Height / 2f);
+        using var track = new SolidBrush(_track); using var border = new Pen(_border);
+        e.Graphics.FillPath(track, outline); e.Graphics.DrawPath(border, outline);
+        var fillWidth = _percentage is >= 0 and <= 100 ? Math.Max(0, Width - 4) * _percentage.Value / 100f : 0;
+        if (fillWidth <= 0 || Height <= 4) return;
+        var color = _highContrast ? SystemColors.Highlight : _estimateMode ? Color.Gold : GetColor(_percentage);
         using var fill = new SolidBrush(color);
-        if (fillWidth > 0 && Height > 4) e.Graphics.FillRectangle(fill, 2, 2, fillWidth, Height - 4);
+        using var path = DashboardDrawing.Rounded(new RectangleF(2, 2, fillWidth, Height - 4), (Height - 4) / 2f);
+        e.Graphics.FillPath(fill, path);
     }
 }
