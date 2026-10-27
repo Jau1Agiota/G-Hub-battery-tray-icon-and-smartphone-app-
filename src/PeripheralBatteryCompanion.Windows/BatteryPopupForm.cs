@@ -8,6 +8,15 @@ internal sealed class BatteryPopupForm : Form
     private readonly Label _reported = MakeLabel("Last reported: Unknown");
     private readonly Label _status = MakeLabel("Reading G HUB…");
     private readonly BatteryLevelBar _level = new();
+    private readonly Label _hyperXReceiver = MakeLabel("Receiver: Unknown; headset connectivity: Unknown");
+    private readonly Label _hyperXBattery = MakeLabel("Battery: Unknown");
+    private readonly Label _hyperXObserved = MakeLabel("Last observed: Never");
+    private readonly Label _hyperXStatus = MakeLabel("Metadata inspection pending; no battery query.");
+    private readonly Label _hyperXBlocker = MakeLabel(PeripheralBatteryCompanion.Core.HyperXBatteryProvider.LifetimeBlocker);
+    private readonly CheckBox _hyperXExperimental = new() { Text = "Experimental HyperX queries", AutoSize = true };
+    private readonly Button _hyperXQuery = new() { Text = "Query battery (experimental)", AutoSize = true, Enabled = false };
+    private bool _displayingHyperX;
+    private string _hyperXDiagnostics = "HyperX: no inspection yet; no battery query.";
     private readonly Button _refresh = new() { Text = "Refresh", AutoSize = true };
     private readonly System.Windows.Forms.Timer _dismissTimer = new() { Interval = 50 };
     private readonly Font _headingFont;
@@ -17,6 +26,8 @@ internal sealed class BatteryPopupForm : Form
 
     public event EventHandler? DismissRequested;
     public event EventHandler? RefreshRequested;
+    public event Action<bool>? HyperXOptInRequested;
+    public event EventHandler? HyperXQueryRequested;
 
     public BatteryPopupForm()
     {
@@ -57,6 +68,26 @@ internal sealed class BatteryPopupForm : Form
         Add(new Label { Text = "G305 Mouse", Font = _headingFont, AutoSize = true });
         Add(MakeLabel("Battery: Unknown"));
         Add(MakeLabel("Battery monitoring is not yet supported."));
+        Add(new Label { Text = "HyperX Cloud III Wireless", Font = _headingFont, AutoSize = true });
+        Add(_hyperXReceiver);
+        Add(_hyperXBattery);
+        Add(_hyperXObserved);
+        Add(_hyperXStatus);
+        Add(_hyperXExperimental);
+        Add(_hyperXQuery);
+        Add(_hyperXBlocker);
+        var copyHyperX = new Button { Text = "Copy HyperX diagnostics", AutoSize = true };
+        Add(copyHyperX);
+        copyHyperX.Click += (_, _) =>
+        {
+            try { Clipboard.SetText(_hyperXDiagnostics); }
+            catch (System.Runtime.InteropServices.ExternalException) { _hyperXStatus.Text = "Clipboard unavailable; no query attempted."; }
+        };
+        _hyperXExperimental.CheckedChanged += (_, _) =>
+        {
+            if (!_displayingHyperX) HyperXOptInRequested?.Invoke(_hyperXExperimental.Checked);
+        };
+        _hyperXQuery.Click += (_, _) => HyperXQueryRequested?.Invoke(this, EventArgs.Empty);
         var actions = new FlowLayoutPanel { AutoSize = true, WrapContents = true, Margin = Padding.Empty };
         var close = new Button { Text = "Close", AutoSize = true };
         actions.Controls.Add(_refresh);
@@ -97,6 +128,22 @@ internal sealed class BatteryPopupForm : Form
         _status.Text = view.StatusText;
         _status.Visible = view.StatusText.Length > 0;
         _level.SetPercentage(view.Percentage);
+        if (Visible) PositionNearTray();
+    }
+
+    public void DisplayHyperX(HyperXPanelView view)
+    {
+        _hyperXReceiver.Text = view.ReceiverText;
+        _hyperXBattery.Text = view.BatteryText;
+        _hyperXObserved.Text = view.ObservedText;
+        // Full sanitized stage/error details are copied only on an explicit diagnostics click.
+        _hyperXStatus.Text = string.Join(Environment.NewLine, view.Details.Split('\n').Take(2));
+        _hyperXDiagnostics = "HyperX Cloud III Wireless (03F0:05B7 / MI_03 / COL01 / FF13:0001)\n" + view.ReceiverText + "\n" + view.BatteryText + "\n" + view.ObservedText + "\n" + view.Details;
+        _hyperXBlocker.Text = view.QueryBlocker;
+        _hyperXQuery.Enabled = view.CanQuery;
+        _displayingHyperX = true;
+        try { _hyperXExperimental.Checked = view.ExperimentalEnabled; }
+        finally { _displayingHyperX = false; }
         if (Visible) PositionNearTray();
     }
 

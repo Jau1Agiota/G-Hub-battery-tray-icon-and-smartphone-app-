@@ -107,3 +107,7 @@ Linux can compile the solution and execute the hardware-independent suite, but c
 ## Stage 4.0C boundary
 
 No input capture or decoding is implemented. After actual Windows hardware results, any proposed unsolicited-report capture must be separately reviewed, bounded, non-invasive and opt-in. Battery decoding must be verified against an independent reference before any production monitoring/tray integration. Declared capabilities alone are insufficient evidence to begin that work automatically.
+
+## Shared metadata extraction in final integration
+
+The executable name, closed profile selectors and launcher behavior remain unchanged. Passive implementation types now reside in the HidMetadata class library with their original namespace, so the self-contained tray can share them without referencing the inspector executable. No additional report API or active behavior was added to this inspector. See [production integration boundaries](HYPERX_INTEGRATION.md).

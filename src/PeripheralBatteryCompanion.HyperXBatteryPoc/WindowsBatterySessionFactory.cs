@@ -9,15 +9,13 @@ public static class HyperXReceiverSelection
 {
     public static string SelectSinglePath(IEnumerable<string> paths)
     {
-        var matches = paths.Where(path => ReceiverFilter.TryMatch(path, HidInspectionTarget.HyperX, out var collection) &&
-            collection == ReceiverCollection.Col01).Distinct(StringComparer.OrdinalIgnoreCase).Take(2).ToArray();
+        var matches = HyperXCollectionRules.TargetPaths(paths);
         if (matches.Length == 0) throw new AttemptRefusedException(AttemptStatus.NoReceiver);
         if (matches.Length > 1) throw new AttemptRefusedException(AttemptStatus.AmbiguousReceiver);
         return matches[0];
     }
 
-    public static bool HasExpectedCapabilities(HidCapabilities caps) => caps.UsagePage == 0xFF13 && caps.Usage == 1 &&
-        caps.InputReportBytes == 62 && caps.OutputReportBytes == 62 && caps.FeatureReportBytes == 0;
+    public static bool HasExpectedCapabilities(HidCapabilities caps) => HyperXCollectionRules.ExpectedCapabilities(caps);
 }
 
 [SupportedOSPlatform("windows")]

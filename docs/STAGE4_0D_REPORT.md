@@ -26,3 +26,7 @@ No production provider/Core/Windows/tray/Android change, no original inspector s
 ## Owner handoff
 
 Review [coexistence risks, exact command, interpretation and rollback](HYPERX_NGENUITY_COEXISTENCE.md) first. Physical execution is deferred. After owner review, one approved invocation may be made with NGENUITY/helper operating normally; avoid manual refresh. Stop on audio/NGENUITY disruption, reset or unexpected activity; no automatic retry or permission fallback. Paste sanitized result and observations, then wait. A matching percentage is consistency, not proof of unique correlation. Further active trials/capture repeats require fresh approval; production integration requires separate reliability testing and design review.
+
+## Subsequent owner result and consolidated integration
+
+The Stage 4.0E briefing reports one successful physical active coexistence trial on 8ca502e: 56% candidate, exit 0, 77.5 ms, NGENUITY/audio nominal afterward. This supersedes the implementation-time pending-hardware state for that one observation; response ownership remains ambiguous. No new Codex-run hardware test occurred. The [final integration](HYPERX_INTEGRATION.md) adds production metadata/state/UI with active native queries still blocked by the lifetime gate, not automatic polling.

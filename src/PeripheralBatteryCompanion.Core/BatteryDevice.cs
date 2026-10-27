@@ -4,7 +4,9 @@ public enum BatteryAvailability { Available, Unavailable, NotSupported }
 
 public sealed record BatteryDevice(
     string Name, int? Percentage, DateTimeOffset? LastReported,
-    BatteryAvailability Availability, string Status)
+    BatteryAvailability Availability, string Status,
+    BatteryObservationState ObservationState = BatteryObservationState.Unknown,
+    ReceiverPresence Receiver = ReceiverPresence.Unknown, string Source = "")
 {
     // Stored battery data cannot independently establish connectivity.
     public string Connectivity => "Unknown";
