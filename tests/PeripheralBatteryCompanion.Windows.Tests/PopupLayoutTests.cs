@@ -73,6 +73,44 @@ public sealed class PopupLayoutTests
         }
     });
 
+    [Fact]
+    public void HyperXReceiverAndBatteryRemainSeparateAndQueryIsBlockedAfterOptIn() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        form.DisplayHyperX(new("Receiver: Detected; headset connectivity: Unknown", "Battery: Unknown",
+            "Last observed: Never", "Receiver detected; no battery query.", true, false,
+            PeripheralBatteryCompanion.Core.HyperXBatteryProvider.LifetimeBlocker));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2));
+        Application.DoEvents();
+        AssertReadableAndOnScreen(form);
+        var controls = Descendants(form).ToArray();
+        Assert.Contains(controls.OfType<Label>(), label => label.Text == "HyperX Cloud III Wireless");
+        Assert.Contains(controls.OfType<Label>(), label => label.Text.Contains("headset connectivity: Unknown"));
+        Assert.True(controls.OfType<CheckBox>().Single().Checked);
+        Assert.False(controls.OfType<Button>().Single(button => button.Text == "Query battery (experimental)").Enabled);
+        Assert.DoesNotContain(typeof(BatteryPopupForm).Assembly.GetReferencedAssemblies(),
+            assembly => assembly.Name == "PeripheralBatteryCompanion.HyperXBatteryPoc");
+        AssertControlsReachable(form);
+    });
+
+    [Fact]
+    public void HyperXStaleCandidateWrapsAndDoesNotChangeKeyboardDisplay() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        form.Display(new(45, "Battery: 45%", DateTimeOffset.UtcNow, ""));
+        form.DisplayHyperX(new("Receiver: Absent; headset connectivity: Unknown", "Battery: Stale; last candidate 56% (not current)",
+            "Last observed: previous observation", "Receiver not observed.\nSanitized diagnostics.", false, false,
+            PeripheralBatteryCompanion.Core.HyperXBatteryProvider.LifetimeBlocker));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2));
+        Application.DoEvents();
+        AssertReadableAndOnScreen(form);
+        Assert.Contains(Descendants(form).OfType<Label>(), label => label.Text == "Battery: 45%");
+        Assert.Contains(Descendants(form).OfType<Label>(), label => label.Text.Contains("not current"));
+        AssertControlsReachable(form);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;

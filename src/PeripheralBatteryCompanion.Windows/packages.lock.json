@@ -58,6 +58,9 @@
         "dependencies": {
           "Microsoft.Data.Sqlite": "[10.0.14, )"
         }
+      },
+      "peripheralbatterycompanion.hidmetadata": {
+        "type": "Project"
       }
     },
     "net10.0-windows7.0/win-x64": {

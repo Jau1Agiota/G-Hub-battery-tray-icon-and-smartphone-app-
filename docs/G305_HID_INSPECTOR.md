@@ -2,6 +2,8 @@
 
 This is a separate, one-shot Windows diagnostic, not a battery provider. It uses original implementation code and standard Microsoft SetupAPI/HID APIs. It does not use G HUB, its SQLite database, third-party G HUB integrations, or Logitech protocol commands. It has no NuGet/runtime package dependency beyond .NET 10 and Windows system libraries.
 
+Stage 4.0B reuses this project for a fixed [HyperX Cloud III Wireless profile](HYPERX_HID_INSPECTOR.md). `diagnose-g305.ps1` is unchanged, the executable still defaults to G305, and the scope described below remains the G305 scope. Native APIs and zero-access/shared-open behavior are common to both profiles.
+
 ## Run and share
 
 From the checkout on Windows 11, using an ordinary user PowerShell terminal with the SDK from `global.json` available:
@@ -22,7 +24,7 @@ For PowerShell 7, replace `powershell.exe` with `pwsh.exe`. This selects policy 
 
 Paste the copied report, including errors or missing collections. Both terminal and clipboard deliberately omit the opaque interface instance segment, which can contain persistent device identifiers. The real interface path is obtained locally from SetupAPI and passed only to CreateFile; it is not saved, logged or copied. There is no raw-path/report-dump switch. Compiler/SDK failure summaries also redact checkout/profile path prefixes and obvious credentials in URLs. No diagnostic log files are created; only ordinary gitignored build outputs are produced.
 
-The standalone framework-dependent build is in `src/PeripheralBatteryCompanion.G305Inspector/bin/Release/net10.0/`. It is separate from the tray application's published ZIP. Direct execution is possible with `dotnet <path-to-PeripheralBatteryCompanion.G305Inspector.dll>` on Windows; the PowerShell wrapper is the convenient build/run/clipboard entry point. No command arguments or active-report mode are accepted by the executable.
+The standalone framework-dependent build is in `src/PeripheralBatteryCompanion.G305Inspector/bin/Release/net10.0/`. It is separate from the tray application's published ZIP. Direct execution is possible with `dotnet <path-to-PeripheralBatteryCompanion.G305Inspector.dll>` on Windows; the PowerShell wrapper is the convenient build/run/clipboard entry point. No arguments are needed for G305. The closed `--hyperx` selector added in Stage 4.0B selects the separate passive HyperX profile; no arbitrary device, command, capture or active-report mode is accepted.
 
 ## Exact scope and report
 

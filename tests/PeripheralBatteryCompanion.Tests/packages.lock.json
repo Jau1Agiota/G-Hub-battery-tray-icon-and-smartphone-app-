@@ -145,7 +145,19 @@
         }
       },
       "peripheralbatterycompanion.g305inspector": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )"
+        }
+      },
+      "peripheralbatterycompanion.hidmetadata": {
         "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxbatterypoc": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )"
+        }
       }
     }
   }

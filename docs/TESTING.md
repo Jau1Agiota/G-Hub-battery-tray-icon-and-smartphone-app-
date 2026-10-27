@@ -95,6 +95,18 @@ The new `HidInspectorTests` preserve all existing tests and exercise the indepen
 
 For actual Windows/receiver metadata and a sanitized clipboard report, separately run `.\diagnose-g305.ps1 -CopySummary`. The execution-policy alternative and the passive API contract are in [G305_HID_INSPECTOR.md](G305_HID_INSPECTOR.md). A passing synthetic test run is not evidence of successful native HID access.
 
+## Stage 4.0B HyperX profile regressions
+
+`HyperXInspectorTests` adds synthetic coverage for exact `03F0:05B7 / MI_03` collection filtering, optional revision tokens, all three expected usage pairs, priority inspection, capability formatting, missing versus failed interfaces, redaction, multiple receivers, failures and CLI selection. Mixed-device tests verify that G305 defaults and scope stay isolated from HyperX. All original G305 tests are retained.
+
+Run `.\test.ps1 -Release -CopySummary` on Windows for the complete suite. Then run `.\diagnose-hyperx.ps1 -CopySummary` and `.\diagnose-g305.ps1 -CopySummary` separately, pasting each clipboard result before the next replaces it. Follow the [HyperX native validation checklist](HYPERX_HID_INSPECTOR.md#verification-and-owner-handoff). Synthetic metadata tests do not establish actual HID access, telemetry, audio coexistence or physical device behavior.
+
+## Stage 4.0C isolated POC tests
+
+`HyperXBatteryPocTests` adds simulated capture A/B candidates (64/66), full request bytes/zero padding, response lengths/IDs/command/range rejection, exact COL01 selection/ambiguity, capability gating, explicit opt-in, one read/send, early buffered-input refusal, errors, shared deadlines, cancellation and cleanup. The active interop module is separate from the passive module; a whitelist test checks its three imports and the fixed output IOCTL. A Windows-only framework OVERLAPPED layout assertion is guarded by the actual OS. Tests do not call the native active transport.
+
+The owner can run the existing full local runner when ready. It builds the POC and runs synthetic tests; it does not invoke its active Main. For now, run only the [payload preview and review](HYPERX_BATTERY_POC.md#first-command-payload-preview-only) before any physical test. Unit tests cannot prove actual control-transfer bytes, driver cancellation/completion behavior, response freshness, safe off-state semantics, or true battery accuracy. Those require the individually reviewed Windows/device checklist, not test mocks. Existing passive diagnostics, `test.ps1` and production monitoring remain unchanged.
+
 ## Test-runner contract checks
 
 The runner has a small, framework-free smoke harness:
@@ -126,3 +138,7 @@ Stop older copies, build/run the Windows startup project in Visual Studio (Debug
 Before each stage, inspect affected tests and record an existing baseline or one necessary baseline run, including pre-existing failures. Keep changes focused. For a reproduced bug, add a failing regression test when practical, implement the smallest fix, and verify it. If automation is impractical, document a repeatable desktop/device check instead.
 
 The developer performs focused checks as necessary; the owner runs the full local workflow and shares the copied summary. Fix reported failures, then the owner reruns the affected/full verification. Do not weaken assertions or hide failures to obtain a pass. Every future stage must preserve existing behavior and add appropriate tests. Stage 4 remains blocked until the owner validates and approves Stage 3.1.
+
+## Consolidated HyperX / Stage 4.0E
+
+All existing tests remain. Portable provider tests use fake metadata/process/query boundaries and cover default zero exchanges, risk acknowledgement and lifetime blocker, target selection, ambiguous percentage/source/time, disconnect/reconnect stale state, process refusal, single-flight, cancellation/disposal, numeric errors and stopping without retry. Native I/O tests remain simulated; Windows layout tests now include separate HyperX receiver/battery text and a blocked query control after opt-in. No test starts an actual HID query. Keep using test.ps1 and its clipboard summary unchanged. Follow [the non-query manual checklist and future physical approval gate](HYPERX_INTEGRATION.md).

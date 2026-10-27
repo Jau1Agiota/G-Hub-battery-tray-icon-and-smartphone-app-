@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.G305Inspector", "src\PeripheralBatteryCompanion.G305Inspector\PeripheralBatteryCompanion.G305Inspector.csproj", "{B4B5F710-C7DD-4D4E-A195-2009FD80763A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HyperXBatteryPoc", "src\PeripheralBatteryCompanion.HyperXBatteryPoc\PeripheralBatteryCompanion.HyperXBatteryPoc.csproj", "{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HidMetadata", "src\PeripheralBatteryCompanion.HidMetadata\PeripheralBatteryCompanion.HidMetadata.csproj", "{AD90133F-67E7-4DC4-B678-93843C5003AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +69,22 @@ Global
 		{B4B5F710-C7DD-4D4E-A195-2009FD80763A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B4B5F710-C7DD-4D4E-A195-2009FD80763A}.Release|x64.ActiveCfg = Release|Any CPU
 		{B4B5F710-C7DD-4D4E-A195-2009FD80763A}.Release|x64.Build.0 = Release|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Debug|x64.Build.0 = Debug|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Release|x64.ActiveCfg = Release|Any CPU
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE}.Release|x64.Build.0 = Release|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Debug|x64.Build.0 = Debug|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|x64.ActiveCfg = Release|Any CPU
+		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,5 +95,7 @@ Global
 		{860F7978-AAB9-447F-9A6B-90DD4DA465F0} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{20316923-F5FB-4E55-8A79-CAC9E9E39DE9} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{B4B5F710-C7DD-4D4E-A195-2009FD80763A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{AD90133F-67E7-4DC4-B678-93843C5003AD} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

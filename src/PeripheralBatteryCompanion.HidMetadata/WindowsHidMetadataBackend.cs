@@ -4,8 +4,10 @@ using System.Runtime.Versioning;
 namespace PeripheralBatteryCompanion.G305Inspector;
 
 [SupportedOSPlatform("windows")]
-public sealed class WindowsHidMetadataBackend : IHidMetadataBackend
+public sealed class WindowsHidMetadataBackend(HidInspectionTarget? target = null) : IHidMetadataBackend
 {
+    private readonly HidInspectionTarget _target = target ?? HidInspectionTarget.G305;
+
     public InterfaceEnumeration EnumerateInterfaces()
     {
         var paths = new List<string>();
@@ -59,7 +61,7 @@ public sealed class WindowsHidMetadataBackend : IHidMetadataBackend
     public CapabilityRead ReadCapabilities(string interfacePath)
     {
         // Enforce scope even for direct callers, before opening any device.
-        if (!ReceiverFilter.TryMatch(interfacePath, out _))
+        if (!ReceiverFilter.TryMatch(interfacePath, _target, out _))
             return new(null, new(InspectionStep.OpenInterface, NativeMethods.ErrorInvalidData));
 
         // Exactly zero desired access. FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING.

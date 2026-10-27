@@ -60,3 +60,31 @@ Official technical references: [Microsoft.Data.Sqlite overview](https://learn.mi
 The owner supplied candidate Logitech receiver `VID_046D / PID_C53F`, USB interface `MI_02`, with vendor-defined collections COL01 `FF00:0001`, COL02 `FF00:0002`, and COL03 `FF00:0004`, sharing the same USB parent interface. The G915 uses a separate `046D:C547` receiver, which the inspector excludes. These are supplied experimental findings, not hardware results produced by the cloud task.
 
 The independent [passive capability inspector](G305_HID_INSPECTOR.md) enumerates those candidate interfaces and reads only preparsed capability metadata with zero-access handles. Its output does not independently verify physical parent grouping, expose instance identifiers, identify a battery field, or establish device connectivity. Nonzero feature/output lengths are descriptor facts, not evidence of a usable battery protocol. No feature requests, report writes, live input reads or production provider are part of Stage 4.0A.
+
+## Stage 4.0B: owner-supplied HyperX findings
+
+The owner supplied HyperX Cloud III Wireless identifiers `VID_03F0 / PID_05B7`, USB hardware-ID revision `4109`, interface `MI_03`, and three collections: COL01 vendor-defined `FF13:0001`, COL02 consumer control `000C:0001`, and COL03 headset `000B:0005`. Windows reportedly listed all three connected/operational. These are supplied hardware-enumeration findings, not capability lengths or telemetry verified by this cloud task.
+
+The [HyperX passive profile](HYPERX_HID_INSPECTOR.md) prioritizes COL01 and reports all three collections through the same zero-access SetupAPI/HID capability reader used for G305. Revision 4109 remains a supplied reference; it is not queried or required in HID paths. The vendor-defined collection is a comparison candidate, not a verified battery endpoint. Input/feature/output lengths do not establish unsolicited telemetry, command safety or decoding. No input capture, audio/driver change, undocumented command or production integration is implemented. Stage 4.0C remains separately reviewed and opt-in after actual Windows results.
+
+## Stage 4.0C: supplied active-protocol evidence (not an executed independent request)
+
+The owner provided working metadata-inspector source and confirmed HyperX COL01 `FF13:0001`, input/output length 62 and feature length 0. Supplied NGENUITY captures showed output prefix `66 89 00 ...` through class SET_REPORT (21/09, wValue 0266, interface 3, length 62), and interrupt input prefixes `66 89 0F 1B 40 00 ...` at 64% and `66 89 0F 27 42 00 ...` at 66%. Byte 4 is a strongly supported battery candidate; bytes 2/3 and off-state/availability semantics remain unknown. Endpoint 84 and address 20 were observations, not stable selectors. No unsolicited report appeared in earlier observation windows, which does not prove one can never occur.
+
+The [isolated one-shot POC](HYPERX_BATTERY_POC.md) sends only the fixed 66/89 + 60-zero packet in an explicitly confirmed mode, with one output, one input and no initializer commands or production provider.
+
+Owner update, 2026-10-27: TShark inspection of frame 9 in the original `hyperx-battery-66.pcap` confirmed the full 62-byte reference request and SET_REPORT fields above. The owner then ran the isolated POC on hardware: `CandidateReceived`, 56%, response `66 89 0E E4 38` followed by zeros. NGENUITY opened afterward also showed 56%. This is owner-reported physical evidence of a matching percentage, not a cloud hardware test or proof of the POC's on-wire transfer. Bytes 2/3, charging/disconnection states and freshness remain unknown. The [USBPcap verification procedure](HYPERX_USBPCAP_VERIFICATION.md) is the next gate before planning production integration; no runtime code changes accompany this record.
+
+## Owner update: POC wire transport verified (2026-10-27)
+
+The owner reports `Hyperx.pcapng` frame 10061: successful control OUT SET_REPORT 21/09, wValue 0266, wIndex 3, wLength 62, exact body 66 89 + 60 zeros. Frame 10062: successful interrupt IN endpoint 84, 62 bytes beginning 66 89 0E E3 38, matching the POC response and 56% candidate. Frame 10063 is a successful zero-length IN URB, not another battery reading. The earlier NGENUITY comparison also showed 56%.
+
+This supersedes earlier pending-wire statements for this observed hardware exchange; it does not validate concurrency, disconnection or long-running resource lifetime. See the [wire record](HYPERX_USBPCAP_VERIFICATION.md) and [coexistence test plan](HYPERX_NGENUITY_COEXISTENCE.md). Coexistence is the next gate. The existing active mode still requires NGENUITY closed; do not bypass that guard to test concurrency. No executable, launcher or production behavior changes accompany this documentation update.
+
+## Stage 4.0D baseline and evidence boundary
+
+The owner reports passive shared GENERIC_READ/READ|WRITE/OVERLAPPED handle opening succeeded with NGENUITY running, without report I/O. This proves access compatibility in that observation, not active response delivery. At the implementation handoff, the separately acknowledged [active coexistence experiment](HYPERX_NGENUITY_COEXISTENCE.md) had not been physically executed; the subsequent owner result is recorded below. No transaction/correlation field is verified; identical NGENUITY polls can make response ownership ambiguous. Production integration remains excluded.
+
+## Owner-reported Stage 4.0D result and production boundary
+
+The Stage 4.0E briefing reports one active coexistence trial on 8ca502e: shared read/overlapped open and capability gate succeeded; output completed; candidate 56%; exit 0; invocation 77.5 ms; NGENUITY stayed open and audio/application were nominal afterward. This supersedes the earlier pending-trial statement for that single observation only. The result remained CandidateObservedAmbiguous: no verified transaction ID, unique ownership or continuous polling reliability. No new hardware query was performed during final integration. Stage 4.0E production metadata/state/UI is implemented with native active querying blocked by the long-running-lifetime gate; see [integration limits](HYPERX_INTEGRATION.md).

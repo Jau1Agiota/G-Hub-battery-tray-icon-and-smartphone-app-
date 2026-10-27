@@ -36,6 +36,26 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-g305.ps1 -Cop
 
 The report lists actual usage IDs, report byte lengths and capability counts, omitting instance identifiers from terminal and clipboard. Device handles use zero desired access; there are no HID report read/write commands or broader-access fallbacks. See [scope, errors, and local validation](docs/G305_HID_INSPECTOR.md). Hardware verification remains local.
 
+## HyperX Cloud III Wireless capability diagnostics
+
+Stage 4.0B shares the passive inspector with a fixed `03F0:05B7 / MI_03 / COL01-COL03` HyperX profile. COL01 is inspected first; all matching collections are reported for comparison. The existing G305 launcher retains its original scope.
+
+```powershell
+.\diagnose-hyperx.ps1 -CopySummary
+```
+
+If policy blocks execution, use `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-hyperx.ps1 -CopySummary`. See [HyperX hardware identifiers, report interpretation, and validation](docs/HYPERX_HID_INSPECTOR.md). This is descriptor/capability inspection only; no battery decoding, input sampling, commands, audio changes, or production monitoring integration is added.
+
+## Isolated HyperX battery POC (Stage 4.0C)
+
+A separate experimental project preserves passive inspection as its default. Its first review step is a hardware-free payload preview:
+
+```powershell
+.\hyperx-battery-poc.ps1 -PreviewRequest -CopySummary
+```
+
+The proposed request is 62 bytes: `66 89` followed by 60 zeros. Confirm that entire tail against the full original USB capture before any active test. An active attempt requires explicit request and NGENUITY-closure flags, validates only HyperX COL01/capabilities, uses a three-second one-shot exchange and never retries or polls. No production battery provider is added. Follow the [protocol evidence, API limitations and staged physical-test checklist](docs/HYPERX_BATTERY_POC.md), one hardware command/result at a time.
+
 ## Build and try
 
 On Windows 11 x64 with the .NET 10.0.402 SDK (or a newer 10.0.4xx patch):
@@ -65,3 +85,9 @@ There is no Android app, LAN API, WebSocket integration, startup registration, o
 MIT is proposed for original project code, **pending repository-owner approval**. No project `LICENSE` has been added, and no license grant for original code is implied. Resolve this before public distribution. Dependency licenses are separate and included in the notices.
 
 The tray app reads only the local battery entry. It sends no telemetry, opens no network listeners, and writes no logs or database copies. Do not contribute real G HUB databases, personal paths, device identifiers, or secrets. Tests use synthetic JSON and temporary databases only.
+
+## Consolidated HyperX support (experimental)
+
+The Windows panel now discovers the HyperX receiver through passive HID metadata and distinguishes receiver presence from unknown headset connectivity. Battery queries are **disabled**, including after experimental opt-in, until native I/O lifetime is validated for the long-running tray. No automatic HyperX battery polling is implemented. The historical 56% observation is never used as startup data.
+
+The standalone POC, verified USB protocol and owner-reported single successful NGENUITY coexistence experiment remain included; concurrent candidates are always ownership-ambiguous. See [integration behavior, evidence and manual checklist](docs/HYPERX_INTEGRATION.md) and the [consolidation report](docs/HYPERX_FINAL_INTEGRATION_REPORT.md). No new hardware request is authorized by this integration.

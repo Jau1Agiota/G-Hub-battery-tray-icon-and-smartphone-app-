@@ -7,9 +7,12 @@ public static class ReportFormatter
 {
     public static string Format(InspectionReport report)
     {
+        var target = report.EffectiveTarget;
         var text = new StringBuilder();
-        text.AppendLine("Peripheral Battery Companion - Passive G305 HID Capability Inspector");
-        text.AppendLine("Scope: VID 046D / PID C53F / MI_02 / COL01-COL03 (G915 C547 excluded)");
+        text.AppendLine($"Peripheral Battery Companion - Passive {target.Name} HID Capability Inspector");
+        text.AppendLine(target.Scope);
+        if (target.ReferenceRevision is string revision)
+            text.AppendLine($"Reference USB hardware-ID revision: {revision} (supplied, not queried)");
         text.AppendLine("Metadata only: no feature/input/output reports requested or transmitted.");
         text.AppendLine("Access: zero desired access, share read/write; no permission fallback.");
         text.AppendLine("Interface instance identifiers omitted from terminal and clipboard.");
@@ -22,7 +25,7 @@ public static class ReportFormatter
             {
                 text.AppendLine();
                 text.AppendLine($"{Label(collection)}{(matches.Length > 1 ? $" interface {Number(index + 1)}" : "")}");
-                text.AppendLine($@"  Path: \\?\hid#vid_046d&pid_c53f&mi_02&{Label(collection).ToLowerInvariant()}#[instance omitted]#[HID class GUID]");
+                text.AppendLine($@"  Path: \\?\hid#vid_{target.VendorId.ToLowerInvariant()}&pid_{target.ProductId.ToLowerInvariant()}&mi_{target.InterfaceNumber}&{Label(collection).ToLowerInvariant()}#[instance omitted]#[HID class GUID]");
                 var item = matches[index];
                 if (item.Failure is not null) { text.AppendLine("  " + FormatFailure(item.Failure)); continue; }
                 if (item.Capabilities is not HidCapabilities caps) { text.AppendLine("  ERROR: no capabilities returned"); continue; }
@@ -33,8 +36,9 @@ public static class ReportFormatter
                 text.AppendLine($"    Output:  {Counts(caps.Output)}");
                 text.AppendLine($"    Feature: {Counts(caps.Feature)}");
                 text.AppendLine($"  Link collection nodes: {Number(caps.LinkCollectionNodes)}");
-                if (caps.UsagePage != 0xFF00 || caps.Usage != ReceiverFilter.ExpectedUsage(collection))
-                    text.AppendLine($"  NOTE: differs from supplied expectation FF00:{ReceiverFilter.ExpectedUsage(collection):X4}; actual metadata retained.");
+                var expected = target.ExpectedUsage(collection);
+                if (caps.UsagePage != expected.Page || caps.Usage != expected.Usage)
+                    text.AppendLine($"  NOTE: differs from supplied expectation {expected.Page:X4}:{expected.Usage:X4}; actual metadata retained.");
             }
         }
         foreach (var failure in report.EnumerationFailures) text.AppendLine(FormatFailure(failure));

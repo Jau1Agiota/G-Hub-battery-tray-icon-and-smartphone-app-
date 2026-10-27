@@ -141,7 +141,8 @@
       "PeripheralBatteryCompanion": {
         "type": "Project",
         "dependencies": {
-          "PeripheralBatteryCompanion.Core": "[1.0.0, )"
+          "PeripheralBatteryCompanion.Core": "[1.0.0, )",
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )"
         }
       },
       "peripheralbatterycompanion.core": {
@@ -149,6 +150,9 @@
         "dependencies": {
           "Microsoft.Data.Sqlite": "[10.0.14, )"
         }
+      },
+      "peripheralbatterycompanion.hidmetadata": {
+        "type": "Project"
       }
     }
   }

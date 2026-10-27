@@ -11,3 +11,8 @@ TestResults/
 # Local verification runner owns this bounded output directory.
 /test-results/
 *.suo
+
+# Keep real USB/device capture files out of source control.
+*.pcap
+*.pcapng
+/capture-results/
