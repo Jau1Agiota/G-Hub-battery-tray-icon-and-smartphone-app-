@@ -1,6 +1,6 @@
 # Stage 4.0C: isolated active HyperX battery proof of concept
 
-**Owner-reported physical validation succeeded: the isolated POC returned 56%, matching NGENUITY opened afterward. Exact POC on-wire transport verification remains pending.** The default remains passive inspection. Production battery monitoring, G305/G915 providers, tray UI and polling are unchanged.
+**Owner-reported physical validation succeeded: the isolated POC returned 56%, matching NGENUITY opened afterward. The owner subsequently verified the exact POC on-wire request and response; coexistence remains pending.** The default remains passive inspection. Production battery monitoring, G305/G915 providers, tray UI and polling are unchanged.
 
 ## Sources reviewed and evidence limits
 
@@ -58,7 +58,7 @@ Before sending, the POC:
 
 The output operation is **DeviceIoControl(IOCTL_HID_SET_OUTPUT_REPORT = 0x000B0195)** with a 62-byte input buffer and no output buffer, on an overlapped handle. The constant follows the official HID header: FILE_DEVICE_KEYBOARD 0xB, function 101, METHOD_IN_DIRECT 1, FILE_ANY_ACCESS 0. This selects the HID class output-report operation rather than assuming WriteFile/IRP_MJ_WRITE uses the captured control-transfer path. The synchronous HidD_SetOutputReport wrapper is deliberately not used for the timed exchange. This low-level user-mode IOCTL route may be rejected by a driver; rejection is reported without falling back or retransmitting.
 
-**Physical wire mapping remains to be verified.** Microsoft documents the output-report operation and its report-ID convention; that does not prove the exact bytes/setup fields emitted by this receiver driver. The first USB capture must confirm:
+**Physical wire mapping was subsequently verified by the owner; see the dated update below.** The original verification criteria were: Microsoft documents the output-report operation and its report-ID convention; that does not prove the exact bytes/setup fields emitted by this receiver driver. The USB capture checks are:
 
 - bmRequestType 0x21, bRequest 0x09 (SET_REPORT), wValue 0x0266 (output/report ID 66), wIndex 3, wLength 62.
 - Data exactly matching the full proposed packet above, including ID/padding convention.
@@ -82,7 +82,7 @@ Exit codes: 0 candidate received (or successful passive/preview); 2 unsupported 
 
 **Phase A, completed by the owner:** full reference payload verified; isolated POC returned `CandidateReceived`, 56%, with response prefix `66 89 0E E4 38` followed by zeros. NGENUITY opened after the test also displayed 56%. This is one successful physical comparison, not verification of the POC USB setup fields or disconnected/freshness semantics. Preserve the temporary inspector/backup and ordinary passive launcher as fallbacks.
 
-**Current step:** follow the [USBPcap verification procedure](HYPERX_USBPCAP_VERIFICATION.md). Keep the POC and production application unchanged until transport verification is reviewed.
+**Current step:** transport verification succeeded as recorded below; follow the [coexistence evaluation plan](HYPERX_NGENUITY_COEXISTENCE.md). Keep production integration deferred.
 
 **Phase B, only after that review:**
 
@@ -105,3 +105,9 @@ Exit codes: 0 candidate received (or successful passive/preview); 2 unsupported 
 - [DeviceIoControl](https://learn.microsoft.com/windows/win32/api/ioapiset/nf-ioapiset-deviceiocontrol), [CancelIoEx](https://learn.microsoft.com/windows/win32/fileio/cancelioex-func) and [ThreadPoolBoundHandle](https://learn.microsoft.com/dotnet/api/system.threading.threadpoolboundhandle).
 
 Only the supplied original POC, repository code, SDK header and official documentation were used; no existing G HUB/HyperX battery-monitor project implementation was consulted.
+
+## Owner update: POC wire transport verified (2026-10-27)
+
+The owner reports `Hyperx.pcapng` frame 10061: successful control OUT SET_REPORT 21/09, wValue 0266, wIndex 3, wLength 62, exact body 66 89 + 60 zeros. Frame 10062: successful interrupt IN endpoint 84, 62 bytes beginning 66 89 0E E3 38, matching the POC response and 56% candidate. Frame 10063 is a successful zero-length IN URB, not another battery reading. The earlier NGENUITY comparison also showed 56%.
+
+This supersedes earlier pending-wire statements for this observed hardware exchange; it does not validate concurrency, disconnection or long-running resource lifetime. See the [wire record](HYPERX_USBPCAP_VERIFICATION.md) and [coexistence test plan](HYPERX_NGENUITY_COEXISTENCE.md). Coexistence is the next gate. The existing active mode still requires NGENUITY closed; do not bypass that guard to test concurrency. No executable, launcher or production behavior changes accompany this documentation update.

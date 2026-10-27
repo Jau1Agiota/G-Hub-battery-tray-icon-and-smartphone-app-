@@ -1,4 +1,4 @@
-# Stage 4.0C implementation report: physical comparison passed; wire verification pending
+# Stage 4.0C implementation report: physical comparison and wire transport verified; coexistence pending
 
 Branch: `feature/stage4-0c-hyperx-battery-poc`, based on `d7a496b` (the existing Stage 4.0B branch; origin/main still contained Stage 4.0A when this task started). Final commit is provided in the delivery response / Git history. No default-branch merge is performed.
 
@@ -62,3 +62,9 @@ Next: the [controlled USBPcap procedure](HYPERX_USBPCAP_VERIFICATION.md), one re
 - `tests/PeripheralBatteryCompanion.Tests/HyperXBatteryPocTests.cs`
 - `tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj`
 - `tests/PeripheralBatteryCompanion.Tests/packages.lock.json`
+
+## Owner update: POC wire transport verified (2026-10-27)
+
+The owner reports `Hyperx.pcapng` frame 10061: successful control OUT SET_REPORT 21/09, wValue 0266, wIndex 3, wLength 62, exact body 66 89 + 60 zeros. Frame 10062: successful interrupt IN endpoint 84, 62 bytes beginning 66 89 0E E3 38, matching the POC response and 56% candidate. Frame 10063 is a successful zero-length IN URB, not another battery reading. The earlier NGENUITY comparison also showed 56%.
+
+This supersedes earlier pending-wire statements for this observed hardware exchange; it does not validate concurrency, disconnection or long-running resource lifetime. See the [wire record](HYPERX_USBPCAP_VERIFICATION.md) and [coexistence test plan](HYPERX_NGENUITY_COEXISTENCE.md). Coexistence is the next gate. The existing active mode still requires NGENUITY closed; do not bypass that guard to test concurrency. No executable, launcher or production behavior changes accompany this documentation update.

@@ -6,6 +6,20 @@ On 2026-10-27 the owner reported `CandidateReceived`, 56%, response prefix `66 8
 
 This procedure checks whether the **unchanged isolated POC** generates that same wire transfer. It does not authorize initialization commands, new payloads, retries, polling or production integration. One physical command is issued, then its result and capture are reviewed before any further attempt.
 
+## Owner-reported POC wire verification (2026-10-27)
+
+Capture `Hyperx.pcapng`, USBPcap2, bus 2, device address 12 (capture-local identifiers, not selectors):
+
+| Frame | Owner-observed transfer |
+| --- | --- |
+| 10061 | Control OUT endpoint 0x00, USB SUCCESS; SET_REPORT bmRequestType 0x21, bRequest 0x09, wValue 0x0266, wIndex 3, wLength 62; body exactly 66 89 followed by 60 zero bytes |
+| 10062 | Interrupt IN endpoint 0x84, USB SUCCESS; 62-byte response beginning 66 89 0E E3 38, matching the POC response exactly; byte index 4 = 0x38 = 56% |
+| 10063 | Zero-length interrupt IN URB, USB SUCCESS; no battery data; not a second battery sample or evidence of an extra application read |
+
+The owner reports successful on-wire verification. The setup fields and complete output match the reference request; the input matches the POC result. The earlier independent NGENUITY comparison also showed 56%. This evidence verifies the observed POC transport on this hardware, not all states or concurrency. The cloud task has not independently opened the raw capture. Frame adjacency alone does not establish URB relationships; no interpretation of frame 10063 beyond its reported zero-length successful IN is assigned. No additional request-count or URB-pair details are inferred beyond the supplied observations.
+
+Next: [controlled NGENUITY coexistence evaluation](HYPERX_NGENUITY_COEXISTENCE.md). Production integration remains deferred. The procedure below is retained as a repeatable reference, not an instruction to repeat the completed test.
+
 ## Prepare capture without sending a request
 
 1. Close NGENUITY and its background helper manually. Leave them closed throughout capture. Use one matching receiver and no other active POC process. Do not change audio settings, firmware or drivers.
@@ -52,7 +66,7 @@ Bytes 2/3 remain unknown. Do not assign counter, charging or connectivity meanin
 
 Report the POC commit, Windows/tool versions, result/exit status, request submission/completion frame numbers and statuses, setup fields, complete 62-byte request, input completion frame/endpoint/status/length and complete bounded response, plus NGENUITY's subsequent percentage and comparison delay. State whether exactly one matching transfer appeared and whether unexpected traffic was present. Omit full HID paths, USB serials, instance identifiers, usernames and unrelated device traffic. Do not commit or publish the raw capture; retain it locally for targeted review.
 
-Transport passes only after the exact setup/data fields, successful completions, one-request count and corresponding input/POC summary are reviewed. A successful battery result alone does not complete this gate. No verification result is recorded by this procedure itself.
+Transport passes only after the exact setup/data fields, successful completions, one-request count and corresponding input/POC summary are reviewed. A successful battery result alone does not complete this gate. The owner-reported result above is distinct from this repeatable procedure.
 
 ## Deferred integration planning
 
