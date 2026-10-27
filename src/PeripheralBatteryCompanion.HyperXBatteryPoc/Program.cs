@@ -11,7 +11,7 @@ internal static class Program
         var mode = PocPlan.Parse(args);
         if (mode == PocMode.Invalid)
         {
-            Console.WriteLine("Default: passive HyperX inspection. Preview: --preview-request. Active: --read-battery AND --confirm-ngenuity-closed. No other modes/arguments.");
+            Console.WriteLine("Default: passive HyperX inspection. Passive shared-access probe: --passive-coexistence. Preview: --preview-request. Active: --read-battery AND --confirm-ngenuity-closed. No other modes/arguments.");
             return 2;
         }
         if (mode == PocMode.Preview) { Console.WriteLine(PocFormatter.Preview()); return 0; }
@@ -19,6 +19,21 @@ internal static class Program
         {
             Console.WriteLine("Windows required; no device inspection or active request attempted.");
             return 2;
+        }
+        if (mode == PocMode.PassiveCoexistence)
+        {
+            try
+            {
+                var result = new PassiveCoexistence(new WindowsHidMetadataBackend(HidInspectionTarget.HyperX),
+                    new WindowsPassiveSharedHandleProbe()).Inspect();
+                Console.WriteLine(PassiveCoexistence.Format(result));
+                return result.ExitCode;
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine($"Passive coexistence inspection failed; HResult=0x{unchecked((uint)error.HResult):X8}. No report I/O attempted; owned handles disposed.");
+                return 1;
+            }
         }
         if (mode == PocMode.Inspect)
         {

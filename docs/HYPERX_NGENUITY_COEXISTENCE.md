@@ -16,13 +16,13 @@ Two applications may issue identical 66/89 requests. The receiver's response has
 
 1. Open NGENUITY normally and leave the headset page stable. Record the displayed percentage, audio state and tool/POC versions. Do not change settings, update firmware or repeatedly refresh the UI.
 2. Start a short USBPcap capture on the receiver's current root hub. Identify current VID/PID, bus and address afresh. Record a brief baseline of NGENUITY's naturally occurring traffic; do not generate commands to provoke it.
-3. When this step is handed off, run only the existing passive inspector once:
+3. Run the explicit isolated passive shared-access probe once:
 
    ```powershell
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\diagnose-hyperx.ps1 -CopySummary
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\hyperx-battery-poc.ps1 -PassiveCoexistence -CopySummary
    ```
 
-4. Stop capture, record whether metadata access succeeded, and confirm NGENUITY and ordinary audio still work. Share the sanitized summary and capture observations before proceeding. The inspector sends no reports; any traffic observed is not proof it transmitted a request. This step tests only zero-access metadata coexistence, not the active GENERIC_READ handle or response delivery.
+4. Stop capture, record whether metadata access succeeded, and confirm NGENUITY and ordinary audio still work. Share the sanitized summary and capture observations before proceeding. The probe sends and consumes no reports; any traffic observed is not proof it transmitted a request. It selects exactly one VID_03F0/PID_05B7/MI_03/COL01, opens zero-access metadata with read/write sharing, inspects and validates FF13:0001 and report lengths 62/62/0, then opens/closes GENERIC_READ with FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING and FILE_FLAG_OVERLAPPED. GENERIC_READ is the minimum needed to test the active input handle's access compatibility, while metadata alone needs zero access. No ReadFile, DeviceIoControl, active session, queue drain or battery request is invoked. This tests shared read-handle opening, not response delivery/correlation.
 
 ## Later active trial: only after an explicit isolated mode is reviewed
 
@@ -53,3 +53,11 @@ Existing cleanup retains pinned buffers/OVERLAPPED storage until native completi
 Share versions/commit, NGENUITY/helper state, metadata and active-open outcomes, numeric errors, POC result/exit, bounded capture frame references and bytes, background identical requests, correlation confidence, displayed percentages, audio continuity, and cleanup observations. Keep raw captures local; omit HID instance paths, USB serials and unrelated traffic.
 
 Coexistence remains pending until shared active access, report delivery/correlation limitations, non-interference and failure cleanup have been reviewed on hardware. Any unresolved freshness or access problem blocks treating a concurrent candidate as a fresh production reading. After evaluation, separately plan conservative polling, no overlapping exchanges, stale/unavailable semantics, disconnect/reconnect handling and bounded resource cleanup. Do not integrate production code as part of this procedure.
+
+## Passive probe reporting and verification
+
+The report contains a fixed sanitized COL01 identity, capabilities/counts, discovery/inspection status, whether shared open was attempted, desired access/sharing/overlapped flags and numeric Win32 or HID errors by stage. It omits raw paths/instance IDs. A successful shared handle is immediately disposed; metadata/preparsed/enumeration resources retain existing SafeHandle/finally ownership. There is no fallback, permission escalation or retry. Missing receiver exits 3, ambiguity 5, metadata/access failure 1, unsupported platform/invalid combinations 2, success 0. Clipboard/build handling remains the existing launcher's behavior.
+
+`-PassiveCoexistence` cannot be combined with preview, read or closure-confirmation switches. NGENUITY is permitted only for this non-report mode; active flags and process guards remain unchanged. Preview still opens no handle and is not a coexistence result. Access denial/sharing violation is a test outcome to report, not a reason to rerun elevated.
+
+Implementation verification: Release focused tests passed, 46 total (37 existing POC cases and 9 new passive cases), zero build warnings/errors. New tests cover exact target/deduplication, missing/ambiguous/incomplete enumeration, metadata/HID errors, capability mismatch, numeric access/sharing denial without retry, sanitized formatting and mode isolation. Synthetic tests do not exercise Windows CreateFile/CloseHandle or physical NGENUITY coexistence. Full local suite and Windows results remain owner verification.

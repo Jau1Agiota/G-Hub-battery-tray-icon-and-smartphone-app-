@@ -3,6 +3,7 @@
 param(
     [switch]$CopySummary,
     [switch]$PreviewRequest,
+    [switch]$PassiveCoexistence,
     [switch]$ReadBattery,
     [switch]$ConfirmNgenuityClosed
 )
@@ -38,10 +39,11 @@ function Invoke-DotNet([string[]]$Arguments) {
 }
 
 try {
-    if (($PreviewRequest -and $ReadBattery) -or ($ConfirmNgenuityClosed -and -not $ReadBattery) -or
+    if (($PassiveCoexistence -and ($PreviewRequest -or $ReadBattery -or $ConfirmNgenuityClosed)) -or
+        ($PreviewRequest -and $ReadBattery) -or ($ConfirmNgenuityClosed -and -not $ReadBattery) -or
         ($ReadBattery -and -not $ConfirmNgenuityClosed)) {
         $exitCode = 2
-        throw 'Use passive default, -PreviewRequest, or -ReadBattery -ConfirmNgenuityClosed. No request attempted.'
+        throw 'Use passive default, -PassiveCoexistence, -PreviewRequest, or -ReadBattery -ConfirmNgenuityClosed. No request attempted.'
     }
     if (-not $windowsHost -and -not $PreviewRequest) {
         $exitCode = 2
@@ -74,7 +76,8 @@ try {
         $assembly = Join-Path $repoRoot 'src/PeripheralBatteryCompanion.HyperXBatteryPoc/bin/Release/net10.0/PeripheralBatteryCompanion.HyperXBatteryPoc.dll'
         if (-not (Test-Path -LiteralPath $assembly)) { throw 'The diagnostic executable was not produced. Inspection was not started.' }
         $runArguments = @($assembly)
-        if ($PreviewRequest) { $runArguments += '--preview-request' }
+        if ($PassiveCoexistence) { $runArguments += '--passive-coexistence' }
+        elseif ($PreviewRequest) { $runArguments += '--preview-request' }
         elseif ($ReadBattery) { $runArguments += @('--read-battery', '--confirm-ngenuity-closed') }
         $result = Invoke-DotNet $runArguments
         $exitCode = $result.ExitCode
