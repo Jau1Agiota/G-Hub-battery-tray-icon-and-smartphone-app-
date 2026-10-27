@@ -1,5 +1,7 @@
 # Stage 4.0F implementation report
 
+> Stage 4.0H adds optional, default-off automatic monitoring on the supervised helper. The manual-only/process-running restrictions below describe the earlier stage. See [current monitoring behavior](HYPERX_AUTOMATIC_MONITORING.md), including session consent, safety latches, backoff and outstanding Windows validation.
+
 Branch: `feature/stage4-0f-hyperx-native-transport`, created from latest remote main `4dbf1a30f48063ab181a24c6202ba517809a7ad7` (merged integration PR #3). Earlier HyperX stages are already in main; this branch contains only Stage 4.0F. Commit/PR or comparison link is supplied in the delivery response. No merge, branch deletion or hardware request is authorized/performed here.
 
 ## Result and enablement

@@ -1,5 +1,7 @@
 # Stage 4.0F: supervised manual HyperX transport
 
+> Stage 4.0H adds optional, default-off automatic monitoring on the supervised helper. The manual-only/process-running restrictions below describe the earlier stage. See [current monitoring behavior](HYPERX_AUTOMATIC_MONITORING.md), including session consent, safety latches, backoff and outstanding Windows validation.
+
 ## What is enabled
 
 The tray has a functioning **manual-only**, session-acknowledged HyperX query path. It is disabled on startup. After the operator accepts the interference/ambiguity warning, a query-free preflight must observe normal exit of a simulated helper and explicit Job termination/exit of a simulated stalled helper. No HID API is used by either simulation. The button is enabled only with opt-in, exactly one metadata-validated receiver, successful preflight and no failure latch. Missing helper, unavailable Job features/access, failed preflight, uncertain process state or a previous failed query cannot bypass these gates.

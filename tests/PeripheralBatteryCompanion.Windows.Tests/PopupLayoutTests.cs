@@ -87,7 +87,7 @@ public sealed class PopupLayoutTests
         var controls = Descendants(form).ToArray();
         Assert.Contains(controls.OfType<Label>(), label => label.Text == "HyperX Cloud III Wireless");
         Assert.Contains(controls.OfType<Label>(), label => label.Text.Contains("headset connectivity: Unknown"));
-        Assert.True(controls.OfType<CheckBox>().Single().Checked);
+        Assert.True(controls.OfType<CheckBox>().Single(box => box.Text == "Experimental HyperX queries").Checked);
         Assert.False(controls.OfType<Button>().Single(button => button.Text == "Query battery (experimental)").Enabled);
         Assert.DoesNotContain(typeof(BatteryPopupForm).Assembly.GetReferencedAssemblies(),
             assembly => assembly.Name == "PeripheralBatteryCompanion.HyperXBatteryPoc");
@@ -130,6 +130,26 @@ public sealed class PopupLayoutTests
         form.SetHyperXQuerying(false);
         Assert.True(query.Enabled); Assert.False(cancel.Enabled);
         Assert.Equal(0, queries); Assert.Equal(0, cancels); // Display/busy transitions never invoke a query.
+    });
+
+    [Fact]
+    public void AutomaticControlsDisplayStateWithoutPersistingOrQuerying() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var edits = 0; var queries = 0;
+        form.HyperXMonitoringRequested += (_, _) => edits++;
+        form.HyperXQueryRequested += (_, _) => queries++;
+        form.DisplayHyperXMonitoring(new(true, 300, false, true, null, null,
+            PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 4, "Paused after failures"));
+        var controls = Descendants(form).ToArray();
+        Assert.True(controls.OfType<CheckBox>().Single(box => box.Text.StartsWith("Automatic HyperX")).Checked);
+        Assert.Equal("300 seconds", controls.OfType<ComboBox>().Single().SelectedItem);
+        Assert.True(controls.OfType<Button>().Single(button => button.Text == "Resume HyperX monitoring").Enabled);
+        Assert.Contains(controls.OfType<Label>(), label => label.Text.Contains("Next check: None"));
+        Assert.Equal(0, edits); Assert.Equal(0, queries);
+        form.SetHyperXQuerying(true);
+        Assert.False(controls.OfType<ComboBox>().Single().Enabled);
+        Assert.True(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Enabled);
     });
 
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)

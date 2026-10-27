@@ -44,7 +44,7 @@ public static class HelperProtocol
         (!reply.OutputCompleted || reply.RequestAttempted) &&
         (reply.Response is null || reply.Status == HelperStatus.CandidateObservedAmbiguous && reply.Response.Length == 62) &&
         (reply.Status != HelperStatus.CandidateObservedAmbiguous || mode == HelperMode.NativeOneShot &&
-            !reply.DeliveryUnknown && reply.Win32Error is null && reply.HidStatus is null && reply.Ngenuity == HelperProcessObservation.Running && reply.CapabilitiesValid && reply.SharedOpenSucceeded &&
+            !reply.DeliveryUnknown && reply.Win32Error is null && reply.HidStatus is null && (reply.Ngenuity is HelperProcessObservation.Running or HelperProcessObservation.NotObserved) && reply.CapabilitiesValid && reply.SharedOpenSucceeded &&
             reply.RequestAttempted && reply.OutputCompleted && reply.Response is not null &&
             ValidateResponse(reply.Response, out _) == WireRejection.None) &&
         (mode == HelperMode.NativeOneShot || !reply.RequestAttempted && !reply.OutputCompleted && reply.Response is null);

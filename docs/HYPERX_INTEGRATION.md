@@ -1,5 +1,7 @@
 # Consolidated HyperX integration: stages 4.0B–4.0E
 
+> Stage 4.0H adds optional, default-off automatic monitoring on the supervised helper. The manual-only/process-running restrictions below describe the earlier stage. See [current monitoring behavior](HYPERX_AUTOMATIC_MONITORING.md), including session consent, safety latches, backoff and outstanding Windows validation.
+
 ## Shipping behavior and safety gate
 
 The tray now includes HyperX Cloud III Wireless as a separate device, without changing the G915 database reader, its 30-second monitor, G305 placeholder, tray icon meaning or popup lifecycle. Startup and explicit Refresh inspect HyperX **metadata only**: exact VID 03F0 / PID 05B7 / MI_03 / COL01, FF13:0001, input/output 62/62, feature 0. Missing, multiple or incompatible interfaces do not select a fallback. Receiver presence does not prove the wireless headset is connected; connectivity always remains Unknown.

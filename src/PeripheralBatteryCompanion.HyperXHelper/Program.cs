@@ -41,7 +41,7 @@ internal static class Program
         try
         {
             var observation = InspectNgenuity();
-            if (observation != HelperProcessObservation.Running)
+            if (observation == HelperProcessObservation.Unknown)
                 return new(1, nonce, HelperMode.NativeOneShot, HelperStatus.Refused, Ngenuity: observation);
             token.ThrowIfCancellationRequested();
             var factory = new TrackedFactory();

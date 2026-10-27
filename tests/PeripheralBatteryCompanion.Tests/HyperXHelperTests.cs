@@ -265,6 +265,38 @@ public sealed class HyperXHelperTests
         Assert.Single(factory.Children, child => child.Mode == HelperMode.NativeOneShot);
     }
 
+    [Theory]
+    [InlineData(HelperStatus.Timeout)] [InlineData(HelperStatus.InvalidResponse)]
+    [InlineData(HelperStatus.NativeFailure)]
+    public async Task MonitoringRecoveryRequiresNormalObservedExitAndNeverRetriesInsideTransport(HelperStatus status)
+    {
+        var factory = new Factory { ConfigureNative = child => child.Reply = child.Reply with
+            { Status = status, Response = null } };
+        await using var transport = new HyperXHelperTransport(factory, allowRecoverableFailures: true);
+        await transport.PrepareAsync(true);
+        var result = await transport.QueryOnceAsync(default);
+        Assert.NotEqual(HyperXQueryOutcome.CandidateObserved, result.Outcome);
+        Assert.True(result.CompletionSafeCleanup); Assert.True(transport.HasVerifiedLongRunningLifetime);
+        Assert.Single(factory.Children, child => child.Mode == HelperMode.NativeOneShot);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task MonitoringRecoveryNeverClearsCrashOrUnconfirmedExitLatch(bool unconfirmed)
+    {
+        var factory = new Factory { ConfigureNative = child =>
+        {
+            if (unconfirmed) child.NeverExits = true;
+            else child.ExitOverride = 1;
+        } };
+        await using var transport = new HyperXHelperTransport(factory, allowRecoverableFailures: true);
+        await transport.PrepareAsync(true); await transport.QueryOnceAsync(default);
+        Assert.False(transport.HasVerifiedLongRunningLifetime);
+        Assert.False(await transport.PrepareAsync(true));
+        await transport.QueryOnceAsync(default);
+        Assert.Single(factory.Children, child => child.Mode == HelperMode.NativeOneShot);
+    }
+
     private sealed class Discovery : IHyperXReceiverDiscovery
     {
         public Task<HyperXDiscoveryResult> DiscoverAsync(CancellationToken token) => Task.FromResult(new HyperXDiscoveryResult(ReceiverPresence.Detected));

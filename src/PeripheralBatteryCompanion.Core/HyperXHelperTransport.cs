@@ -27,7 +27,7 @@ public interface IHyperXTransportStatus
     string Diagnostics { get; }
 }
 
-public sealed class HyperXHelperTransport(IHyperXHelperProcessFactory factory) : IHyperXManualQueryTransport, IHyperXTransportStatus
+public sealed class HyperXHelperTransport(IHyperXHelperProcessFactory factory, bool allowRecoverableFailures = false) : IHyperXManualQueryTransport, IHyperXTransportStatus
 {
     private static readonly SemaphoreSlim GlobalFlight = new(1, 1);
     private readonly CancellationTokenSource _stop = new();
@@ -102,7 +102,9 @@ public sealed class HyperXHelperTransport(IHyperXHelperProcessFactory factory) :
             };
             int? percentage = null;
             if (outcome == HyperXQueryOutcome.CandidateObserved) HelperProtocol.ValidateResponse(reply.Response!, out percentage);
-            else _stopped = true;
+            else if (!allowRecoverableFailures) _stopped = true;
+            // A negative result from a normally exited child is recoverable only through explicit scheduler backoff.
+            // Crash, forced exit, invalid IPC and unconfirmed exit above retain the permanent safety latch.
             ReceiverPresence? receiver = reply.Status switch
             {
                 HelperStatus.NoReceiver => ReceiverPresence.Absent,

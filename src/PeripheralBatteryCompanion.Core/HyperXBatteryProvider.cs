@@ -29,7 +29,7 @@ public interface INgenuityPresenceProbe
 {
     Task<NgenuityPresence> InspectAsync(CancellationToken token);
 }
-// No production implementation is wired: the standalone POC lifetime is not sufficient proof.
+// Production uses the supervised helper; standalone in-process POC lifetime is insufficient.
 // Implementations must keep native storage alive until completion, even after task cancellation.
 public interface IHyperXManualQueryTransport : IAsyncDisposable
 {
@@ -39,7 +39,7 @@ public interface IHyperXManualQueryTransport : IAsyncDisposable
 }
 
 public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, INgenuityPresenceProbe processes,
-    IHyperXManualQueryTransport? transport = null, TimeProvider? clock = null) : IDeviceBatteryProvider, IAsyncDisposable
+    IHyperXManualQueryTransport? transport = null, TimeProvider? clock = null, bool allowWithoutNgenuity = false) : IDeviceBatteryProvider, IAsyncDisposable
 {
     public const string LifetimeBlocker = "Active queries blocked: native I/O lifetime has not been validated for a long-running tray process.";
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
@@ -55,6 +55,16 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
     public HyperXDiagnostic? LastExchangeDiagnostic { get; private set; }
     public string TransportDiagnostics => (transport as IHyperXTransportStatus)?.Diagnostics ?? "";
     public bool ExperimentalEnabled => _experimentalEnabled;
+    public HyperXQueryOutcome? LastOutcome { get; private set; }
+    public NgenuityPresence LastProcessPresence { get; private set; } = NgenuityPresence.Unknown;
+    // Only the scheduler may explicitly recover a completed, contained failure. Never clear a transport safety latch.
+    public bool TryResumeAfterSafeFailure()
+    {
+        if (_stop.IsCancellationRequested || transport?.HasVerifiedLongRunningLifetime != true ||
+            LastExchangeDiagnostic?.CompletionSafeCleanup != true) return false;
+        _attemptsStopped = false;
+        return true;
+    }
     public bool CanQuery => !_stop.IsCancellationRequested && !_attemptsStopped && _experimentalEnabled &&
         transport?.HasVerifiedLongRunningLifetime == true && Current.Receiver == ReceiverPresence.Detected;
     public string QueryBlocker => _stop.IsCancellationRequested ? "Provider stopped." : _attemptsStopped
@@ -92,6 +102,8 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
         finally { _gate.Release(); }
     }
 
+    public void MarkReceiverAbsent() => ApplyDiscovery(new(ReceiverPresence.Absent));
+
     private void ApplyDiscovery(HyperXDiscoveryResult result)
     {
         var previous = Current;
@@ -102,7 +114,7 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
             ? BatteryObservationState.CandidateAmbiguous : BatteryObservationState.Unknown;
         var status = result.Presence switch
         {
-            ReceiverPresence.Detected => "Receiver detected; headset connectivity unknown. No automatic battery queries.",
+            ReceiverPresence.Detected => "Receiver detected; headset connectivity unknown. Metadata inspection only.",
             ReceiverPresence.Absent => "Receiver not observed; battery unavailable.",
             ReceiverPresence.Ambiguous => "Multiple matching receivers; no target selected.",
             _ => "Receiver inspection unavailable; no target selected."
@@ -116,6 +128,7 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _stop.Token);
         if (!await _gate.WaitAsync(0, linked.Token)) { Diagnostic = new(HyperXStage.Busy); return Current; }
+        LastOutcome = null;
         var elapsed = Stopwatch.StartNew();
         bool enteringTransport = false;
         Task<HyperXQueryResult>? exchange = null;
@@ -129,15 +142,19 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
             if (Current.Receiver != ReceiverPresence.Detected) return Refuse(HyperXStage.Discovery, Current.Status);
             var presence = await processes.InspectAsync(linked.Token);
             linked.Token.ThrowIfCancellationRequested();
-            if (presence != NgenuityPresence.Running)
-                return Refuse(HyperXStage.ProcessGuard, "Concurrent query refused: NGENUITY must be observed running; process state alone cannot prove every helper's state.");
+            LastProcessPresence = presence;
+            if (presence == NgenuityPresence.Unknown || !allowWithoutNgenuity && presence != NgenuityPresence.Running)
+                return Refuse(HyperXStage.ProcessGuard, allowWithoutNgenuity
+                    ? "Query refused: NGENUITY process inspection unavailable. No request sent."
+                    : "Concurrent query refused: NGENUITY must be observed running; process state alone cannot prove every helper's state.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(linked.Token);
             deadline.CancelAfter(transport.InvocationTimeout);
             enteringTransport = true;
             exchange = transport.QueryOnceAsync(deadline.Token);
             var result = await exchange.WaitAsync(transport.InvocationTimeout);
-            if (linked.IsCancellationRequested) result = result with { Outcome = HyperXQueryOutcome.Cancelled, CandidatePercentage = null };
+            if (linked.IsCancellationRequested || Current.Receiver != ReceiverPresence.Detected) result = result with { Outcome = HyperXQueryOutcome.Cancelled, CandidatePercentage = null };
             if (result.ReceiverAfterQuery is ReceiverPresence observed) ApplyDiscovery(new(observed));
+            LastOutcome = result.Outcome;
             RecordExchange(new(HyperXStage.Exchange, result.RequestAttempted, result.OutputCompleted,
                 result.Win32Error, result.HidStatus, elapsed.Elapsed.TotalMilliseconds, result.CompletionSafeCleanup));
             if (result.Outcome == HyperXQueryOutcome.CandidateObserved && result.CandidatePercentage is >= 0 and <= 100 &&
@@ -147,12 +164,12 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
                     LastReported = _clock.GetUtcNow(), Availability = BatteryAvailability.Available,
                     ObservationState = BatteryObservationState.CandidateAmbiguous,
                     Source = "Experimental one-shot HID; response ownership ambiguous",
-                    Status = "Candidate observed; NGENUITY may have requested it. Freshness and headset connectivity unknown." });
+                    Status = "Candidate observed; response ownership, freshness and headset connectivity remain unknown." });
                 return Current;
             }
             return StopAfterFailure(result.Outcome == HyperXQueryOutcome.CandidateObserved
                 ? "Candidate rejected: invalid value, incomplete output or unverified cleanup. No retry."
-                : $"Experimental query stopped: {result.Outcome}; no retry scheduled.");
+                : $"Experimental query stopped: {result.Outcome}; no immediate retry. See monitoring schedule or paused state.");
         }
         catch (OperationCanceledException)
         {

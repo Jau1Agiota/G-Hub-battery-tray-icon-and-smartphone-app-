@@ -1,4 +1,5 @@
 using PeripheralBatteryCompanion.Core.Presentation;
+using PeripheralBatteryCompanion.Core;
 
 namespace PeripheralBatteryCompanion.Windows;
 
@@ -16,6 +17,10 @@ internal sealed class BatteryPopupForm : Form
     private readonly CheckBox _hyperXExperimental = new() { Text = "Experimental HyperX queries", AutoSize = true };
     private readonly Button _hyperXQuery = new() { Text = "Query battery (experimental)", AutoSize = true, Enabled = false };
     private readonly Button _hyperXCancel = new() { Text = "Cancel HyperX operation", AutoSize = true, Enabled = false };
+    private readonly CheckBox _hyperXAutomatic = new() { Text = "Automatic HyperX monitoring (save preference)", AutoSize = true };
+    private readonly ComboBox _hyperXInterval = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    private readonly Label _hyperXSchedule = MakeLabel("Automatic monitoring off.");
+    private readonly Button _hyperXResume = new() { Text = "Resume HyperX monitoring", AutoSize = true, Enabled = false };
     private bool _hyperXQuerying, _hyperXAllowed;
     private bool _displayingHyperX;
     private string _hyperXDiagnostics = "HyperX: no inspection yet; no battery query.";
@@ -31,6 +36,8 @@ internal sealed class BatteryPopupForm : Form
     public event Action<bool>? HyperXOptInRequested;
     public event EventHandler? HyperXQueryRequested;
     public event EventHandler? HyperXCancelRequested;
+    public event Action<bool, int>? HyperXMonitoringRequested;
+    public event EventHandler? HyperXResumeRequested;
 
     public BatteryPopupForm()
     {
@@ -77,6 +84,20 @@ internal sealed class BatteryPopupForm : Form
         Add(_hyperXObserved);
         Add(_hyperXStatus);
         Add(_hyperXExperimental);
+        Add(_hyperXAutomatic);
+        _hyperXInterval.Items.AddRange(["60 seconds", "120 seconds", "300 seconds"]);
+        _hyperXInterval.SelectedIndex = 1;
+        Add(_hyperXInterval);
+        Add(_hyperXSchedule);
+        Add(_hyperXResume);
+        void MonitoringChanged()
+        {
+            if (!_displayingHyperX) HyperXMonitoringRequested?.Invoke(_hyperXAutomatic.Checked,
+                new[] { 60, 120, 300 }[_hyperXInterval.SelectedIndex]);
+        }
+        _hyperXAutomatic.CheckedChanged += (_, _) => MonitoringChanged();
+        _hyperXInterval.SelectedIndexChanged += (_, _) => MonitoringChanged();
+        _hyperXResume.Click += (_, _) => HyperXResumeRequested?.Invoke(this, EventArgs.Empty);
         Add(_hyperXQuery);
         Add(_hyperXCancel);
         _hyperXCancel.Click += (_, _) => HyperXCancelRequested?.Invoke(this, EventArgs.Empty);
@@ -153,10 +174,31 @@ internal sealed class BatteryPopupForm : Form
         if (Visible) PositionNearTray();
     }
 
+    public void DisplayHyperXMonitoring(HyperXMonitoringStatus status)
+    {
+        static string Format(DateTimeOffset? value) => value?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "None";
+        _displayingHyperX = true;
+        try
+        {
+            _hyperXAutomatic.Checked = status.Enabled;
+            _hyperXInterval.SelectedIndex = status.IntervalSeconds switch { 60 => 0, 300 => 2, _ => 1 };
+        }
+        finally { _displayingHyperX = false; }
+        _hyperXResume.Enabled = status.Suspended && !status.Busy;
+        _hyperXSchedule.Text = $"{status.State}\nLast checked: {Format(status.LastChecked)}\nNext check: {Format(status.NextCheck)}";
+        _hyperXDiagnostics += $"\nOrigin={status.Origin}; automatic={status.Enabled}; interval={status.IntervalSeconds}s; " +
+            $"last checked={Format(status.LastChecked)}; next check/retry={Format(status.NextCheck)}; failures={status.ConsecutiveFailures}; paused={status.Suspended}; state={status.State}";
+        _hyperXAllowed &= !status.Suspended;
+        _hyperXQuery.Enabled = _hyperXAllowed && !_hyperXQuerying && !status.Busy;
+        if (Visible) PositionNearTray();
+    }
+
     public void SetHyperXQuerying(bool busy)
     {
         _hyperXQuerying = busy;
         _hyperXExperimental.Enabled = !busy;
+        _hyperXInterval.Enabled = !busy;
+        _hyperXResume.Enabled &= !busy;
         _hyperXQuery.Enabled = !busy && _hyperXAllowed;
         _hyperXCancel.Enabled = busy;
     }
