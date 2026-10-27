@@ -26,6 +26,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private Task _hyperXDiscoveryTask = Task.CompletedTask;
     private Icon _icon;
     private int? _iconPercentage;
+    private BatteryMonitoringState? _lastKeyboardState;
+    private string _lastTooltip = "";
     private bool _refreshing;
     private bool Closing => _interaction.IsExitRequested;
 
@@ -57,6 +59,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 ApplyPanelVisibility();
             })));
         _menu.Items.Add(_refresh);
+        _menu.Items.Add("Advanced settings", null, (_, _) => _dispatcher.BeginInvoke((Action)(() =>
+        {
+            if (Closing) return;
+            _interaction.OpenPanel(); ApplyPanelVisibility(); _popup.SetHyperXAdvancedVisible(true);
+        })));
         _menu.Items.Add("Exit Application", null, async (_, _) => await CloseAsync());
         _menu.Opening += (_, e) =>
         {
@@ -174,6 +181,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
         _popup.DisplayHyperXMonitoring(_hyperXAutomatic.Status);
         _popup.DisplayHyperXCompact(HyperXCompactView.From(_hyperX, _hyperXAutomatic.Status));
+        UpdateTrayTooltip();
     }
 
     private void ConfigureAutomaticHyperX(bool enabled, int interval)
@@ -225,6 +233,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void Display(BatteryMonitoringState state)
     {
+        _lastKeyboardState = state;
         var view = BatteryPanelView.From(state);
         _popup.Display(view); // Hidden panels update without activation or extra database reads.
         var iconValue = view.Percentage;
@@ -236,7 +245,16 @@ internal sealed class TrayApplicationContext : ApplicationContext
             _icon = next;
             _iconPercentage = iconValue;
         }
-        _tray.Text = iconValue.HasValue ? $"G915: {iconValue}% (last reported)" : "G915: Unavailable";
+        UpdateTrayTooltip();
+    }
+
+    private void UpdateTrayTooltip()
+    {
+        if (Closing || _tray is null) return;
+        var text = TrayTooltipView.Build(_lastKeyboardState, _hyperX.Current);
+        if (text == _lastTooltip) return;
+        _tray.Text = text; // UI-thread callers only; pure cached state, no hover handler or I/O.
+        _lastTooltip = text;
     }
 
     private async Task CloseAsync()

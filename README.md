@@ -97,3 +97,5 @@ The sole manual packet is the owner-verified 62-byte 66/89 request. A result is 
 Distribute the full Windows ZIP, including `hyperx-helper/`; F5 builds also copy the component. Review [the native lifetime decision, IPC, safeguards and one-test approval gate](docs/HYPERX_NATIVE_TRANSPORT.md). No new hardware query was run by Codex. Previous [research/integration evidence](docs/HYPERX_INTEGRATION.md) remains included.
 
 Stage 4.0I adds a compact HyperX estimate/progress/update view, with existing experimental controls preserved under collapsed HyperX settings. See [the consolidated F/H/I report and Windows checklist](docs/STAGE4_0I_REPORT.md). Query consent, chosen interval and native safety gates are unchanged by UI polish.
+
+Stage 4.0K redesigns the native popup as themed device cards and adds a cached three-device tray hover tooltip. System/Dark/Light appearance and existing diagnostics are available under Advanced settings. [Implementation and Windows review checklist](docs/STAGE4_0K_REPORT.md). HyperX readings remain estimates; no transport, cadence or consent policy changes are included.
