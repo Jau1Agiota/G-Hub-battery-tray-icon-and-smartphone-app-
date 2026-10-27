@@ -78,6 +78,8 @@ internal sealed class BatteryPopupForm : Form
         AutoScroll = true;
         _headingFont = new Font(Font.FontFamily, 11, FontStyle.Bold);
         _appFont = new Font(Font.FontFamily, 12, FontStyle.Bold);
+        _battery.Font = _headingFont;
+        _hyperXEstimate.Font = _headingFont;
 
         _layout = new TableLayoutPanel
         {
@@ -136,7 +138,8 @@ internal sealed class BatteryPopupForm : Form
         AddRow(keyboardCard, _reported);
         AddRow(keyboardCard, _status);
         var mouseCard = NewCard("G305 Mouse", DeviceGlyphKind.Mouse, Color.SlateGray);
-        AddRow(mouseCard, MakeLabel("Battery: Unknown"));
+        var mouseBattery = MakeLabel("Battery: Unknown"); mouseBattery.Font = _headingFont;
+        AddRow(mouseCard, mouseBattery);
         var mouseLevel = new BatteryLevelBar { AccessibleName = "G305 battery unavailable", TabStop = false };
         AddRow(mouseCard, mouseLevel);
         AddRow(mouseCard, MakeLabel("Battery monitoring is not yet supported."));
