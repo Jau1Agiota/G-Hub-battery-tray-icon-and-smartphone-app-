@@ -64,6 +64,16 @@ internal static class Program
     private static async Task<int> RunActiveCoreAsync(PocMode mode, bool coexistence)
     {
         Console.WriteLine(PocFormatter.Preview(previewOnly: false, coexistence: coexistence)); // Always show the immutable request before native I/O.
+        using var global = new Semaphore(1, 1, HyperXHelperProtocol.HelperProtocol.GlobalQueryGate);
+        if (!global.WaitOne(0)) { Console.WriteLine(PocFormatter.Format(new(AttemptStatus.Busy), coexistence)); return 1; }
+        try { return await RunWithLocalGateAsync(coexistence); }
+        finally { global.Release(); }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static async Task<int> RunWithLocalGateAsync(bool coexistence)
+    {
+        var mode = coexistence ? PocMode.ActiveCoexistence : PocMode.ReadBattery;
         using var gate = new Semaphore(1, 1, @"Local\PeripheralBatteryCompanion.HyperXBatteryPoc");
         if (!gate.WaitOne(0)) { Console.WriteLine(PocFormatter.Format(new(AttemptStatus.Busy), coexistence)); return 1; }
         try

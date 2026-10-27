@@ -47,6 +47,9 @@
         "dependencies": {
           "SQLitePCLRaw.core": "2.1.13"
         }
+      },
+      "peripheralbatterycompanion.hyperxhelperprotocol": {
+        "type": "Project"
       }
     }
   }

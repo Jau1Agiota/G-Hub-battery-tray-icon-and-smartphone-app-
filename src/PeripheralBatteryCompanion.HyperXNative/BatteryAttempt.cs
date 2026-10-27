@@ -48,10 +48,13 @@ public sealed class BatteryAttempt(IHyperXBatterySessionFactory factory)
             token.ThrowIfCancellationRequested();
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(timeout);
+            // Timer cancellation can unblock WaitAsync before its other callbacks execute.
+            // Keep the session token owned here so CancelAsync drains all I/O callbacks before Dispose.
+            using var ioStop = new CancellationTokenSource();
             try
             {
                 // Arm the interrupt read first. Do not flush/drain arbitrary reports.
-                var responseTask = session.ReadOneReportAsync(deadline.Token);
+                var responseTask = session.ReadOneReportAsync(ioStop.Token);
                 read = responseTask;
                 if (responseTask.IsCompleted)
                 {
@@ -60,7 +63,7 @@ public sealed class BatteryAttempt(IHyperXBatterySessionFactory factory)
                 }
                 deadline.Token.ThrowIfCancellationRequested();
                 attempted = true;
-                output = session.SubmitOneStatusRequestAsync(deadline.Token);
+                output = session.SubmitOneStatusRequestAsync(ioStop.Token);
                 await output.WaitAsync(deadline.Token);
                 outputCompleted = true;
                 var response = await responseTask.WaitAsync(deadline.Token);
@@ -74,7 +77,7 @@ public sealed class BatteryAttempt(IHyperXBatterySessionFactory factory)
             {
                 return new(token.IsCancellationRequested ? AttemptStatus.Cancelled : AttemptStatus.Timeout, attempted, outputCompleted);
             }
-            finally { await deadline.CancelAsync(); } // Also cancel the armed read after an output failure.
+            finally { await ioStop.CancelAsync(); } // Also cancel the armed read after an output failure.
         }
         catch (OperationCanceledException) { return new(AttemptStatus.Cancelled, attempted, outputCompleted); }
         catch (AttemptRefusedException error) { return new(error.Status, attempted, outputCompleted); }

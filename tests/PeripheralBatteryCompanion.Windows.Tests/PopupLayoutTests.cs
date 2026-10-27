@@ -111,6 +111,27 @@ public sealed class PopupLayoutTests
         AssertControlsReachable(form);
     });
 
+    [Fact]
+    public void HelperReadinessAndBusyStateGateQueryAndCancelWithoutStartingAnOperation() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var queries = 0; var cancels = 0;
+        form.HyperXQueryRequested += (_, _) => queries++;
+        form.HyperXCancelRequested += (_, _) => cancels++;
+        var controls = Descendants(form).OfType<Button>().ToArray();
+        var query = controls.Single(button => button.Text == "Query battery (experimental)");
+        var cancel = controls.Single(button => button.Text == "Cancel HyperX operation");
+        Assert.False(query.Enabled); Assert.False(cancel.Enabled); Assert.Equal(0, queries);
+        form.DisplayHyperX(new("Receiver: Detected; headset connectivity: Unknown", "Battery: Unknown", "Last observed: Never",
+            "Simulation readiness passed; no battery query.", true, true, ""));
+        Assert.True(query.Enabled);
+        form.SetHyperXQuerying(true);
+        Assert.False(query.Enabled); Assert.True(cancel.Enabled);
+        form.SetHyperXQuerying(false);
+        Assert.True(query.Enabled); Assert.False(cancel.Enabled);
+        Assert.Equal(0, queries); Assert.Equal(0, cancels); // Display/busy transitions never invoke a query.
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;

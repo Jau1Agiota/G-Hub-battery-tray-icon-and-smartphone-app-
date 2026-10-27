@@ -148,10 +148,14 @@
       "peripheralbatterycompanion.core": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Data.Sqlite": "[10.0.14, )"
+          "Microsoft.Data.Sqlite": "[10.0.14, )",
+          "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )"
         }
       },
       "peripheralbatterycompanion.hidmetadata": {
+        "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxhelperprotocol": {
         "type": "Project"
       }
     }

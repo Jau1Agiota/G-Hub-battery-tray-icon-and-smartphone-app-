@@ -86,8 +86,10 @@ MIT is proposed for original project code, **pending repository-owner approval**
 
 The tray app reads only the local battery entry. It sends no telemetry, opens no network listeners, and writes no logs or database copies. Do not contribute real G HUB databases, personal paths, device identifiers, or secrets. Tests use synthetic JSON and temporary databases only.
 
-## Consolidated HyperX support (experimental)
+## HyperX support (experimental, manual only)
 
-The Windows panel now discovers the HyperX receiver through passive HID metadata and distinguishes receiver presence from unknown headset connectivity. Battery queries are **disabled**, including after experimental opt-in, until native I/O lifetime is validated for the long-running tray. No automatic HyperX battery polling is implemented. The historical 56% observation is never used as startup data.
+The panel discovers the HyperX receiver through passive metadata and keeps headset connectivity Unknown. Battery queries default off. After explicit session acknowledgement, the app tests a production-owned helper using query-free process simulations; the manual button enables only with successful containment/exit checks and one validated receiver. Missing/failed safety gates keep it disabled. No startup/Refresh/reconnect polling or automatic battery query exists.
 
-The standalone POC, verified USB protocol and owner-reported single successful NGENUITY coexistence experiment remain included; concurrent candidates are always ownership-ambiguous. See [integration behavior, evidence and manual checklist](docs/HYPERX_INTEGRATION.md) and the [consolidation report](docs/HYPERX_FINAL_INTEGRATION_REPORT.md). No new hardware request is authorized by this integration.
+The sole manual packet is the owner-verified 62-byte 66/89 request. A result is always **Candidate (Ambiguous)** with observation time/source, never confirmed fresh. Cancel/timeouts are supervised, unsafe/incomplete exit stops further attempts, and the tray never loads native HID transport. The earlier successful one-shot NGENUITY coexistence result does not establish reliable repeated operation.
+
+Distribute the full Windows ZIP, including `hyperx-helper/`; F5 builds also copy the component. Review [the native lifetime decision, IPC, safeguards and one-test approval gate](docs/HYPERX_NATIVE_TRANSPORT.md). No new hardware query was run by Codex. Previous [research/integration evidence](docs/HYPERX_INTEGRATION.md) remains included.

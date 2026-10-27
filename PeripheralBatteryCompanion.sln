@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HidMetadata", "src\PeripheralBatteryCompanion.HidMetadata\PeripheralBatteryCompanion.HidMetadata.csproj", "{AD90133F-67E7-4DC4-B678-93843C5003AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HyperXHelperProtocol", "src\PeripheralBatteryCompanion.HyperXHelperProtocol\PeripheralBatteryCompanion.HyperXHelperProtocol.csproj", "{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HyperXNative", "src\PeripheralBatteryCompanion.HyperXNative\PeripheralBatteryCompanion.HyperXNative.csproj", "{1EBF33D3-47F0-470E-AABC-C45DCBD26044}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.HyperXHelper", "src\PeripheralBatteryCompanion.HyperXHelper\PeripheralBatteryCompanion.HyperXHelper.csproj", "{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +91,30 @@ Global
 		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|x64.ActiveCfg = Release|Any CPU
 		{AD90133F-67E7-4DC4-B678-93843C5003AD}.Release|x64.Build.0 = Release|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Debug|x64.Build.0 = Debug|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Release|x64.ActiveCfg = Release|Any CPU
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2}.Release|x64.Build.0 = Release|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Debug|x64.Build.0 = Debug|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Release|x64.ActiveCfg = Release|Any CPU
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044}.Release|x64.Build.0 = Release|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Debug|x64.Build.0 = Debug|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Release|x64.ActiveCfg = Release|Any CPU
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,5 +127,8 @@ Global
 		{B4B5F710-C7DD-4D4E-A195-2009FD80763A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{524D3A87-DF62-4DD7-BEB5-2DC78A03C2AE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AD90133F-67E7-4DC4-B678-93843C5003AD} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{D5162850-B3B8-4FE4-B6DB-3F09A18443D2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{1EBF33D3-47F0-470E-AABC-C45DCBD26044} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

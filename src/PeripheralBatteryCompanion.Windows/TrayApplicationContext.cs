@@ -12,8 +12,10 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly BatteryPopupForm _popup = new(); // One instance, retained until application exit.
     private readonly TrayPanelState _interaction = new();
     private readonly BatteryMonitoringService _monitor = new(new GHubSqliteBatteryProvider());
-    // Deliberately NO active transport: POC process-exit reclamation is not a tray lifetime guarantee.
-    private readonly HyperXBatteryProvider _hyperX = new(new HyperXReceiverDiscovery(), new NgenuityPresenceProbe());
+    private readonly HyperXHelperTransport _hyperXTransport = new(new HyperXHelperProcessFactory());
+    private readonly HyperXBatteryProvider _hyperX;
+    private CancellationTokenSource? _hyperXQueryStop;
+    private Task _hyperXQueryTask = Task.CompletedTask;
     private readonly CancellationTokenSource _hyperXStop = new();
     private Task _hyperXDiscoveryTask = Task.CompletedTask;
     private Icon _icon;
@@ -23,6 +25,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     public TrayApplicationContext()
     {
+        _hyperX = new(new HyperXReceiverDiscovery(), new NgenuityPresenceProbe(), _hyperXTransport);
         _dispatcher.CreateControl();
         _icon = BatteryIcon.Create(null);
         _menu.Items.Add("Open Battery Panel", null, (_, _) =>
@@ -53,13 +56,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         };
         _popup.RefreshRequested += async (_, _) => await RefreshAsync();
         _popup.HyperXOptInRequested += ConfigureHyperX;
-        _popup.HyperXQueryRequested += async (_, _) =>
+        _popup.HyperXQueryRequested += (_, _) =>
         {
-            if (Closing) return;
-            try { await _hyperX.QueryOnceAsync(_hyperXStop.Token); } // Production lifetime gate always refuses.
-            catch (OperationCanceledException) { }
-            if (!Closing) _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
+            if (!Closing && _hyperX.CanQuery && _hyperXQueryTask.IsCompleted) _hyperXQueryTask = RunHyperXOperationAsync(false);
         };
+        _popup.HyperXCancelRequested += (_, _) => _hyperXQueryStop?.Cancel();
         _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
         _refresh.Click += async (_, _) => await RefreshAsync();
         _monitor.Updated += OnUpdated;
@@ -100,12 +101,38 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void ConfigureHyperX(bool requested)
     {
+        if (Closing || !_hyperXQueryTask.IsCompleted) return;
         var acknowledged = requested && MessageBox.Show(_popup,
-            "Experimental HyperX queries may compete with NGENUITY for responses or disrupt battery reporting. " +
-            "Response ownership/freshness is unknown. Active queries remain blocked in this build until native lifetime safety is validated. Enable the session-only experimental preference?",
+            "Experimental HyperX queries can compete with NGENUITY or disrupt battery reporting. " +
+            "A result is an ambiguous candidate, never confirmed fresh. Enable manual one-shot queries for this session? " +
+            "A query-free helper containment check runs first; no battery request is sent until you click Query.",
             "Experimental HyperX", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
         _hyperX.ConfigureExperimentalQueries(requested, acknowledged);
         _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
+        if (acknowledged) _hyperXQueryTask = RunHyperXOperationAsync(true);
+    }
+
+    private async Task RunHyperXOperationAsync(bool preflight)
+    {
+        using var cancel = CancellationTokenSource.CreateLinkedTokenSource(_hyperXStop.Token);
+        _hyperXQueryStop = cancel;
+        _popup.SetHyperXQuerying(true);
+        try
+        {
+            if (preflight) await _hyperXTransport.PrepareAsync(true, cancel.Token);
+            else await _hyperX.QueryOnceAsync(cancel.Token);
+        }
+        catch (OperationCanceledException) { }
+        catch { _hyperX.ConfigureExperimentalQueries(false); }
+        finally
+        {
+            _hyperXQueryStop = null;
+            if (!Closing)
+            {
+                _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
+                _popup.SetHyperXQuerying(false);
+            }
+        }
     }
 
     private Task RefreshHyperXAsync()
@@ -150,6 +177,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _menu.Enabled = false;
         ApplyPanelVisibility();
         await _hyperXStop.CancelAsync();
+        await _hyperXQueryTask;
         await _hyperXDiscoveryTask;
         await _hyperX.DisposeAsync();
         await _monitor.DisposeAsync();

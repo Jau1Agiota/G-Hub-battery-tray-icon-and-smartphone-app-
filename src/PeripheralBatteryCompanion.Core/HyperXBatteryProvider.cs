@@ -12,7 +12,7 @@ public sealed record HyperXDiscoveryResult(ReceiverPresence Presence, int? Win32
 // A transport must validate the entire fixed-length 66/89 response before returning a candidate.
 public sealed record HyperXQueryResult(HyperXQueryOutcome Outcome, int? CandidatePercentage = null,
     bool RequestAttempted = false, bool OutputCompleted = false, int? Win32Error = null, int? HidStatus = null,
-    bool CompletionSafeCleanup = false);
+    bool CompletionSafeCleanup = false, ReceiverPresence? ReceiverAfterQuery = null);
 public sealed record HyperXDiagnostic(HyperXStage Stage, bool RequestAttempted = false, bool OutputCompleted = false,
     int? Win32Error = null, int? HidStatus = null, double ElapsedMilliseconds = 0,
     bool CompletionSafeCleanup = true, bool ResponseOwnershipAmbiguous = true);
@@ -34,6 +34,7 @@ public interface INgenuityPresenceProbe
 public interface IHyperXManualQueryTransport : IAsyncDisposable
 {
     bool HasVerifiedLongRunningLifetime { get; }
+    TimeSpan InvocationTimeout => TimeSpan.FromSeconds(3);
     Task<HyperXQueryResult> QueryOnceAsync(CancellationToken token);
 }
 
@@ -52,12 +53,13 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
     public BatteryDevice Current => Volatile.Read(ref _current);
     public HyperXDiagnostic Diagnostic { get; private set; } = new(HyperXStage.Idle);
     public HyperXDiagnostic? LastExchangeDiagnostic { get; private set; }
+    public string TransportDiagnostics => (transport as IHyperXTransportStatus)?.Diagnostics ?? "";
     public bool ExperimentalEnabled => _experimentalEnabled;
     public bool CanQuery => !_stop.IsCancellationRequested && !_attemptsStopped && _experimentalEnabled &&
         transport?.HasVerifiedLongRunningLifetime == true && Current.Receiver == ReceiverPresence.Detected;
     public string QueryBlocker => _stop.IsCancellationRequested ? "Provider stopped." : _attemptsStopped
         ? "Further attempts stopped after a failure; review diagnostics before any new physical test."
-        : transport?.HasVerifiedLongRunningLifetime != true ? LifetimeBlocker
+        : transport?.HasVerifiedLongRunningLifetime != true ? (transport as IHyperXTransportStatus)?.SafetyBlocker ?? LifetimeBlocker
         : !_experimentalEnabled ? "Experimental active queries are disabled." : Current.Receiver != ReceiverPresence.Detected
         ? "Exactly one validated receiver is required." : "";
 
@@ -121,7 +123,7 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
         {
             if (_attemptsStopped) return Refuse(HyperXStage.Stopped, QueryBlocker);
             if (!_experimentalEnabled) return Refuse(HyperXStage.OptIn, "Experimental active queries are disabled.");
-            if (transport?.HasVerifiedLongRunningLifetime != true) return Refuse(HyperXStage.LifetimeGate, LifetimeBlocker);
+            if (transport?.HasVerifiedLongRunningLifetime != true) return Refuse(HyperXStage.LifetimeGate, QueryBlocker);
             ApplyDiscovery(await discovery.DiscoverAsync(linked.Token));
             linked.Token.ThrowIfCancellationRequested();
             if (Current.Receiver != ReceiverPresence.Detected) return Refuse(HyperXStage.Discovery, Current.Status);
@@ -130,11 +132,12 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
             if (presence != NgenuityPresence.Running)
                 return Refuse(HyperXStage.ProcessGuard, "Concurrent query refused: NGENUITY must be observed running; process state alone cannot prove every helper's state.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(linked.Token);
-            deadline.CancelAfter(TimeSpan.FromSeconds(3));
+            deadline.CancelAfter(transport.InvocationTimeout);
             enteringTransport = true;
             exchange = transport.QueryOnceAsync(deadline.Token);
-            var result = await exchange.WaitAsync(deadline.Token);
-            deadline.Token.ThrowIfCancellationRequested();
+            var result = await exchange.WaitAsync(transport.InvocationTimeout);
+            if (linked.IsCancellationRequested) result = result with { Outcome = HyperXQueryOutcome.Cancelled, CandidatePercentage = null };
+            if (result.ReceiverAfterQuery is ReceiverPresence observed) ApplyDiscovery(new(observed));
             RecordExchange(new(HyperXStage.Exchange, result.RequestAttempted, result.OutputCompleted,
                 result.Win32Error, result.HidStatus, elapsed.Elapsed.TotalMilliseconds, result.CompletionSafeCleanup));
             if (result.Outcome == HyperXQueryOutcome.CandidateObserved && result.CandidatePercentage is >= 0 and <= 100 &&

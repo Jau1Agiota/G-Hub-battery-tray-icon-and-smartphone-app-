@@ -65,3 +65,9 @@ The cloud sandbox may require tool approval for the SDK's system named mutexes. 
 Use the current [Stage 3.1 manual Windows checklist](TESTING.md#manual-windows-integration-checklist), including comparison with G HUB, left-click toggle/dismissal, right-click lifecycle controls, DPI/multiple monitors, hidden monitoring, cached/unavailable data and clean exit.
 
 For full local verification and a clipboard-ready summary run `.\test.ps1 -Release -CopySummary`. The runner does not validate native tray behavior or real G915 accuracy. Record those results separately. Never rename/delete/copy the live database or its WAL/SHM files to simulate failure.
+
+## Stage 4.0F helper packaging/debugging
+
+Normal solution builds copy the self-contained production helper into the Windows output's `hyperx-helper/` directory for F5. Publishing the Windows project explicitly publishes that component, and the release PowerShell publisher validates dependencies/files with `scripts/Test-HyperXArtifact.ps1` before ZIP creation. Distribute the entire ZIP/folder; a lone tray EXE lacks the helper and keeps queries disabled. No diagnostic POC executable is launched or shipped as the production worker.
+
+Use breakpoints in `HyperXHelperTransport`/`HyperXBatteryProvider` for supervision/state and attach to the child only in a separately approved native test. Merely opening/debugging the app, Refresh and opting in must not send a battery request (opt-in runs only no-HID simulations). Runtime budgets can expire while a debugger is paused; do not disable them to force hardware success. Review [lifetime, UI cancellation and the physical gate](HYPERX_NATIVE_TRANSPORT.md) before any Query click.

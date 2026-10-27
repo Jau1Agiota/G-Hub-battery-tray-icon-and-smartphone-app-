@@ -15,6 +15,8 @@ internal sealed class BatteryPopupForm : Form
     private readonly Label _hyperXBlocker = MakeLabel(PeripheralBatteryCompanion.Core.HyperXBatteryProvider.LifetimeBlocker);
     private readonly CheckBox _hyperXExperimental = new() { Text = "Experimental HyperX queries", AutoSize = true };
     private readonly Button _hyperXQuery = new() { Text = "Query battery (experimental)", AutoSize = true, Enabled = false };
+    private readonly Button _hyperXCancel = new() { Text = "Cancel HyperX operation", AutoSize = true, Enabled = false };
+    private bool _hyperXQuerying, _hyperXAllowed;
     private bool _displayingHyperX;
     private string _hyperXDiagnostics = "HyperX: no inspection yet; no battery query.";
     private readonly Button _refresh = new() { Text = "Refresh", AutoSize = true };
@@ -28,6 +30,7 @@ internal sealed class BatteryPopupForm : Form
     public event EventHandler? RefreshRequested;
     public event Action<bool>? HyperXOptInRequested;
     public event EventHandler? HyperXQueryRequested;
+    public event EventHandler? HyperXCancelRequested;
 
     public BatteryPopupForm()
     {
@@ -75,6 +78,8 @@ internal sealed class BatteryPopupForm : Form
         Add(_hyperXStatus);
         Add(_hyperXExperimental);
         Add(_hyperXQuery);
+        Add(_hyperXCancel);
+        _hyperXCancel.Click += (_, _) => HyperXCancelRequested?.Invoke(this, EventArgs.Empty);
         Add(_hyperXBlocker);
         var copyHyperX = new Button { Text = "Copy HyperX diagnostics", AutoSize = true };
         Add(copyHyperX);
@@ -140,11 +145,20 @@ internal sealed class BatteryPopupForm : Form
         _hyperXStatus.Text = string.Join(Environment.NewLine, view.Details.Split('\n').Take(2));
         _hyperXDiagnostics = "HyperX Cloud III Wireless (03F0:05B7 / MI_03 / COL01 / FF13:0001)\n" + view.ReceiverText + "\n" + view.BatteryText + "\n" + view.ObservedText + "\n" + view.Details;
         _hyperXBlocker.Text = view.QueryBlocker;
-        _hyperXQuery.Enabled = view.CanQuery;
+        _hyperXAllowed = view.CanQuery;
+        _hyperXQuery.Enabled = view.CanQuery && !_hyperXQuerying;
         _displayingHyperX = true;
         try { _hyperXExperimental.Checked = view.ExperimentalEnabled; }
         finally { _displayingHyperX = false; }
         if (Visible) PositionNearTray();
+    }
+
+    public void SetHyperXQuerying(bool busy)
+    {
+        _hyperXQuerying = busy;
+        _hyperXExperimental.Enabled = !busy;
+        _hyperXQuery.Enabled = !busy && _hyperXAllowed;
+        _hyperXCancel.Enabled = busy;
     }
 
     public void ShowNearTray(Point anchor)

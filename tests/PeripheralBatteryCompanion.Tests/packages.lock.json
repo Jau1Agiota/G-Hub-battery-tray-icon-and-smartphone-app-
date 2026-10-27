@@ -141,7 +141,8 @@
       "peripheralbatterycompanion.core": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Data.Sqlite": "[10.0.14, )"
+          "Microsoft.Data.Sqlite": "[10.0.14, )",
+          "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )"
         }
       },
       "peripheralbatterycompanion.g305inspector": {
@@ -156,7 +157,25 @@
       "peripheralbatterycompanion.hyperxbatterypoc": {
         "type": "Project",
         "dependencies": {
-          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )"
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )",
+          "PeripheralBatteryCompanion.HyperXNative": "[1.0.0, )"
+        }
+      },
+      "peripheralbatterycompanion.hyperxhelper": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )",
+          "PeripheralBatteryCompanion.HyperXNative": "[1.0.0, )"
+        }
+      },
+      "peripheralbatterycompanion.hyperxhelperprotocol": {
+        "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxnative": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )",
+          "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )"
         }
       }
     }
