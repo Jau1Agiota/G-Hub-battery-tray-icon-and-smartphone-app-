@@ -4,30 +4,34 @@ namespace PeripheralBatteryCompanion.HyperXBatteryPoc;
 
 public static class PocFormatter
 {
-    public static string Preview(bool previewOnly = true)
+    public static string Preview(bool previewOnly = true, bool coexistence = false)
     {
         var text = new StringBuilder();
-        text.AppendLine("HyperX Cloud III Wireless - Stage 4.0C isolated proof of concept");
+        text.AppendLine("HyperX Cloud III Wireless - Stage 4.0C/4.0D isolated proof of concept");
         text.AppendLine("Target: 03F0:05B7 / MI_03 / COL01 / FF13:0001; input=62, output=62, feature=0");
         text.AppendLine("Exact proposed output: 62 bytes including report ID; byte 0=66, byte 1=89, bytes 2-61=00.");
         text.AppendLine("Payload: " + Hex(HyperXStatusProtocol.CreateStatusRequest()));
-        text.AppendLine("Review assumption: confirm all 60 trailing zero bytes against the full capture; the supplied request was abbreviated.");
+        text.AppendLine("Owner verified the full zero tail and the POC wire transfer; coexistence remains experimental.");
         text.AppendLine("Transport: overlapped IOCTL_HID_SET_OUTPUT_REPORT (0x000B0195), not WriteFile.");
-        text.AppendLine("USB expectation to verify: 21/09, wValue=0266, wIndex=0003, wLength=003E (62).");
+        text.AppendLine("Owner-verified USB reference: 21/09, wValue=0266, wIndex=0003, wLength=003E (62).");
         text.AppendLine("One output submission and one interrupt input read; shared READ handle; 3-second exchange deadline.");
         text.AppendLine("No feature commands, initializers, retries, polling, settings changes or provider integration.");
-        text.AppendLine("Close NGENUITY AND its helper manually before the first reviewed active attempt.");
+        text.AppendLine(coexistence
+            ? "ACTIVE COEXISTENCE: NGENUITY stays open; risk acknowledged: battery reporting may be temporarily disrupted."
+            : "Close NGENUITY AND its helper manually before a normal ReadBattery attempt.");
         text.AppendLine(previewOnly
             ? "Payload preview does not open any HID handle or send/receive a report."
             : "ACTIVE opt-in requested: after gates, at most one output and one input will be attempted.");
         return text.ToString().TrimEnd();
     }
 
-    public static string Format(BatteryAttemptResult result)
+    public static string Format(BatteryAttemptResult result, bool coexistence = false)
     {
         var text = new StringBuilder();
         text.AppendLine("HyperX Cloud III Wireless - one-shot battery candidate result");
-        text.AppendLine($"Status: {result.Status}");
+        text.AppendLine($"Mode: {(coexistence ? "ActiveCoexistence" : "ReadBattery")}");
+        text.AppendLine($"Status: {(coexistence && result.Status == AttemptStatus.CandidateReceived ? "CandidateObservedAmbiguous" : result.Status.ToString())}");
+        if (coexistence) text.AppendLine("Response ownership: ambiguous, never uniquely correlated. NGENUITY may issue the same request or receive/compete for input. No general coexistence success inferred.");
         if (result.Status == AttemptStatus.UnexpectedFailure)
             text.AppendLine("Request outcome unknown; do not infer non-delivery or retry.");
         else text.AppendLine($"Request submission attempted: {result.RequestAttempted}; output operation completed: {result.OutputCompleted}");
@@ -42,7 +46,9 @@ public static class PocFormatter
             text.AppendLine("Bytes 2, 3 and remaining payload fields are uninterpreted.");
         }
         text.AppendLine("No automatic retry. A timeout/error does not prove that the device received nothing.");
-        text.AppendLine("Matching header alone cannot prove freshness/correlation; verify the wire transfer and compare with NGENUITY after the test.");
+        text.AppendLine(coexistence
+            ? "Matching NGENUITY percentage is consistency only, not proof of response ownership/freshness. If correlation cannot be established, prefer passive metadata/closed-app diagnostics or redesign before production."
+            : "Matching header alone cannot prove freshness/correlation; verify the wire transfer and compare with NGENUITY after the test.");
         return text.ToString().TrimEnd();
     }
 

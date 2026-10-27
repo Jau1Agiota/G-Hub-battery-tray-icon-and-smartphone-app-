@@ -80,3 +80,7 @@ Owner update, 2026-10-27: TShark inspection of frame 9 in the original `hyperx-b
 The owner reports `Hyperx.pcapng` frame 10061: successful control OUT SET_REPORT 21/09, wValue 0266, wIndex 3, wLength 62, exact body 66 89 + 60 zeros. Frame 10062: successful interrupt IN endpoint 84, 62 bytes beginning 66 89 0E E3 38, matching the POC response and 56% candidate. Frame 10063 is a successful zero-length IN URB, not another battery reading. The earlier NGENUITY comparison also showed 56%.
 
 This supersedes earlier pending-wire statements for this observed hardware exchange; it does not validate concurrency, disconnection or long-running resource lifetime. See the [wire record](HYPERX_USBPCAP_VERIFICATION.md) and [coexistence test plan](HYPERX_NGENUITY_COEXISTENCE.md). Coexistence is the next gate. The existing active mode still requires NGENUITY closed; do not bypass that guard to test concurrency. No executable, launcher or production behavior changes accompany this documentation update.
+
+## Stage 4.0D baseline and evidence boundary
+
+The owner reports passive shared GENERIC_READ/READ|WRITE/OVERLAPPED handle opening succeeded with NGENUITY running, without report I/O. This proves access compatibility in that observation, not active response delivery. The separately acknowledged [active coexistence experiment](HYPERX_NGENUITY_COEXISTENCE.md) is implemented for review, but has not been physically executed. No transaction/correlation field is verified; identical NGENUITY polls can make response ownership ambiguous. Production integration remains excluded.

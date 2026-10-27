@@ -4,6 +4,8 @@ param(
     [switch]$CopySummary,
     [switch]$PreviewRequest,
     [switch]$PassiveCoexistence,
+    [switch]$ActiveCoexistence,
+    [switch]$AcknowledgeCoexistenceRisk,
     [switch]$ReadBattery,
     [switch]$ConfirmNgenuityClosed
 )
@@ -39,11 +41,11 @@ function Invoke-DotNet([string[]]$Arguments) {
 }
 
 try {
-    if (($PassiveCoexistence -and ($PreviewRequest -or $ReadBattery -or $ConfirmNgenuityClosed)) -or
-        ($PreviewRequest -and $ReadBattery) -or ($ConfirmNgenuityClosed -and -not $ReadBattery) -or
-        ($ReadBattery -and -not $ConfirmNgenuityClosed)) {
+    $modeCount = [int]$PreviewRequest.IsPresent + [int]$PassiveCoexistence.IsPresent + [int]$ReadBattery.IsPresent + [int]$ActiveCoexistence.IsPresent
+    if ($modeCount -gt 1 -or ($ReadBattery.IsPresent -ne $ConfirmNgenuityClosed.IsPresent) -or
+        ($ActiveCoexistence.IsPresent -ne $AcknowledgeCoexistenceRisk.IsPresent)) {
         $exitCode = 2
-        throw 'Use passive default, -PassiveCoexistence, -PreviewRequest, or -ReadBattery -ConfirmNgenuityClosed. No request attempted.'
+        throw 'Choose one mode. ReadBattery requires ConfirmNgenuityClosed; ActiveCoexistence requires AcknowledgeCoexistenceRisk. Acknowledgements cannot be mixed. No request attempted.'
     }
     if (-not $windowsHost -and -not $PreviewRequest) {
         $exitCode = 2
@@ -78,6 +80,7 @@ try {
         $runArguments = @($assembly)
         if ($PassiveCoexistence) { $runArguments += '--passive-coexistence' }
         elseif ($PreviewRequest) { $runArguments += '--preview-request' }
+        elseif ($ActiveCoexistence) { $runArguments += @('--active-coexistence', '--acknowledge-coexistence-risk') }
         elseif ($ReadBattery) { $runArguments += @('--read-battery', '--confirm-ngenuity-closed') }
         $result = Invoke-DotNet $runArguments
         $exitCode = $result.ExitCode

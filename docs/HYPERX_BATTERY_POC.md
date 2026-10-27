@@ -115,3 +115,7 @@ This supersedes earlier pending-wire statements for this observed hardware excha
 ## Explicit passive shared-access mode
 
 Use `hyperx-battery-poc.ps1 -PassiveCoexistence -CopySummary` with NGENUITY open for the [controlled coexistence test](HYPERX_NGENUITY_COEXISTENCE.md). Unlike preview, it enumerates and inspects exact COL01, then opens/closes a shared GENERIC_READ/overlapped handle without reading or transmitting any report. It does not create an active battery session or relax active safety guards. Report metadata is zero-access; the separate read-access open tests compatibility with the existing active handle requirements. No production provider changes.
+
+## Stage 4.0D: separately acknowledged coexistence experiment
+
+The isolated POC now accepts `-ActiveCoexistence -AcknowledgeCoexistenceRisk` (CLI: `--active-coexistence --acknowledge-coexistence-risk`). This requires NGENUITY observed running and does not weaken normal `-ReadBattery -ConfirmNgenuityClosed`. It reuses the one-request/one-input transport and deadline. Valid concurrent replies are always labeled `CandidateObservedAmbiguous`. See [risks, command and stop procedure](HYPERX_NGENUITY_COEXISTENCE.md). Implementation is ready for review, not hardware-validated; do not run the physical experiment before owner review. No production providers change.

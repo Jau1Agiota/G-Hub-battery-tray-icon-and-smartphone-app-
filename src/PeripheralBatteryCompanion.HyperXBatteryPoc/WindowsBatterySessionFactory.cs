@@ -21,7 +21,7 @@ public static class HyperXReceiverSelection
 }
 
 [SupportedOSPlatform("windows")]
-internal sealed class WindowsBatterySessionFactory : IHyperXBatterySessionFactory
+internal sealed class WindowsBatterySessionFactory(Action<HidCapabilities>? onValidatedOpen = null) : IHyperXBatterySessionFactory
 {
     public IHyperXBatterySession OpenValidatedSession()
     {
@@ -60,6 +60,7 @@ internal sealed class WindowsBatterySessionFactory : IHyperXBatterySessionFactor
                     caps.OutputReportByteLength != 62 || caps.FeatureReportByteLength != 0)
                     throw new AttemptRefusedException(AttemptStatus.CapabilitiesMismatch);
             }
+            onValidatedOpen?.Invoke(inspected.Capabilities);
             return new WindowsBatterySession(file);
         }
         catch { file.Dispose(); throw; }

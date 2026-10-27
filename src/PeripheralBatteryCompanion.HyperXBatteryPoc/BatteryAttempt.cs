@@ -4,7 +4,7 @@ public enum AttemptStatus
 {
     CandidateReceived, Timeout, Cancelled, NoReceiver, AmbiguousReceiver, EnumerationFailed,
     CapabilitiesMismatch, NativeFailure, BufferedInputBeforeRequest, InvalidResponse,
-    UnsupportedPlatform, NgenuityRunning, ProcessCheckFailed, Busy, UnexpectedFailure
+    UnsupportedPlatform, NgenuityRunning, ProcessCheckFailed, Busy, UnexpectedFailure, NgenuityNotObserved
 }
 public enum BatteryIoStep { Enumerate, Inspect, OpenReadHandle, ReadInput, SubmitOutput, ProcessCheck }
 public sealed class BatteryIoException(BatteryIoStep step, int code, bool isHidStatus = false) : Exception("HID operation failed")
