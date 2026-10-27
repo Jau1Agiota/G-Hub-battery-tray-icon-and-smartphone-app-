@@ -5,6 +5,7 @@ namespace PeripheralBatteryCompanion.Windows;
 internal sealed class BatteryLevelBar : Control
 {
     private int? _percentage;
+    private bool _estimateMode;
     public BatteryLevelBar()
     {
         DoubleBuffered = true;
@@ -23,6 +24,17 @@ internal sealed class BatteryLevelBar : Control
         Invalidate();
     }
 
+    public void SetEstimate(int? percentage)
+    {
+        _estimateMode = true;
+        _percentage = percentage is >= 0 and <= 100 ? percentage : null;
+        AccessibleName = "HyperX estimated battery level";
+        AccessibleDescription = _percentage is { } value
+            ? $"{value}% estimated; response source not uniquely verified; headset connectivity unknown"
+            : "No current estimate; unknown or stale. Headset connectivity unknown";
+        Invalidate();
+    }
+
     internal static Color GetColor(int? percentage) => BatteryPanelView.ColorFor(percentage) switch
     {
         BatteryLevelColor.Green => Color.LimeGreen,
@@ -35,10 +47,11 @@ internal sealed class BatteryLevelBar : Control
     {
         base.OnPaint(e);
         var border = new Rectangle(0, 0, Math.Max(0, Width - 1), Math.Max(0, Height - 1));
-        using var outline = new Pen(GetColor(_percentage));
+        var color = _estimateMode && _percentage.HasValue ? Color.Gold : GetColor(_percentage);
+        using var outline = new Pen(color);
         e.Graphics.DrawRectangle(outline, border);
-        var fillWidth = _percentage is int number ? (Width - 4) * number / 100 : Width - 4;
-        using var fill = new SolidBrush(GetColor(_percentage));
+        var fillWidth = _percentage is int number ? (Width - 4) * number / 100 : _estimateMode ? 0 : Width - 4;
+        using var fill = new SolidBrush(color);
         if (fillWidth > 0 && Height > 4) e.Graphics.FillRectangle(fill, 2, 2, fillWidth, Height - 4);
     }
 }

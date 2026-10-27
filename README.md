@@ -95,3 +95,5 @@ The panel discovers the HyperX receiver through passive metadata and keeps heads
 The sole manual packet is the owner-verified 62-byte 66/89 request. A result is always **Candidate (Ambiguous)** with observation time/source, never confirmed fresh. Cancel/timeouts are supervised, unsafe/incomplete exit stops further attempts, and the tray never loads native HID transport. The earlier successful one-shot NGENUITY coexistence result does not establish reliable repeated operation.
 
 Distribute the full Windows ZIP, including `hyperx-helper/`; F5 builds also copy the component. Review [the native lifetime decision, IPC, safeguards and one-test approval gate](docs/HYPERX_NATIVE_TRANSPORT.md). No new hardware query was run by Codex. Previous [research/integration evidence](docs/HYPERX_INTEGRATION.md) remains included.
+
+Stage 4.0I adds a compact HyperX estimate/progress/update view, with existing experimental controls preserved under collapsed HyperX settings. See [the consolidated F/H/I report and Windows checklist](docs/STAGE4_0I_REPORT.md). Query consent, chosen interval and native safety gates are unchanged by UI polish.

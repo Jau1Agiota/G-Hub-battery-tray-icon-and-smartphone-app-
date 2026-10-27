@@ -173,6 +173,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (Closing) return;
         _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
         _popup.DisplayHyperXMonitoring(_hyperXAutomatic.Status);
+        _popup.DisplayHyperXCompact(HyperXCompactView.From(_hyperX, _hyperXAutomatic.Status));
     }
 
     private void ConfigureAutomaticHyperX(bool enabled, int interval)

@@ -9,6 +9,18 @@ internal sealed class BatteryPopupForm : Form
     private readonly Label _reported = MakeLabel("Last reported: Unknown");
     private readonly Label _status = MakeLabel("Reading G HUB…");
     private readonly BatteryLevelBar _level = new();
+    private readonly Label _hyperXEstimate = MakeLabel("Battery: Unknown");
+    private readonly BatteryLevelBar _hyperXLevel = new();
+    private readonly Label _hyperXUpdated = MakeLabel("Updated: Never");
+    private readonly Label _hyperXMonitoring = MakeLabel("");
+    private readonly Label _hyperXCompactStatus = MakeLabel("Automatic monitoring off");
+    private readonly Label _hyperXNote = MakeLabel("");
+    private readonly ToolTip _hyperXTip = new();
+    private readonly Button _hyperXSettings = new() { Text = "HyperX &settings", AutoSize = true,
+        AccessibleName = "HyperX settings", AccessibleDescription = "Expand or collapse experimental controls and diagnostics" };
+    private readonly TableLayoutPanel _hyperXAdvanced = new() { ColumnCount = 1, AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Top, Visible = false,
+        AccessibleRole = AccessibleRole.Grouping, AccessibleName = "HyperX advanced settings" };
     private readonly Label _hyperXReceiver = MakeLabel("Receiver: Unknown; headset connectivity: Unknown");
     private readonly Label _hyperXBattery = MakeLabel("Battery: Unknown");
     private readonly Label _hyperXObserved = MakeLabel("Last observed: Never");
@@ -79,17 +91,37 @@ internal sealed class BatteryPopupForm : Form
         Add(MakeLabel("Battery: Unknown"));
         Add(MakeLabel("Battery monitoring is not yet supported."));
         Add(new Label { Text = "HyperX Cloud III Wireless", Font = _headingFont, AutoSize = true });
-        Add(_hyperXReceiver);
-        Add(_hyperXBattery);
-        Add(_hyperXObserved);
-        Add(_hyperXStatus);
-        Add(_hyperXExperimental);
-        Add(_hyperXAutomatic);
+        Add(_hyperXEstimate);
+        _hyperXLevel.SetEstimate(null);
+        _hyperXLevel.TabStop = false;
+        Add(_hyperXLevel);
+        Add(_hyperXUpdated);
+        Add(_hyperXMonitoring);
+        Add(_hyperXCompactStatus);
+        _hyperXNote.ForeColor = SystemColors.GrayText;
+        Add(_hyperXNote);
+        Add(_hyperXSettings);
+        _hyperXSettings.Click += (_, _) => SetHyperXAdvancedVisible(!_hyperXAdvanced.Visible);
+        _hyperXAdvanced.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        void AddAdvanced(Control control)
+        {
+            var row = _hyperXAdvanced.RowCount++;
+            _hyperXAdvanced.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            control.Dock = DockStyle.Top;
+            control.Margin = new Padding(0, 0, 0, 8);
+            _hyperXAdvanced.Controls.Add(control, 0, row);
+        }
+        AddAdvanced(_hyperXReceiver);
+        AddAdvanced(_hyperXBattery);
+        AddAdvanced(_hyperXObserved);
+        AddAdvanced(_hyperXStatus);
+        AddAdvanced(_hyperXExperimental);
+        AddAdvanced(_hyperXAutomatic);
         _hyperXInterval.Items.AddRange(["60 seconds", "120 seconds", "300 seconds"]);
         _hyperXInterval.SelectedIndex = 1;
-        Add(_hyperXInterval);
-        Add(_hyperXSchedule);
-        Add(_hyperXResume);
+        AddAdvanced(_hyperXInterval);
+        AddAdvanced(_hyperXSchedule);
+        AddAdvanced(_hyperXResume);
         void MonitoringChanged()
         {
             if (!_displayingHyperX) HyperXMonitoringRequested?.Invoke(_hyperXAutomatic.Checked,
@@ -98,12 +130,14 @@ internal sealed class BatteryPopupForm : Form
         _hyperXAutomatic.CheckedChanged += (_, _) => MonitoringChanged();
         _hyperXInterval.SelectedIndexChanged += (_, _) => MonitoringChanged();
         _hyperXResume.Click += (_, _) => HyperXResumeRequested?.Invoke(this, EventArgs.Empty);
-        Add(_hyperXQuery);
-        Add(_hyperXCancel);
+        AddAdvanced(_hyperXQuery);
+        AddAdvanced(_hyperXCancel);
+        _hyperXCancel.Visible = false;
+        _hyperXResume.Visible = false;
         _hyperXCancel.Click += (_, _) => HyperXCancelRequested?.Invoke(this, EventArgs.Empty);
-        Add(_hyperXBlocker);
+        AddAdvanced(_hyperXBlocker);
         var copyHyperX = new Button { Text = "Copy HyperX diagnostics", AutoSize = true };
-        Add(copyHyperX);
+        AddAdvanced(copyHyperX);
         copyHyperX.Click += (_, _) =>
         {
             try { Clipboard.SetText(_hyperXDiagnostics); }
@@ -114,6 +148,7 @@ internal sealed class BatteryPopupForm : Form
             if (!_displayingHyperX) HyperXOptInRequested?.Invoke(_hyperXExperimental.Checked);
         };
         _hyperXQuery.Click += (_, _) => HyperXQueryRequested?.Invoke(this, EventArgs.Empty);
+        Add(_hyperXAdvanced);
         var actions = new FlowLayoutPanel { AutoSize = true, WrapContents = true, Margin = Padding.Empty };
         var close = new Button { Text = "Close", AutoSize = true };
         actions.Controls.Add(_refresh);
@@ -131,7 +166,7 @@ internal sealed class BatteryPopupForm : Form
         Activated += (_, _) => _dismissTimer.Stop();
         _dismissTimer.Tick += (_, _) =>
         {
-            if (MouseButtons != MouseButtons.None) return;
+            if (MouseButtons != MouseButtons.None || _hyperXInterval.DroppedDown) return;
             _dismissTimer.Stop();
             if (Visible && !ContainsFocus) RequestDismiss();
         };
@@ -163,7 +198,7 @@ internal sealed class BatteryPopupForm : Form
         _hyperXBattery.Text = view.BatteryText;
         _hyperXObserved.Text = view.ObservedText;
         // Full sanitized stage/error details are copied only on an explicit diagnostics click.
-        _hyperXStatus.Text = string.Join(Environment.NewLine, view.Details.Split('\n').Take(2));
+        _hyperXStatus.Text = view.Details;
         _hyperXDiagnostics = "HyperX Cloud III Wireless (03F0:05B7 / MI_03 / COL01 / FF13:0001)\n" + view.ReceiverText + "\n" + view.BatteryText + "\n" + view.ObservedText + "\n" + view.Details;
         _hyperXBlocker.Text = view.QueryBlocker;
         _hyperXAllowed = view.CanQuery;
@@ -184,12 +219,42 @@ internal sealed class BatteryPopupForm : Form
             _hyperXInterval.SelectedIndex = status.IntervalSeconds switch { 60 => 0, 300 => 2, _ => 1 };
         }
         finally { _displayingHyperX = false; }
+        _hyperXResume.Visible = status.Suspended;
         _hyperXResume.Enabled = status.Suspended && !status.Busy;
         _hyperXSchedule.Text = $"{status.State}\nLast checked: {Format(status.LastChecked)}\nNext check: {Format(status.NextCheck)}";
         _hyperXDiagnostics += $"\nOrigin={status.Origin}; automatic={status.Enabled}; interval={status.IntervalSeconds}s; " +
             $"last checked={Format(status.LastChecked)}; next check/retry={Format(status.NextCheck)}; failures={status.ConsecutiveFailures}; paused={status.Suspended}; state={status.State}";
         _hyperXAllowed &= !status.Suspended;
         _hyperXQuery.Enabled = _hyperXAllowed && !_hyperXQuerying && !status.Busy;
+        if (Visible) PositionNearTray();
+    }
+
+    public bool HyperXAdvancedVisible => _hyperXAdvanced.Visible;
+
+    public void SetHyperXAdvancedVisible(bool expanded)
+    {
+        _hyperXAdvanced.Visible = expanded;
+        _hyperXSettings.Text = expanded ? "Hide HyperX &settings" : "HyperX &settings";
+        _hyperXSettings.AccessibleDescription = expanded ? "Expanded; activate to collapse" : "Collapsed; activate to expand";
+        if (!expanded) { AutoScrollPosition = Point.Empty; _hyperXSettings.Focus(); }
+        if (Visible) PositionNearTray();
+    }
+
+    public void DisplayHyperXCompact(HyperXCompactView view)
+    {
+        _hyperXEstimate.Text = view.BatteryText;
+        _hyperXEstimate.AccessibleDescription = view.AccessibleDescription;
+        _hyperXLevel.SetEstimate(view.Percentage);
+        _hyperXUpdated.Text = view.UpdatedText;
+        _hyperXUpdated.AccessibleDescription = "Last estimate observation: " + view.TimestampDetail;
+        _hyperXTip.SetToolTip(_hyperXUpdated, view.TimestampDetail);
+        _hyperXTip.SetToolTip(_hyperXEstimate, view.EstimateNote);
+        _hyperXMonitoring.Text = view.MonitoringText;
+        _hyperXMonitoring.Visible = view.MonitoringText.Length != 0;
+        _hyperXCompactStatus.Text = view.StatusText;
+        _hyperXCompactStatus.Visible = view.StatusText.Length != 0;
+        _hyperXNote.Text = view.EstimateNote;
+        _hyperXNote.Visible = view.EstimateNote.Length != 0;
         if (Visible) PositionNearTray();
     }
 
@@ -201,6 +266,7 @@ internal sealed class BatteryPopupForm : Form
         _hyperXResume.Enabled &= !busy;
         _hyperXQuery.Enabled = !busy && _hyperXAllowed;
         _hyperXCancel.Enabled = busy;
+        _hyperXCancel.Visible = busy;
     }
 
     public void ShowNearTray(Point anchor)
@@ -237,9 +303,11 @@ internal sealed class BatteryPopupForm : Form
             MinimumSize = Size.Empty;
             MaximumSize = work.Size;
             _layout.Width = clientWidth;
-            foreach (var label in _layout.Controls.OfType<Label>())
+            foreach (var label in _layout.Controls.OfType<Label>().Concat(_hyperXAdvanced.Controls.OfType<Label>()))
                 label.MaximumSize = new Size(textWidth, 0);
             _level.Width = textWidth;
+            _hyperXLevel.Width = textWidth;
+            _hyperXAdvanced.Width = textWidth;
             _layout.PerformLayout();
             var contentHeight = _layout.GetPreferredSize(new Size(clientWidth, 0)).Height;
             var preferred = new Size(width, contentHeight + chrome.Height);
@@ -255,12 +323,20 @@ internal sealed class BatteryPopupForm : Form
     private void RequestDismiss()
     {
         _dismissTimer.Stop();
+        _hyperXAdvanced.Visible = false;
+        _hyperXSettings.Text = "HyperX &settings";
+        _hyperXSettings.AccessibleDescription = "Collapsed; activate to expand";
         DismissRequested?.Invoke(this, EventArgs.Empty);
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
-        if (keyData == Keys.Escape) { RequestDismiss(); return true; }
+        if (keyData == Keys.Escape)
+        {
+            if (_hyperXAdvanced.Visible) SetHyperXAdvancedVisible(false);
+            else RequestDismiss();
+            return true;
+        }
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
@@ -277,6 +353,7 @@ internal sealed class BatteryPopupForm : Form
     protected override void Dispose(bool disposing)
     {
         if (disposing) _dismissTimer.Dispose();
+        if (disposing) _hyperXTip.Dispose();
         base.Dispose(disposing);
         if (disposing) _headingFont.Dispose();
     }

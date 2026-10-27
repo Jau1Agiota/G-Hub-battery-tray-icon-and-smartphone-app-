@@ -152,6 +152,61 @@ public sealed class PopupLayoutTests
         Assert.True(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Enabled);
     });
 
+    [Fact]
+    public void CompactViewHidesAdvancedAndPreservesPreferencesWithoutRequests() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var requests = 0; var preferences = 0; var consent = 0;
+        form.HyperXQueryRequested += (_, _) => requests++;
+        form.HyperXMonitoringRequested += (_, _) => preferences++;
+        form.HyperXOptInRequested += _ => consent++;
+        form.DisplayHyperX(new("Receiver: Detected; headset connectivity: Unknown", "Battery candidate: 51% (ambiguous)",
+            "Last successful candidate: today", "Preserved technical details", true, true, ""));
+        form.DisplayHyperXMonitoring(new(true, 60, false, false, null, DateTimeOffset.UtcNow.AddSeconds(60),
+            PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 0, "Candidate observed"));
+        form.DisplayHyperXCompact(new("Battery estimate: 51%", 51, "Updated: 17:43", "Auto monitoring · every 60s", "",
+            HyperXCompactView.Uncertainty, "Estimate; source not uniquely verified", "2026-10-27 17:43:48 -03:00"));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var controls = Descendants(form).ToArray();
+        Assert.False(form.HyperXAdvancedVisible);
+        Assert.DoesNotContain(controls.OfType<CheckBox>(), box => box.Visible);
+        Assert.DoesNotContain(controls.OfType<ComboBox>(), combo => combo.Visible);
+        Assert.Contains(controls.OfType<Label>(), label => label.Visible && label.Text == "Battery estimate: 51%");
+        Assert.Contains(controls.OfType<BatteryLevelBar>(), bar => bar.AccessibleName == "HyperX estimated battery level" &&
+            bar.AccessibleDescription!.Contains("not uniquely verified"));
+        var height = form.Height;
+        form.SetHyperXAdvancedVisible(true); Application.DoEvents();
+        Assert.True(form.HyperXAdvancedVisible);
+        Assert.Equal("60 seconds", controls.OfType<ComboBox>().Single().SelectedItem);
+        Assert.True(controls.OfType<CheckBox>().Single(box => box.Text == "Experimental HyperX queries").Checked);
+        Assert.False(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Visible);
+        Assert.False(controls.OfType<Button>().Single(button => button.Text == "Resume HyperX monitoring").Visible);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.SetHyperXAdvancedVisible(false); Application.DoEvents();
+        Assert.Equal(height, form.Height); Assert.False(form.HyperXAdvancedVisible);
+        Assert.Equal(0, requests); Assert.Equal(0, preferences); Assert.Equal(0, consent);
+    });
+
+    [Theory]
+    [InlineData(96)] [InlineData(120)] [InlineData(144)] [InlineData(192)]
+    public void CompactAndExpandedViewsFitScaledText(int simulatedDpi) => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        // Text-size stress, not a substitute for actual per-monitor DPI transition testing.
+        using var font = new Font(form.Font.FontFamily, form.Font.Size * simulatedDpi / 96f);
+        form.Font = font;
+        form.DisplayHyperXCompact(new("Last estimate: 51% (stale)", null, "Last update: 17:43", "",
+            "Receiver not found", HyperXCompactView.Uncertainty, "Stale estimate", "Previous timestamp"));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.SetHyperXAdvancedVisible(true); Application.DoEvents();
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.SetHyperXAdvancedVisible(false); Application.DoEvents();
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;
