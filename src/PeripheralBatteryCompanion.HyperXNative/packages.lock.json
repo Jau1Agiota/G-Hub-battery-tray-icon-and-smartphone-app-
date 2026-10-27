@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "peripheralbatterycompanion.hidmetadata": {
+        "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxhelperprotocol": {
+        "type": "Project"
+      }
+    }
+  }
+}

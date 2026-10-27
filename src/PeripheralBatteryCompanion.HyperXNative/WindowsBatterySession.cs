@@ -8,6 +8,8 @@ namespace PeripheralBatteryCompanion.HyperXBatteryPoc;
 [SupportedOSPlatform("windows")]
 internal sealed class WindowsBatterySession : IHyperXBatterySession
 {
+    private readonly TaskCompletionSource _cleanup = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public Task CompletionSafeCleanup => _cleanup.Task;
     private readonly SafeFileHandle _file;
     private readonly ThreadPoolBoundHandle _bound;
     private readonly object _gate = new();
@@ -76,7 +78,7 @@ internal sealed class WindowsBatterySession : IHyperXBatterySession
         // until their IOCP completion, so timeout cannot free memory still used by the kernel.
     }
 
-    private void ReleaseHandles() { _bound.Dispose(); _file.Dispose(); }
+    private void ReleaseHandles() { _bound.Dispose(); _file.Dispose(); _cleanup.TrySetResult(); }
 
     private sealed unsafe class PendingIo
     {

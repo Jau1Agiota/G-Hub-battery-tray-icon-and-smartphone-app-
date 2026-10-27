@@ -4,6 +4,16 @@
     "net10.0": {
       "peripheralbatterycompanion.hidmetadata": {
         "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxhelperprotocol": {
+        "type": "Project"
+      },
+      "peripheralbatterycompanion.hyperxnative": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.HidMetadata": "[1.0.0, )",
+          "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )"
+        }
       }
     }
   }

@@ -3,5 +3,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="PeripheralBatteryCompanion.Tests" />
     <InternalsVisibleTo Include="PeripheralBatteryCompanion.HyperXBatteryPoc" />
+    <InternalsVisibleTo Include="PeripheralBatteryCompanion.HyperXNative" />
   </ItemGroup>
 </Project>

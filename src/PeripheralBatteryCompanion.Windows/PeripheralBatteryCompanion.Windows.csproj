@@ -17,6 +17,7 @@
   </PropertyGroup>
   <ItemGroup><InternalsVisibleTo Include="PeripheralBatteryCompanion.Windows.Tests" /></ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../PeripheralBatteryCompanion.HyperXHelper/PeripheralBatteryCompanion.HyperXHelper.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="../PeripheralBatteryCompanion.Core/PeripheralBatteryCompanion.Core.csproj" />
     <ProjectReference Include="../PeripheralBatteryCompanion.HidMetadata/PeripheralBatteryCompanion.HidMetadata.csproj" />
   </ItemGroup>
@@ -24,4 +25,16 @@
     <Content Include="../../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <Content Include="../../docs/licenses/*" Link="licenses/%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
+  <Target Name="CopyHyperXHelperForDebugging" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <HyperXHelperBuildFiles Include="$(MSBuildProjectDirectory)/../PeripheralBatteryCompanion.HyperXHelper/bin/$(Configuration)/net10.0/win-x64/**/*" Exclude="$(MSBuildProjectDirectory)/../PeripheralBatteryCompanion.HyperXHelper/bin/$(Configuration)/net10.0/win-x64/publish/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HyperXHelperBuildFiles)" DestinationFiles="@(HyperXHelperBuildFiles->'$(TargetDir)hyperx-helper/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="PublishHyperXHelper" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectDirectory)/../PeripheralBatteryCompanion.HyperXHelper/PeripheralBatteryCompanion.HyperXHelper.csproj" Targets="Publish"
+      RemoveProperties="TargetFramework;OutputPath"
+      Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=false;PublishDir=$([System.IO.Path]::GetFullPath('$(PublishDir)hyperx-helper/'))" />
+    <Error Condition="!Exists('$(PublishDir)hyperx-helper/PeripheralBatteryCompanion.HyperXHelper.exe')" Text="Required production HyperX helper was not published." />
+  </Target>
 </Project>

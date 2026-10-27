@@ -5,6 +5,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../PeripheralBatteryCompanion.HyperXNative/PeripheralBatteryCompanion.HyperXNative.csproj" />
     <ProjectReference Include="../PeripheralBatteryCompanion.HidMetadata/PeripheralBatteryCompanion.HidMetadata.csproj" />
     <InternalsVisibleTo Include="PeripheralBatteryCompanion.Tests" />
   </ItemGroup>

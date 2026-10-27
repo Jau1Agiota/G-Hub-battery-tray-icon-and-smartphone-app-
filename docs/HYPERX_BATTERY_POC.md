@@ -119,3 +119,7 @@ Use `hyperx-battery-poc.ps1 -PassiveCoexistence -CopySummary` with NGENUITY open
 ## Stage 4.0D: separately acknowledged coexistence experiment
 
 The isolated POC now accepts `-ActiveCoexistence -AcknowledgeCoexistenceRisk` (CLI: `--active-coexistence --acknowledge-coexistence-risk`). This requires NGENUITY observed running and does not weaken normal `-ReadBattery -ConfirmNgenuityClosed`. It reuses the one-request/one-input transport and deadline. Valid concurrent replies are always labeled `CandidateObservedAmbiguous`. See [risks, command and stop procedure](HYPERX_NGENUITY_COEXISTENCE.md). Implementation is ready for review, not hardware-validated; do not run the physical experiment before owner review. No production providers change.
+
+## Subsequent Stage 4.0F boundary
+
+The Stage 4.0E integration was merged as PR #3. Stage 4.0F moves shared native sources into HyperXNative, preserves POC modes/guards, adds cooperating global entry gating and corrects cancellation callback ordering. Production now uses an independently supervised helper, not the POC executable. Its manual button is conditional on session acknowledgement, exact receiver metadata and no-HID containment/exit preflight. See [the current lifetime decision and physical-test gate](HYPERX_NATIVE_TRANSPORT.md). Earlier blocked/query-pending statements in this report are historical snapshots, not evidence of new hardware validation.
