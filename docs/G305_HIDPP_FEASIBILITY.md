@@ -34,3 +34,7 @@ No passive inspector change is necessary before the owner returns the SQLite res
 6. Only after separately authorized implementation/review may the owner perform the controlled test and return sanitized results. Do not automatically close G HUB, change drivers/services, elevate, retry/poll or sample arbitrary reports. Account for competing G HUB traffic, buffered/stale replies, routing ambiguity, sleeping/off mouse, disconnects and timeouts; fail conservatively. Production integration requires its own verified semantics and approval.
 
 Current conclusion: a passive metadata match makes further investigation reasonable, but **no G305 battery channel or percentage decoder is confirmed**. Await owner evidence; no active HID communication is implemented or authorized here.
+
+## Stage 3A follow-up
+
+The owner has now supplied the Stage 2 negative-attribution result. See [Stage 3A protocol review](G305_STAGE3A_PROTOCOL_REVIEW.md) for its bounded interpretation, manufacturer/Microsoft sources and remaining gaps, and [Stage 3B proposal](G305_STAGE3B_EXPERIMENT_PROPOSAL.md) for unresolved fields and explicit approval gates. No active experiment is enabled; the earlier “await SQLite result” checkpoint is satisfied without establishing a battery channel.
