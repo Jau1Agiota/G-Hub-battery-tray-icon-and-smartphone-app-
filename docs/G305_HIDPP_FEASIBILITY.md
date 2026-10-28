@@ -38,3 +38,5 @@ Current conclusion: a passive metadata match makes further investigation reasona
 ## Stage 3A follow-up
 
 The owner has now supplied the Stage 2 negative-attribution result. See [Stage 3A protocol review](G305_STAGE3A_PROTOCOL_REVIEW.md) for its bounded interpretation, manufacturer/Microsoft sources and remaining gaps, and [Stage 3B proposal](G305_STAGE3B_EXPERIMENT_PROPOSAL.md) for unresolved fields and explicit approval gates. No active experiment is enabled; the earlier “await SQLite result” checkpoint is satisfied without establishing a battery channel.
+
+Stage 3A.1 now implements the separately authorized [passive capability ReportID extension](G305_STAGE3A1_PASSIVE_REPORTIDS.md). Windows results remain owner-pending; Stage 3B stays NO-GO.

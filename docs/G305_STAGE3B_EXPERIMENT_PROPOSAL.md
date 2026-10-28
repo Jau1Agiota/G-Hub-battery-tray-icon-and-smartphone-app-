@@ -50,3 +50,21 @@ Stage 3B remains NO-GO unless reviewers can answer all applicable gates for its 
 5. After reviewing that implementation, owner explicitly approves one physical attempt and its exact command, including whether G HUB is open. Stop for owner output after it; any additional attempt needs fresh approval.
 
 No active implementation or physical attempt is authorized by this Stage 3A briefing. Production integration, decoding percentages, retries/polling and sustained coexistence each require further evidence and approval.
+
+## Stage 3A.1 evidence matrix
+
+Stage 3A.1 implements the previously proposed [passive metadata extension](G305_STAGE3A1_PASSIVE_REPORTIDS.md); that narrow implementation is now authorized. The earlier statement that it was not implemented describes Stage 3A history. It does not authorize an active experiment. **Stage 3B remains NO-GO.**
+
+| Evidence | Current state after implementation |
+|---|---|
+| Exact USB hardware/collection lengths and usages | Owner-supplied observations retained; G915 excluded |
+| Input/output capability ReportIDs | Diagnostic ready; actual Windows owner output **pending**; absent IDs remain unknown, not exhaustive descriptor evidence |
+| Anonymous USB MI_02 grouping | Cached PnP ancestry implementation ready; actual owner result pending; no wireless identity inferred |
+| Protocol family/version | UNRESOLVED; sizes or IDs alone cannot establish it |
+| Mouse device index/route and live identity | UNRESOLVED; receiver present is insufficient |
+| Battery feature/register/function and runtime index | UNRESOLVED; no request or decoder selected |
+| Battery precision/units/meaning | UNRESOLVED; G HUB bars not an exact percentage |
+| Response matching/ownership and G HUB coexistence | UNRESOLVED; passive shared-open says nothing about consuming reports or unique active correlation |
+| Exact complete packet and safe active transport | NOT APPROVED / NOT IMPLEMENTED |
+
+Next step is only the owner-run passive command and sanitized summary in the Stage 3A.1 document. Review that evidence before proposing additional work; no sender, active request, input capture or production integration follows automatically.

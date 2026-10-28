@@ -14,10 +14,10 @@ public sealed record ReportCapabilityCounts(ushort Buttons, ushort Values, ushor
 public sealed record HidCapabilities(ushort UsagePage, ushort Usage,
     ushort InputReportBytes, ushort OutputReportBytes, ushort FeatureReportBytes,
     ushort LinkCollectionNodes, ReportCapabilityCounts Input,
-    ReportCapabilityCounts Output, ReportCapabilityCounts Feature);
+    ReportCapabilityCounts Output, ReportCapabilityCounts Feature, PassiveReportIds? ReportIds = null);
 public sealed record CollectionInspection(ReceiverCollection Collection,
-    HidCapabilities? Capabilities, InspectionFailure? Failure);
-public sealed record InterfaceEnumeration(IReadOnlyList<string> Paths, IReadOnlyList<InspectionFailure> Failures);
+    HidCapabilities? Capabilities, InspectionFailure? Failure, int? ParentGroup = null);
+public sealed record InterfaceEnumeration(IReadOnlyList<string> Paths, IReadOnlyList<InspectionFailure> Failures, IReadOnlyDictionary<string, int>? ParentGroups = null);
 public sealed record CapabilityRead(HidCapabilities? Capabilities, InspectionFailure? Failure);
 
 public interface IHidMetadataBackend
@@ -31,6 +31,8 @@ public sealed record InspectionReport(IReadOnlyList<CollectionInspection> Collec
 {
     public HidInspectionTarget EffectiveTarget => Target ?? HidInspectionTarget.G305;
     public int ExitCode => EnumerationFailures.Any(error => error.Step == InspectionStep.UnsupportedPlatform) ? 2 :
-        EnumerationFailures.Count > 0 || Collections.Any(item => item.Failure is not null || item.Capabilities is null) ? 1 :
+        EnumerationFailures.Count > 0 || Collections.Any(item => item.Failure is not null || item.Capabilities is null ||
+            (item.Capabilities.ReportIds is { } ids && new[] { ids.Input.Buttons, ids.Input.Values, ids.Output.Buttons, ids.Output.Values }
+                .Any(c => c.Result is ReportIdResult.NativeFailure or ReportIdResult.Malformed or ReportIdResult.LimitExceeded))) ? 1 :
         Collections.Count == 0 ? 3 : 0;
 }

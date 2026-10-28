@@ -27,6 +27,8 @@ public static class ReportFormatter
                 text.AppendLine($"{Label(collection)}{(matches.Length > 1 ? $" interface {Number(index + 1)}" : "")}");
                 text.AppendLine($@"  Path: \\?\hid#vid_{target.VendorId.ToLowerInvariant()}&pid_{target.ProductId.ToLowerInvariant()}&mi_{target.InterfaceNumber}&{Label(collection).ToLowerInvariant()}#[instance omitted]#[HID class GUID]");
                 var item = matches[index];
+                if (target == HidInspectionTarget.G305)
+                    text.AppendLine(item.ParentGroup is int group ? $"  Anonymous USB interface parent: P{Number(group)} (invocation only)" : "  Anonymous USB interface parent: not established");
                 if (item.Failure is not null) { text.AppendLine("  " + FormatFailure(item.Failure)); continue; }
                 if (item.Capabilities is not HidCapabilities caps) { text.AppendLine("  ERROR: no capabilities returned"); continue; }
                 text.AppendLine($"  Usage page: 0x{caps.UsagePage:X4}; Usage ID: 0x{caps.Usage:X4}");
@@ -36,6 +38,18 @@ public static class ReportFormatter
                 text.AppendLine($"    Output:  {Counts(caps.Output)}");
                 text.AppendLine($"    Feature: {Counts(caps.Feature)}");
                 text.AppendLine($"  Link collection nodes: {Number(caps.LinkCollectionNodes)}");
+                if (target == HidInspectionTarget.G305)
+                {
+                    if (caps.ReportIds is { } ids)
+                    {
+                        text.AppendLine("  Capability ReportIDs (not exhaustive descriptor IDs):");
+                        AppendIds(text, "Input buttons", ids.Input.Buttons);
+                        AppendIds(text, "Input values", ids.Input.Values);
+                        AppendIds(text, "Output buttons", ids.Output.Buttons);
+                        AppendIds(text, "Output values", ids.Output.Values);
+                    }
+                    else text.AppendLine("  Capability ReportIDs: not established (not inspected or unexpected usage)");
+                }
                 var expected = target.ExpectedUsage(collection);
                 if (caps.UsagePage != expected.Page || caps.Usage != expected.Usage)
                     text.AppendLine($"  NOTE: differs from supplied expectation {expected.Page:X4}:{expected.Usage:X4}; actual metadata retained.");
@@ -50,9 +64,26 @@ public static class ReportFormatter
             3 => "Result: no matching receiver collection interfaces found.",
             _ => "Result: incomplete - one or more metadata operations failed."
         });
-        text.AppendLine("No battery protocol, battery level, connectivity or physical-parent grouping is inferred.");
+        if (target == HidInspectionTarget.G305)
+        {
+            text.AppendLine("Absent capability ReportIDs remain UNKNOWN; ID 0 may mean no ID for that usage.");
+            text.AppendLine("Capability metadata is inconclusive for active protocol use; Stage 3B remains NO-GO.");
+            text.AppendLine("Parent labels group cached USB MI_02 ancestry only, not a live mouse or wireless slot.");
+            if (report.Collections.Select(c => c.ParentGroup).OfType<int>().Distinct().Count() > 1)
+                text.AppendLine("Multiple receiver parents: inconclusive; no receiver selected.");
+            text.AppendLine("No battery protocol, battery level, connectivity or response ownership is inferred.");
+        }
+        else text.AppendLine("No battery protocol, battery level, connectivity or physical-parent grouping is inferred.");
         text.AppendLine($"Exit code: {Number(report.ExitCode)}");
         return text.ToString().TrimEnd();
+    }
+
+    private static void AppendIds(StringBuilder text, string label, CapabilityReportIds caps)
+    {
+        var values = caps.Result == ReportIdResult.Available
+            ? string.Join(", ", caps.Ids.Select(id => $"0x{id:X2}")) : "not established";
+        text.AppendLine($"    {label}: {values}; requested={Number(caps.Requested)}, returned={Number(caps.Returned)}; {caps.Result}" +
+            (caps.HidStatus is int status ? $"; HID status=0x{unchecked((uint)status):X8}" : ""));
     }
 
     private static string Label(ReceiverCollection collection) => $"COL{(int)collection:00}";

@@ -4,13 +4,16 @@ using System.Runtime.Versioning;
 namespace PeripheralBatteryCompanion.G305Inspector;
 
 [SupportedOSPlatform("windows")]
-public sealed class WindowsHidMetadataBackend(HidInspectionTarget? target = null) : IHidMetadataBackend
+public sealed class WindowsHidMetadataBackend(HidInspectionTarget? target = null, bool includeReportIds = false) : IHidMetadataBackend
 {
+    private readonly bool _reportIds = includeReportIds && (target is null || target == HidInspectionTarget.G305);
     private readonly HidInspectionTarget _target = target ?? HidInspectionTarget.G305;
 
     public InterfaceEnumeration EnumerateInterfaces()
     {
         var paths = new List<string>();
+        var parentGroups = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var parentLabels = new Dictionary<uint, int>();
         var failures = new List<InspectionFailure>();
         NativeMethods.HidD_GetHidGuid(out var guid);
         // DIGCF_PRESENT | DIGCF_DEVICEINTERFACE; no registry/device property changes.
@@ -51,17 +54,34 @@ public sealed class WindowsHidMetadataBackend(HidInspectionTarget? target = null
                     ((int)size - NativeMethods.DetailPathOffset) / 2);
                 var terminator = text?.IndexOf('\0') ?? -1;
                 if (terminator <= 0) failures.Add(new(InspectionStep.InterfaceDetail, NativeMethods.ErrorInvalidData));
-                else paths.Add(text![..terminator]);
+                else
+                {
+                    var path = text![..terminator];
+                    paths.Add(path);
+                    if (_reportIds && ReceiverFilter.TryMatch(path, out _))
+                    {
+                        var device = new PassiveMetadataNative.DeviceInfo { Size = (uint)Marshal.SizeOf<PassiveMetadataNative.DeviceInfo>() };
+                        if (PassiveMetadataNative.DetailWithDevice(set, ref data, buffer, size, out _, ref device))
+                        {
+                            var parent = PassiveParentGrouping.Find(device.DevInst);
+                            if (parent is uint key)
+                            {
+                                if (!parentLabels.TryGetValue(key, out var label)) parentLabels.Add(key, label = parentLabels.Count + 1);
+                                parentGroups[path] = label;
+                            }
+                        }
+                    }
+                }
             }
             finally { Marshal.FreeHGlobal(buffer); }
         }
-        return new(paths, failures);
+        return new(paths, failures, parentGroups);
     }
 
     public CapabilityRead ReadCapabilities(string interfacePath)
     {
         // Enforce scope even for direct callers, before opening any device.
-        if (!ReceiverFilter.TryMatch(interfacePath, _target, out _))
+        if (!ReceiverFilter.TryMatch(interfacePath, _target, out var collection))
             return new(null, new(InspectionStep.OpenInterface, NativeMethods.ErrorInvalidData));
 
         // Exactly zero desired access. FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING.
@@ -79,7 +99,9 @@ public sealed class WindowsHidMetadataBackend(HidInspectionTarget? target = null
                 caps.OutputReportByteLength, caps.FeatureReportByteLength, caps.NumberLinkCollectionNodes,
                 new(caps.NumberInputButtonCaps, caps.NumberInputValueCaps, caps.NumberInputDataIndices),
                 new(caps.NumberOutputButtonCaps, caps.NumberOutputValueCaps, caps.NumberOutputDataIndices),
-                new(caps.NumberFeatureButtonCaps, caps.NumberFeatureValueCaps, caps.NumberFeatureDataIndices)), null);
+                new(caps.NumberFeatureButtonCaps, caps.NumberFeatureValueCaps, caps.NumberFeatureDataIndices),
+                _reportIds && caps.UsagePage == _target.ExpectedUsage(collection).Page
+                    && caps.Usage == _target.ExpectedUsage(collection).Usage ? PassiveCapabilityReader.Read(preparsed, caps) : null), null);
         }
     }
 }
