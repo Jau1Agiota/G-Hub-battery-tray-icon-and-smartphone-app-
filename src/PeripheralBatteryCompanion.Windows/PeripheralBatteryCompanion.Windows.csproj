@@ -15,6 +15,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>PeripheralBatteryCompanion</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../assets/devices/g915.png" LogicalName="Devices.g915.png" />
+    <EmbeddedResource Include="../../assets/devices/g305.png" LogicalName="Devices.g305.png" />
+    <EmbeddedResource Include="../../assets/devices/hyperx-cloud-iii.png" LogicalName="Devices.hyperx-cloud-iii.png" />
+  </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="PeripheralBatteryCompanion.Windows.Tests" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../PeripheralBatteryCompanion.HyperXHelper/PeripheralBatteryCompanion.HyperXHelper.csproj" ReferenceOutputAssembly="false" Private="false" />

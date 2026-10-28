@@ -1,5 +1,7 @@
 # Stage 4.0H: optional HyperX monitoring
 
+> Current owner addendum supersedes historical default-OFF/session-consent behavior for normal production monitoring: automatic startup, default ON / **120 seconds**, explicit OFF preserved, durable safety stops retained. See [current dashboard/startup specification](ASSET_DASHBOARD_AND_STARTUP.md). Native protocol/containment guarantees and standalone POC guards remain unchanged.
+
 This stage builds on **unmerged Stage 4.0F**, commit `dbcbdeafce2230bafe16502e754df8806fe3794e`. At implementation, actual remote main was `4dbf1a30f48063ab181a24c6202ba517809a7ad7`; the public open-PR dashboard listed zero open PRs, while the API returned Forbidden. No Stage 4.0G source or merged commit was found. The feature includes Stage 4.0F rather than reverting to main's metadata-only Stage 4.0E. Review its [native containment design](HYPERX_NATIVE_TRANSPORT.md) as part of this change. The isolated POC's guards and entry points are unchanged.
 
 ## Controls and persistence

@@ -54,8 +54,17 @@ public sealed class HyperXAutomaticMonitor(HyperXBatteryProvider provider, TimeP
             _enabled = enabled; _interval = intervalSeconds;
             _next = enabled && !_suspended && provider.CanQuery ? DueAfterInterval() : null;
             _state = !enabled ? "Automatic monitoring off." : _suspended ? "Paused; explicit Resume required."
-                : !provider.ExperimentalEnabled ? "Paused; acknowledge experimental queries for this session." : "Waiting for validated receiver and helper readiness.";
+                : !provider.ExperimentalEnabled ? "Waiting for safe monitoring initialization." : "Waiting for validated receiver and helper readiness.";
             if (!enabled) _operation?.Cancel();
+        }
+    }
+
+    public void RestoreFailureState(int failures, DateTimeOffset? retryNotBefore, bool suspended)
+    {
+        lock (_sync)
+        {
+            _failures = Math.Clamp(failures, 0, 4); _retryNotBefore = retryNotBefore;
+            _suspended = suspended || _failures >= 4;
         }
     }
 

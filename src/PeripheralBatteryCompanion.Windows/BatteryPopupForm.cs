@@ -21,16 +21,15 @@ internal sealed class BatteryPopupForm : Form
         AccessibleName = "Advanced settings", AccessibleDescription = "Expand or collapse experimental controls and diagnostics" };
     private readonly TableLayoutPanel _hyperXAdvanced = new() { ColumnCount = 1, AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Top, Visible = false,
-        AccessibleRole = AccessibleRole.Grouping, AccessibleName = "HyperX advanced settings" };
+        Padding = new Padding(14), AccessibleRole = AccessibleRole.Grouping, AccessibleName = "HyperX advanced settings" };
     private readonly Label _hyperXReceiver = MakeLabel("Receiver: Unknown; headset connectivity: Unknown");
     private readonly Label _hyperXBattery = MakeLabel("Battery: Unknown");
     private readonly Label _hyperXObserved = MakeLabel("Last observed: Never");
     private readonly Label _hyperXStatus = MakeLabel("Metadata inspection pending; no battery query.");
     private readonly Label _hyperXBlocker = MakeLabel(PeripheralBatteryCompanion.Core.HyperXBatteryProvider.LifetimeBlocker);
-    private readonly CheckBox _hyperXExperimental = new() { Text = "Experimental HyperX queries", AutoSize = true };
-    private readonly Button _hyperXQuery = new() { Text = "Query battery (experimental)", AutoSize = true, Enabled = false };
+    private readonly Button _hyperXQuery = new() { Text = "Query battery", AutoSize = true, Enabled = false };
     private readonly Button _hyperXCancel = new() { Text = "Cancel HyperX operation", AutoSize = true, Enabled = false };
-    private readonly CheckBox _hyperXAutomatic = new() { Text = "Automatic HyperX monitoring (save preference)", AutoSize = true };
+    private readonly CheckBox _hyperXAutomatic = new() { Text = "Automatic HyperX monitoring", AutoSize = true };
     private readonly ComboBox _hyperXInterval = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly Label _hyperXSchedule = MakeLabel("Automatic monitoring off.");
     private readonly Button _hyperXResume = new() { Text = "Resume HyperX monitoring", AutoSize = true, Enabled = false };
@@ -41,21 +40,29 @@ internal sealed class BatteryPopupForm : Form
     private readonly System.Windows.Forms.Timer _dismissTimer = new() { Interval = 50 };
     private readonly Font _headingFont;
     private readonly Font _appFont;
+    private readonly Font _metaFont;
     private readonly DashboardThemeStore _themeStore = new();
     private readonly ComboBox _themeChoice = new() { DropDownStyle = ComboBoxStyle.DropDownList, AccessibleName = "Dashboard theme" };
     private readonly Label _themeStatus = MakeLabel("");
     private DashboardThemeMode _themeMode;
     private bool _settingTheme;
-    private readonly List<DashboardCard> _cards = [];
-    private readonly List<TableLayoutPanel> _cardContents = [];
+    private readonly List<ProductCard> _cards = [];
+    private readonly Form _settingsWindow = new() { Text = "Advanced settings", ShowInTaskbar = false,
+        AutoScaleMode = AutoScaleMode.Dpi, AutoScroll = true, MinimizeBox = false, MaximizeBox = false };
+    private readonly Label _keyboardDetails = MakeLabel("G915: no report yet.");
+    private readonly Panel _header = new();
+    private readonly FlowLayoutPanel _footer = new() { WrapContents = false, Margin = Padding.Empty };
+    private readonly Label _title = MakeLabel("Peripheral Battery Companion");
+    private readonly Label _subtitle = MakeLabel("Your devices, at a glance");
+    private readonly DeviceGlyph _appGlyph = new(DeviceGlyphKind.Battery) { TabStop = false };
+    private readonly Button _close = new() { Text = "×", AccessibleName = "Close battery panel", TabStop = true };
     private readonly Button _gear = new() { Text = "⚙", AutoSize = true, AccessibleName = "Advanced settings", AccessibleDescription = "Open dashboard theme and HyperX settings" };
     private Point? _trayAnchor;
     private bool _fittingToScreen;
-    private readonly TableLayoutPanel _layout;
+    private readonly Panel _layout;
 
     public event EventHandler? DismissRequested;
     public event EventHandler? RefreshRequested;
-    public event Action<bool>? HyperXOptInRequested;
     public event EventHandler? HyperXQueryRequested;
     public event EventHandler? HyperXCancelRequested;
     public event Action<bool, int>? HyperXMonitoringRequested;
@@ -67,93 +74,41 @@ internal sealed class BatteryPopupForm : Form
         Text = "Peripheral Battery Companion";
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
-        FormBorderStyle = FormBorderStyle.FixedToolWindow;
+        FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.Manual;
         ShowInTaskbar = false;
         MaximizeBox = false;
         MinimizeBox = false;
         // The form owns its width; deriving it from an auto-sized, docked child is circular.
         AutoSize = false;
-        ClientSize = new Size(PopupPlacement.ClientWidthForDpi(96), 320);
+        ClientSize = DashboardLayout.NominalSize(96);
         AutoScroll = true;
-        _headingFont = new Font(Font.FontFamily, 11, FontStyle.Bold);
+        _headingFont = new Font(Font.FontFamily, 10, FontStyle.Bold);
         _appFont = new Font(Font.FontFamily, 12, FontStyle.Bold);
+        _metaFont = new Font(Font.FontFamily, 8.25f);
         _battery.Font = _headingFont;
         _hyperXEstimate.Font = _headingFont;
 
-        _layout = new TableLayoutPanel
-        {
-            ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(14), Dock = DockStyle.Top
-        };
-        _layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        void Add(Control control)
-        {
-            var row = _layout.RowCount++;
-            _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            control.Margin = new Padding(0, 0, 0, 8);
-            control.Dock = DockStyle.Top;
-            _layout.Controls.Add(control, 0, row);
-        }
-        var header = new TableLayoutPanel { AutoSize = true, ColumnCount = 3, Dock = DockStyle.Top };
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        header.Controls.Add(new DeviceGlyph(DeviceGlyphKind.Battery) { Size = new Size(30, 36), Ink = Color.MediumTurquoise,
-            AccessibleName = "Peripheral Battery Companion", TabStop = false }, 0, 0);
-        var title = MakeLabel("Peripheral Battery Companion"); title.Font = _appFont; title.Tag = "app-title"; title.Dock = DockStyle.Top;
-        header.Controls.Add(title, 1, 0);
-        header.Controls.Add(_gear, 2, 0);
-        _gear.Click += (_, _) => SetHyperXAdvancedVisible(!_hyperXAdvanced.Visible);
-        Add(header);
-        var subtitle = MakeLabel("Your devices, at a glance"); subtitle.Tag = "muted"; Add(subtitle);
-
-        TableLayoutPanel NewCard(string name, DeviceGlyphKind glyph, Color accent)
-        {
-            var card = new DashboardCard { AccessibleName = name, AccentColor = accent, Tag = accent, Dock = DockStyle.Top };
-            var content = new TableLayoutPanel { ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                Dock = DockStyle.Top, Margin = Padding.Empty };
-            content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            var cardHeader = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Top };
-            cardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40));
-            cardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            cardHeader.Controls.Add(new DeviceGlyph(glyph) { Size = new Size(30, 32), Ink = accent, TabStop = false,
-                AccessibleName = name + " illustration" }, 0, 0);
-            var heading = MakeLabel(name); heading.Font = _headingFont; heading.Dock = DockStyle.Top;
-            cardHeader.Controls.Add(heading, 1, 0);
-            AddRow(content, cardHeader);
-            card.Controls.Add(content); _cards.Add(card); _cardContents.Add(content); Add(card);
-            return content;
-        }
-        static void AddRow(TableLayoutPanel panel, Control control)
-        {
-            var row = panel.RowCount++;
-            panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            control.Dock = DockStyle.Top; control.Margin = new Padding(0, 0, 0, 6);
-            panel.Controls.Add(control, 0, row);
-        }
-        var keyboardCard = NewCard("G915 Keyboard", DeviceGlyphKind.Keyboard, Color.DeepSkyBlue);
-        AddRow(keyboardCard, _battery);
-        AddRow(keyboardCard, _level);
-        AddRow(keyboardCard, _reported);
-        AddRow(keyboardCard, _status);
-        var mouseCard = NewCard("G305 Mouse", DeviceGlyphKind.Mouse, Color.SlateGray);
+        _layout = new Panel { AutoSize = false, Size = DashboardLayout.NominalSize(96) };
+        _title.Font = _appFont;
+        _header.Controls.AddRange([_appGlyph, _title, _subtitle, _gear, _close]);
+        _layout.Controls.Add(_header);
+        _gear.Click += (_, _) => SetHyperXAdvancedVisible(true);
+        _close.Click += (_, _) => RequestDismiss();
         var mouseBattery = MakeLabel("Battery: Unknown"); mouseBattery.Font = _headingFont;
-        AddRow(mouseCard, mouseBattery);
         var mouseLevel = new BatteryLevelBar { AccessibleName = "G305 battery unavailable", TabStop = false };
-        AddRow(mouseCard, mouseLevel);
-        AddRow(mouseCard, MakeLabel("Battery monitoring is not yet supported."));
-        var headsetCard = NewCard("HyperX Cloud III Wireless", DeviceGlyphKind.Headset, Color.IndianRed);
-        AddRow(headsetCard, _hyperXEstimate);
-        _hyperXLevel.SetEstimate(null);
-        _hyperXLevel.TabStop = false;
-        AddRow(headsetCard, _hyperXLevel);
-        AddRow(headsetCard, _hyperXUpdated);
-        AddRow(headsetCard, _hyperXMonitoring);
-        AddRow(headsetCard, _hyperXCompactStatus);
-        _hyperXNote.ForeColor = SystemColors.GrayText;
-        AddRow(headsetCard, _hyperXNote);
-
+        var mouseStatus = MakeLabel("Battery monitoring is not yet supported.");
+        _hyperXLevel.SetEstimate(null); _hyperXLevel.TabStop = false;
+        _cards.Add(new("G915 Keyboard", "g915.png", Color.FromArgb(9, 167, 244), _headingFont,
+            _battery, _level, _reported, _status));
+        _cards.Add(new("G305 Mouse", "g305.png", Color.FromArgb(154, 176, 203), _headingFont,
+            mouseBattery, mouseLevel, mouseStatus));
+        _cards.Add(new("HyperX Cloud III Wireless", "hyperx-cloud-iii.png", Color.FromArgb(239, 70, 88), _headingFont,
+            _hyperXEstimate, _hyperXLevel, _hyperXUpdated, _hyperXCompactStatus));
+        foreach (var card in _cards) _layout.Controls.Add(card);
+        _hyperXUpdated.Font = _metaFont;
+        foreach (var label in new[] { _battery, _reported, _status, _hyperXEstimate, _hyperXUpdated, _hyperXCompactStatus })
+            label.AutoEllipsis = true;
         _hyperXSettings.Click += (_, _) => SetHyperXAdvancedVisible(!_hyperXAdvanced.Visible);
         _hyperXAdvanced.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         void AddAdvanced(Control control)
@@ -178,11 +133,13 @@ internal sealed class BatteryPopupForm : Form
             _themeStatus.Text = _themeStore.Save(_themeMode) ? "" : "Theme could not be saved; using it for this session.";
             ApplyDashboardTheme();
         };
+        AddAdvanced(_keyboardDetails);
+        AddAdvanced(_hyperXMonitoring);
+        AddAdvanced(_hyperXNote);
         AddAdvanced(_hyperXReceiver);
         AddAdvanced(_hyperXBattery);
         AddAdvanced(_hyperXObserved);
         AddAdvanced(_hyperXStatus);
-        AddAdvanced(_hyperXExperimental);
         AddAdvanced(_hyperXAutomatic);
         _hyperXInterval.Items.AddRange(["60 seconds", "120 seconds", "300 seconds"]);
         _hyperXInterval.SelectedIndex = 1;
@@ -210,18 +167,18 @@ internal sealed class BatteryPopupForm : Form
             try { Clipboard.SetText(_hyperXDiagnostics); }
             catch (System.Runtime.InteropServices.ExternalException) { _hyperXStatus.Text = "Clipboard unavailable; no query attempted."; }
         };
-        _hyperXExperimental.CheckedChanged += (_, _) =>
-        {
-            if (!_displayingHyperX) HyperXOptInRequested?.Invoke(_hyperXExperimental.Checked);
-        };
         _hyperXQuery.Click += (_, _) => HyperXQueryRequested?.Invoke(this, EventArgs.Empty);
-        Add(_hyperXAdvanced);
-        var actions = new FlowLayoutPanel { AutoSize = true, WrapContents = true, Margin = Padding.Empty };
-        var close = new Button { Text = "Close", AutoSize = true };
-        actions.Controls.Add(_refresh);
-        actions.Controls.Add(_hyperXSettings);
-        actions.Controls.Add(close);
-        Add(actions);
+        _settingsWindow.Controls.Add(_hyperXAdvanced);
+        _settingsWindow.FormClosing += (_, e) =>
+        {
+            if (e.CloseReason != CloseReason.FormOwnerClosing && !Disposing)
+            { e.Cancel = true; SetHyperXAdvancedVisible(false); }
+        };
+        _settingsWindow.KeyPreview = true;
+        _settingsWindow.KeyDown += (_, e) => { if (e.KeyCode == Keys.Escape) { SetHyperXAdvancedVisible(false); e.Handled = true; } };
+        _settingsWindow.Deactivate += (_, _) => { if (Visible) _dismissTimer.Start(); };
+        _footer.Controls.AddRange([_refresh, _hyperXSettings]);
+        _layout.Controls.Add(_footer);
         Controls.Add(_layout);
         ResumeLayout(true);
         _level.TabStop = false;
@@ -229,7 +186,7 @@ internal sealed class BatteryPopupForm : Form
         ApplyDashboardTheme();
         SystemEvents.UserPreferenceChanged += OnSystemThemeChanged;
         _refresh.Click += (_, _) => RefreshRequested?.Invoke(this, EventArgs.Empty);
-        close.Click += (_, _) => RequestDismiss();
+
 
         // Shell activation can precede NotifyIcon.MouseClick. Wait for the pointer release
         // so the second tray click can toggle the still-visible panel, rather than reopen it.
@@ -240,16 +197,18 @@ internal sealed class BatteryPopupForm : Form
         {
             if (MouseButtons != MouseButtons.None || _hyperXInterval.DroppedDown || _themeChoice.DroppedDown) return;
             _dismissTimer.Stop();
+            if (_settingsWindow.ContainsFocus) return;
             if (Visible && !ContainsFocus) RequestDismiss();
         };
         VisibleChanged += (_, _) => { if (!Visible) { _dismissTimer.Stop(); if (!Disposing && !IsDisposed) SetHyperXAdvancedVisible(false); } };
         SizeChanged += (_, _) => { if (Visible) PositionNearTray(); };
+        FontChanged += (_, _) => { if (IsHandleCreated && Visible) PositionNearTray(); };
         DpiChanged += (_, _) => BeginInvoke((Action)(() => { if (!IsDisposed && Visible) PositionNearTray(); }));
     }
 
     private static Label MakeLabel(string text) => new()
     {
-        Text = text, AutoSize = true, MaximumSize = new Size(320, 0), UseMnemonic = false
+        Text = text, AutoSize = true, MaximumSize = new Size(480, 0), UseMnemonic = false
     };
 
     public void SetRefreshing(bool refreshing) => _refresh.Enabled = !refreshing;
@@ -257,8 +216,13 @@ internal sealed class BatteryPopupForm : Form
     public void Display(BatteryPanelView view)
     {
         _battery.Text = view.BatteryText;
-        _reported.Text = $"Last reported: {view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown"}";
-        _status.Text = view.StatusText;
+        _reported.Text = $"Last reported: {view.LastReported?.ToLocalTime().ToString("HH:mm") ?? "Unknown"}";
+        _hyperXTip.SetToolTip(_reported, view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown");
+        _keyboardDetails.Text = view.BatteryText + "\n" + view.StatusText + "\n" +
+            (view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Timestamp unknown");
+        _status.Text = view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
+            ? "Last report cached · see settings" : "Battery temporarily unavailable";
+        _hyperXTip.SetToolTip(_status, view.StatusText);
         _status.Visible = view.StatusText.Length > 0;
         _level.SetPercentage(view.Percentage);
         if (Visible) PositionNearTray();
@@ -275,9 +239,6 @@ internal sealed class BatteryPopupForm : Form
         _hyperXBlocker.Text = view.QueryBlocker;
         _hyperXAllowed = view.CanQuery;
         _hyperXQuery.Enabled = view.CanQuery && !_hyperXQuerying;
-        _displayingHyperX = true;
-        try { _hyperXExperimental.Checked = view.ExperimentalEnabled; }
-        finally { _displayingHyperX = false; }
         if (Visible) PositionNearTray();
     }
 
@@ -301,15 +262,27 @@ internal sealed class BatteryPopupForm : Form
         if (Visible) PositionNearTray();
     }
 
-    public bool HyperXAdvancedVisible => _hyperXAdvanced.Visible;
+    public bool HyperXAdvancedVisible => _settingsWindow.Visible;
+    internal Control AdvancedSurface => _hyperXAdvanced;
+    public IWin32Window DialogOwner => _settingsWindow.Visible ? _settingsWindow : this;
 
     public void SetHyperXAdvancedVisible(bool expanded)
     {
-        _hyperXAdvanced.Visible = expanded;
-        _hyperXSettings.Text = expanded ? "Hide Advanced &settings" : "Advanced &settings";
-        _hyperXSettings.AccessibleDescription = expanded ? "Expanded; activate to collapse" : "Collapsed; activate to expand";
-        if (!expanded) { AutoScrollPosition = Point.Empty; _hyperXSettings.Focus(); }
-        if (Visible) PositionNearTray();
+        if (expanded)
+        {
+            var work = Screen.FromControl(this).WorkingArea;
+            var width = Math.Min(DashboardLayout.Scale(520, DeviceDpi), work.Width);
+            var height = Math.Min(DashboardLayout.Scale(650, DeviceDpi), work.Height);
+            _settingsWindow.StartPosition = FormStartPosition.Manual;
+            _settingsWindow.Bounds = new Rectangle(work.Left + (work.Width - width) / 2,
+                work.Top + (work.Height - height) / 2, width, height);
+            _hyperXAdvanced.Visible = true;
+            foreach (Control control in _hyperXAdvanced.Controls)
+                control.MaximumSize = new Size(Math.Max(1, _settingsWindow.ClientSize.Width - 28), 0);
+            if (!_settingsWindow.Visible) _settingsWindow.Show(this);
+            _settingsWindow.Activate();
+        }
+        else { _settingsWindow.Hide(); _hyperXAdvanced.Visible = false; if (Visible && !Disposing) _hyperXSettings.Focus(); }
     }
 
     public void DisplayHyperXCompact(HyperXCompactView view)
@@ -317,14 +290,19 @@ internal sealed class BatteryPopupForm : Form
         _hyperXEstimate.Text = view.BatteryText;
         _hyperXEstimate.AccessibleDescription = view.AccessibleDescription;
         _hyperXLevel.SetEstimate(view.Percentage);
-        _hyperXUpdated.Text = view.UpdatedText;
+        _hyperXUpdated.Text = view.UpdatedText + (view.MonitoringText.Length == 0 ? "" : " · " +
+            view.MonitoringText.Replace("Auto monitoring · every ", "Every "));
+        _hyperXTip.SetToolTip(_hyperXUpdated, view.TimestampDetail + "\n" + view.MonitoringText);
         _hyperXUpdated.AccessibleDescription = "Last estimate observation: " + view.TimestampDetail;
-        _hyperXTip.SetToolTip(_hyperXUpdated, view.TimestampDetail);
+
         _hyperXTip.SetToolTip(_hyperXEstimate, view.EstimateNote);
         _hyperXMonitoring.Text = view.MonitoringText;
         _hyperXMonitoring.Visible = view.MonitoringText.Length != 0;
-        _hyperXCompactStatus.Text = view.StatusText;
-        _hyperXCompactStatus.Visible = view.StatusText.Length != 0;
+        _hyperXCompactStatus.Text = view.StatusText.Length == 0 && view.EstimateNote.Length != 0
+            ? "ⓘ Estimate · source not uniquely verified" : view.StatusText;
+        _hyperXTip.SetToolTip(_hyperXCompactStatus, view.StatusText + "\n" + view.EstimateNote);
+        _hyperXCompactStatus.AccessibleDescription = view.AccessibleDescription;
+        _hyperXCompactStatus.Visible = _hyperXCompactStatus.Text.Length != 0;
         _hyperXNote.Text = view.EstimateNote.Length == 0 ? "" : "ⓘ Estimated battery · details";
         _hyperXNote.AccessibleDescription = view.EstimateNote;
         _hyperXTip.SetToolTip(_hyperXNote, view.EstimateNote);
@@ -332,10 +310,22 @@ internal sealed class BatteryPopupForm : Form
         if (Visible) PositionNearTray();
     }
 
+    public void DisplayStartupState(HyperXStartupPhase phase, HyperXStartupPreferences preferences)
+    {
+        _displayingHyperX = true;
+        try { _hyperXAutomatic.Checked = preferences.UserMonitoringEnabled; }
+        finally { _displayingHyperX = false; }
+        _hyperXDiagnostics += "\nStartup phase: " + phase + "; persistent safety stop=" + preferences.SafetyLatched;
+        if (phase is HyperXStartupPhase.SafetyLatched or HyperXStartupPhase.PreflightPending)
+        {
+            _hyperXCompactStatus.Text = phase == HyperXStartupPhase.SafetyLatched ? "Safety stop · see settings" : "Preparing safe monitoring";
+            _hyperXCompactStatus.Visible = true;
+        }
+    }
+
     public void SetHyperXQuerying(bool busy)
     {
         _hyperXQuerying = busy;
-        _hyperXExperimental.Enabled = !busy;
         _hyperXInterval.Enabled = !busy;
         _hyperXResume.Enabled &= !busy;
         _hyperXQuery.Enabled = !busy && _hyperXAllowed;
@@ -367,35 +357,43 @@ internal sealed class BatteryPopupForm : Form
         {
             var screen = Screen.FromPoint(anchor);
             var work = screen.WorkingArea;
-            // Include the actual DPI-dependent caption/borders when fitting outer bounds.
-            var chrome = SizeFromClientSize(Size.Empty);
-            var desiredWidth = PopupPlacement.ClientWidthForDpi(DeviceDpi) + chrome.Width;
-            var width = Math.Min(desiredWidth, work.Width);
-            var clientWidth = Math.Max(1, width - chrome.Width);
-            var textWidth = Math.Max(1, clientWidth - _layout.Padding.Horizontal);
-
-            // Clear a previous monitor's minimum before applying a smaller working area.
-            MinimumSize = Size.Empty;
-            MaximumSize = work.Size;
-            _layout.Width = clientWidth;
-            var cardWidth = Math.Max(1, textWidth - _cards[0].Padding.Horizontal);
-            foreach (var label in Descendants(_layout).OfType<Label>())
+            var nominal = DashboardLayout.NominalSize(DeviceDpi);
+            var cardHeight = _cards.Max(card => card.RequiredHeight);
+            var headerExtra = Math.Max(0, _subtitle.Font.Height + DashboardLayout.Scale(41, DeviceDpi) - DashboardLayout.Scale(64, DeviceDpi));
+            var cardExtra = cardHeight - DashboardLayout.Scale(132, DeviceDpi);
+            var footerExtra = Math.Max(0, Font.Height + DashboardLayout.Scale(16, DeviceDpi) - DashboardLayout.Scale(44, DeviceDpi));
+            nominal.Height += headerExtra + cardExtra * 3 + footerExtra;
+            MinimumSize = Size.Empty; MaximumSize = work.Size;
+            Size = PopupPlacement.FitSize(nominal, work.Size); // Borderless: Size and ClientSize coincide.
+            var contentWidth = ClientSize.Width;
+            if (nominal.Height > ClientSize.Height) contentWidth = Math.Max(1, contentWidth - SystemInformation.VerticalScrollBarWidth);
+            _layout.Size = new(contentWidth, nominal.Height);
+            AutoScrollMinSize = new(0, nominal.Height);
+            _header.Bounds = DashboardLayout.Header(DeviceDpi, contentWidth);
+            _header.Height += headerExtra;
+            for (var i = 0; i < _cards.Count; i++)
             {
-                var withinCard = _cards.Any(card => card.Contains(label));
-                var heading = label.Parent is TableLayoutPanel parent && parent.ColumnCount == 2;
-                var headerTitle = label.Tag as string == "app-title";
-                label.MaximumSize = new Size(Math.Max(1, (withinCard ? cardWidth : textWidth) -
-                    (heading ? 40 * DeviceDpi / 96 : headerTitle ? 80 * DeviceDpi / 96 : 0)), 0);
+                var bounds = DashboardLayout.Card(i, DeviceDpi, contentWidth);
+                bounds.Y += headerExtra + cardExtra * i; bounds.Height = cardHeight;
+                _cards[i].Bounds = bounds;
             }
-            foreach (var content in _cardContents) { content.Width = cardWidth; content.PerformLayout(); }
-            foreach (var control in _hyperXAdvanced.Controls.OfType<Control>())
-                control.MaximumSize = new Size(textWidth, 0);
-            _hyperXAdvanced.Width = textWidth;
-            _layout.PerformLayout();
-            var contentHeight = _layout.GetPreferredSize(new Size(clientWidth, 0)).Height;
-            var preferred = new Size(width, contentHeight + chrome.Height);
-            MinimumSize = new Size(width, 0);
-            Size = PopupPlacement.FitSize(preferred, work.Size);
+            var footerBounds = DashboardLayout.Footer(DeviceDpi, contentWidth);
+            footerBounds.Y += headerExtra + cardExtra * 3; footerBounds.Height += footerExtra;
+            _footer.Bounds = footerBounds;
+            int S(int value) => DashboardLayout.Scale(value, DeviceDpi);
+            _appGlyph.Bounds = new(0, S(8), S(32), S(44));
+            _title.AutoSize = _subtitle.AutoSize = false;
+            _title.MaximumSize = _subtitle.MaximumSize = Size.Empty;
+            _title.Bounds = new(S(44), S(3), Math.Max(1, _header.Width - S(124)), S(29));
+            _subtitle.Bounds = new(S(44), S(35), Math.Max(1, _header.Width - S(124)), Math.Max(S(23), _subtitle.Font.Height + S(2)));
+            _title.AutoEllipsis = _subtitle.AutoEllipsis = true;
+            _gear.AutoSize = false; _gear.Bounds = new(_header.Width - S(74), S(12), S(34), S(34));
+            _close.Bounds = new(_header.Width - S(32), S(12), S(32), S(34));
+            _refresh.AutoSize = _hyperXSettings.AutoSize = false;
+            _refresh.Size = new(Math.Max(1, (_footer.Width - S(16)) / 2), _footer.Height);
+            _hyperXSettings.Size = new(Math.Max(1, _footer.Width - _refresh.Width - S(16)), _footer.Height);
+            _refresh.Margin = new(0, 0, S(16), 0); _hyperXSettings.Margin = Padding.Empty;
+            MinimumSize = new(Size.Width, 0);
             PerformLayout();
             Location = PopupPlacement.NearTray(screen.Bounds, work, Size, anchor,
                 Math.Max(4, 8 * DeviceDpi / 96));
@@ -446,12 +444,9 @@ internal sealed class BatteryPopupForm : Form
             : DashboardPalette.Resolve(_themeMode, systemDark);
         void Apply(Control control, Color background)
         {
-            if (control is DashboardCard card)
-            {
-                background = palette.Surface; card.BorderColor = palette.Border;
-                card.AccentColor = SystemInformation.HighContrast ? SystemColors.WindowText : card.Tag is Color accent ? accent : palette.Accent;
-            }
-            control.BackColor = background;
+            if (control is ProductCard card)
+            { background = palette.Surface; card.ApplyPalette(palette, SystemInformation.HighContrast); }
+            control.BackColor = control is Label && control.Parent is ProductCard ? Color.Transparent : background;
             control.ForeColor = control.Tag as string == "muted" ? palette.Muted : palette.Text;
             if (control is Button button)
             {
@@ -465,6 +460,7 @@ internal sealed class BatteryPopupForm : Form
             control.Invalidate();
         }
         Apply(this, palette.Background);
+        Apply(_settingsWindow, palette.Background);
     }
 
     private void RequestDismiss()
@@ -503,9 +499,10 @@ internal sealed class BatteryPopupForm : Form
         if (disposing)
         {
             SystemEvents.UserPreferenceChanged -= OnSystemThemeChanged;
+            _settingsWindow.Dispose();
             _hyperXTip.Dispose();
         }
         base.Dispose(disposing);
-        if (disposing) { _headingFont.Dispose(); _appFont.Dispose(); }
+        if (disposing) { _headingFont.Dispose(); _appFont.Dispose(); _metaFont.Dispose(); }
     }
 }

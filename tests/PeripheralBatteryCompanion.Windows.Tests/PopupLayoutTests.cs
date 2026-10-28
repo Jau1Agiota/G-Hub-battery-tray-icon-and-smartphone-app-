@@ -14,7 +14,7 @@ public sealed class PopupLayoutTests
     {
         using var form = new BatteryPopupForm();
         Assert.False(form.AutoSize); // Reverting the circular form/child AutoSize contract fails here.
-        Assert.True(form.ClientSize.Width >= PopupPlacement.ClientWidthForDpi(96));
+        Assert.True(form.ClientSize.Width >= DashboardLayout.NominalSize(96).Width);
         form.Display(new(45, "Battery: 45%", DateTimeOffset.UtcNow, ""));
         var work = Screen.PrimaryScreen!.WorkingArea;
         form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2));
@@ -42,8 +42,12 @@ public sealed class PopupLayoutTests
         Application.DoEvents();
         Assert.Equal(width, form.Width);
         AssertReadableAndOnScreen(form);
-        var status = Descendants(form).OfType<Label>().Single(label => label.Text == message);
-        Assert.True(status.Height > status.Font.Height, "Long status should wrap to multiple lines.");
+        Assert.Contains(Descendants(form).OfType<Label>(), label => label.Text.Contains(message));
+        var originalSize = form.Size;
+        form.SetHyperXAdvancedVisible(true); Application.DoEvents();
+        Assert.Equal(originalSize, form.Size); // Full diagnostic text moves to independently scrollable Settings.
+        Assert.True(form.HyperXAdvancedVisible);
+        form.SetHyperXAdvancedVisible(false);
         AssertControlsReachable(form);
 
         form.Display(new(62, "Battery: 62%", DateTimeOffset.UtcNow, ""));
@@ -87,8 +91,8 @@ public sealed class PopupLayoutTests
         var controls = Descendants(form).ToArray();
         Assert.Contains(controls.OfType<Label>(), label => label.Text == "HyperX Cloud III Wireless");
         Assert.Contains(controls.OfType<Label>(), label => label.Text.Contains("headset connectivity: Unknown"));
-        Assert.True(controls.OfType<CheckBox>().Single(box => box.Text == "Experimental HyperX queries").Checked);
-        Assert.False(controls.OfType<Button>().Single(button => button.Text == "Query battery (experimental)").Enabled);
+        Assert.DoesNotContain(controls.OfType<CheckBox>(), box => box.Text == "Experimental HyperX queries");
+        Assert.False(controls.OfType<Button>().Single(button => button.Text == "Query battery").Enabled);
         Assert.DoesNotContain(typeof(BatteryPopupForm).Assembly.GetReferencedAssemblies(),
             assembly => assembly.Name == "PeripheralBatteryCompanion.HyperXBatteryPoc");
         AssertControlsReachable(form);
@@ -119,7 +123,7 @@ public sealed class PopupLayoutTests
         form.HyperXQueryRequested += (_, _) => queries++;
         form.HyperXCancelRequested += (_, _) => cancels++;
         var controls = Descendants(form).OfType<Button>().ToArray();
-        var query = controls.Single(button => button.Text == "Query battery (experimental)");
+        var query = controls.Single(button => button.Text == "Query battery");
         var cancel = controls.Single(button => button.Text == "Cancel HyperX operation");
         Assert.False(query.Enabled); Assert.False(cancel.Enabled); Assert.Equal(0, queries);
         form.DisplayHyperX(new("Receiver: Detected; headset connectivity: Unknown", "Battery: Unknown", "Last observed: Never",
@@ -159,7 +163,7 @@ public sealed class PopupLayoutTests
         var requests = 0; var preferences = 0; var consent = 0;
         form.HyperXQueryRequested += (_, _) => requests++;
         form.HyperXMonitoringRequested += (_, _) => preferences++;
-        form.HyperXOptInRequested += _ => consent++;
+
         form.DisplayHyperX(new("Receiver: Detected; headset connectivity: Unknown", "Battery candidate: 51% (ambiguous)",
             "Last successful candidate: today", "Preserved technical details", true, true, ""));
         form.DisplayHyperXMonitoring(new(true, 60, false, false, null, DateTimeOffset.UtcNow.AddSeconds(60),
@@ -179,7 +183,7 @@ public sealed class PopupLayoutTests
         form.SetHyperXAdvancedVisible(true); Application.DoEvents();
         Assert.True(form.HyperXAdvancedVisible);
         Assert.Equal("60 seconds", controls.OfType<ComboBox>().Single(combo => combo.AccessibleName != "Dashboard theme").SelectedItem);
-        Assert.True(controls.OfType<CheckBox>().Single(box => box.Text == "Experimental HyperX queries").Checked);
+        Assert.DoesNotContain(controls.OfType<CheckBox>(), box => box.Text == "Experimental HyperX queries");
         Assert.False(controls.OfType<Button>().Single(button => button.Text == "Cancel HyperX operation").Visible);
         Assert.False(controls.OfType<Button>().Single(button => button.Text == "Resume HyperX monitoring").Visible);
         AssertReadableAndOnScreen(form); AssertControlsReachable(form);
@@ -225,7 +229,7 @@ public sealed class PopupLayoutTests
         form.ShowNearTray(new Point(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
         Assert.Equal(mode, form.ThemeMode);
         var controls = Descendants(form).ToArray();
-        Assert.Equal(3, controls.OfType<DashboardCard>().Count());
+        Assert.Equal(3, controls.OfType<ProductCard>().Count());
         Assert.DoesNotContain(controls.OfType<ComboBox>(), combo => combo.Visible);
         Assert.DoesNotContain(controls.OfType<CheckBox>(), box => box.Visible);
         AssertReadableAndOnScreen(form); AssertControlsReachable(form);
@@ -252,11 +256,57 @@ public sealed class PopupLayoutTests
         Assert.Contains("~100% stale", icon.Text);
     });
 
+    [Fact]
+    public void AssetCardsUseEmbeddedAlphaImagesAndFixedNominalFootprint() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        form.ShowNearTray(new Point(Screen.PrimaryScreen!.WorkingArea.Right - 2, Screen.PrimaryScreen.WorkingArea.Bottom - 2));
+        Application.DoEvents();
+        Assert.Equal(FormBorderStyle.None, form.FormBorderStyle);
+        Assert.Equal(PopupPlacement.FitSize(DashboardLayout.NominalSize(form.DeviceDpi), Screen.PrimaryScreen!.WorkingArea.Size), form.Size);
+        var cards = Descendants(form).OfType<ProductCard>().OrderBy(card => card.Top).ToArray();
+        Assert.Equal(3, cards.Length);
+        for (var i = 0; i < cards.Length; i++)
+        {
+            Assert.Equal(DashboardLayout.Card(i, form.DeviceDpi, cards[i].Parent!.Width), cards[i].Bounds);
+            Assert.Equal(DashboardLayout.ImageViewport(form.DeviceDpi, cards[i].Width), cards[i].ImageBounds);
+            Assert.True(cards[i].SourceBounds.Width > 0);
+        }
+        if (DashboardLayout.NominalSize(form.DeviceDpi).Height <= Screen.PrimaryScreen!.WorkingArea.Height) Assert.False(form.VerticalScroll.Visible);
+        Assert.False(form.HorizontalScroll.Visible);
+        foreach (var resource in new[] { "g915.png", "g305.png", "hyperx-cloud-iii.png" })
+        {
+            using var stream = typeof(ProductCard).Assembly.GetManifestResourceStream("Devices." + resource);
+            Assert.NotNull(stream);
+            using var image = new Bitmap(stream!);
+            Assert.Equal(0, image.GetPixel(0, 0).A);
+        }
+        Assert.DoesNotContain(typeof(ProductCard).Assembly.GetManifestResourceNames(), name => name.Contains("references"));
+        var size = form.Size; form.SetHyperXAdvancedVisible(true); Application.DoEvents();
+        Assert.Equal(size, form.Size); Assert.True(form.HyperXAdvancedVisible);
+        Assert.DoesNotContain(Descendants(form), control => control is CheckBox box && box.Text.Contains("Experimental"));
+        form.SetHyperXAdvancedVisible(false);
+    });
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(20)] [InlineData(38)] [InlineData(50)] [InlineData(100)]
+    public void LiveBarRangesAndUnknownUseTruthfulAccessibility(int percentage) => OnSta(() =>
+    {
+        using var bar = new BatteryLevelBar { Size = new Size(272, 12) };
+        bar.SetEstimate(percentage);
+        Assert.StartsWith($"{percentage}% estimated", bar.AccessibleDescription);
+        using var bitmap = new Bitmap(bar.Width, bar.Height);
+        bar.DrawToBitmap(bitmap, bar.ClientRectangle);
+        bar.SetEstimate(null);
+        Assert.Contains("No current estimate", bar.AccessibleDescription!);
+        bar.DrawToBitmap(bitmap, bar.ClientRectangle);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;
         var chromeWidth = form.Width - form.ClientSize.Width;
-        var expectedWidth = Math.Min(PopupPlacement.ClientWidthForDpi(form.DeviceDpi), work.Width - chromeWidth);
+        var expectedWidth = Math.Min(DashboardLayout.NominalSize(form.DeviceDpi).Width, work.Width - chromeWidth);
         Assert.Equal(expectedWidth, form.ClientSize.Width);
         Assert.True(form.MinimumSize.Width >= form.Width);
         Assert.True(work.Contains(form.Bounds), $"Popup {form.Bounds} must fit in {work}.");
@@ -265,7 +315,7 @@ public sealed class PopupLayoutTests
 
     private static void AssertControlsReachable(Form form)
     {
-        var leaves = Descendants(form).Where(control => control.Visible && control is Label or Button or BatteryLevelBar).ToArray();
+        var leaves = Descendants(form).Where(control => control.Visible && control.FindForm() == form && control is Label or Button or BatteryLevelBar).ToArray();
         Assert.NotEmpty(leaves);
         foreach (var control in leaves)
         {
@@ -293,6 +343,11 @@ public sealed class PopupLayoutTests
         {
             yield return child;
             foreach (var descendant in Descendants(child)) yield return descendant;
+        }
+        if (parent is BatteryPopupForm popup)
+        {
+            yield return popup.AdvancedSurface;
+            foreach (var descendant in Descendants(popup.AdvancedSurface)) yield return descendant;
         }
     }
 
