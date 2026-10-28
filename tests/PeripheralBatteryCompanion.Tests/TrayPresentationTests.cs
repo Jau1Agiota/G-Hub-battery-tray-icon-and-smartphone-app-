@@ -78,7 +78,7 @@ public sealed class TrayPresentationTests
         Assert.Equal(70, second.Percentage);
         Assert.Equal(BatteryLevelColor.Green, second.Color);
         Assert.Equal(first.LastReported, second.LastReported);
-        Assert.Empty(second.StatusText);
+        Assert.Contains("Stored G HUB report; freshness and connectivity unknown", second.StatusText);
         Assert.Equal("Battery: Unknown", second.MouseBatteryText);
         Assert.Contains("not yet supported", second.MouseStatusText);
     }

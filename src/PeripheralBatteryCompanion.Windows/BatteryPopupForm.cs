@@ -220,7 +220,7 @@ internal sealed class BatteryPopupForm : Form
         _hyperXTip.SetToolTip(_reported, view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown");
         _keyboardDetails.Text = view.BatteryText + "\n" + view.StatusText + "\n" +
             (view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Timestamp unknown");
-        _status.Text = view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
+        _status.Text = view.Percentage.HasValue ? "Stored report · freshness unknown" : view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
             ? "Last report cached · see settings" : "Battery temporarily unavailable";
         _hyperXTip.SetToolTip(_status, view.StatusText);
         _status.Visible = view.StatusText.Length > 0;

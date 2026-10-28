@@ -302,6 +302,27 @@ public sealed class PopupLayoutTests
         bar.DrawToBitmap(bitmap, bar.ClientRectangle);
     });
 
+    [Fact]
+    public void StoredKeyboardNoteIsVisibleAndCloseHidesWithoutDisposal() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var dismissals = 0;
+        form.DismissRequested += (_, _) => { dismissals++; form.Hide(); };
+        form.Display(new(45, "Battery: 45%", DateTimeOffset.UtcNow, "Stored G HUB report; freshness and connectivity unknown."));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(l => l.Visible).ToArray();
+        Assert.Contains(labels, l => l.Text == "Stored report · freshness unknown");
+        Assert.DoesNotContain(labels, l => l.Text == "Battery temporarily unavailable");
+        Assert.Contains(labels, l => l.Text == "G305 Mouse");
+        Assert.Contains(labels, l => l.Text == "Battery: Unknown");
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.Close(); Application.DoEvents();
+        Assert.Equal(1, dismissals); Assert.False(form.Visible); Assert.False(form.IsDisposed);
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        AssertReadableAndOnScreen(form);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;

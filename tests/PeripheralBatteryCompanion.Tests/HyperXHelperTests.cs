@@ -307,6 +307,22 @@ public sealed class HyperXHelperTests
     }
 
     private static byte[] Reply(int percentage = 56) { var bytes = HelperProtocol.Request(); bytes[2] = 0x0E; bytes[3] = 0xE3; bytes[4] = (byte)percentage; return bytes; }
+    [Fact]
+    public async Task DisposalFailureRetainsOwnedChildAndBlocksAnotherQuery()
+    {
+        var factory = new Factory { ConfigureNative = child => child.FailDispose = true };
+        await using var transport = new HyperXHelperTransport(factory, allowRecoverableFailures: true);
+        Assert.True(await transport.PrepareAsync(true));
+        var result = await transport.QueryOnceAsync(default);
+        Assert.False(result.CompletionSafeCleanup);
+        Assert.Equal(HyperXQueryOutcome.Failed, result.Outcome);
+        Assert.True(factory.Children.Last().Retained);
+        var count = factory.Children.Count;
+        await transport.QueryOnceAsync(default);
+        Assert.Equal(count, factory.Children.Count);
+        Assert.False(transport.HasVerifiedLongRunningLifetime);
+    }
+
     private sealed class Factory : IHyperXHelperProcessFactory
     {
         public bool IsAvailable { get; set; } = true;
@@ -326,7 +342,7 @@ public sealed class HyperXHelperTests
         public int? ExitOverride;
         public bool EarlyEof;
         public int? ExitCode => ExitOverride ?? (Killed ? 224 : 0);
-        public bool Disposed, Killed, Retained, MustKill, NeverExits;
+        public bool Disposed, Killed, Retained, MustKill, NeverExits, FailDispose;
         private int _reads;
         public TaskCompletionSource? Hold;
         public List<HelperCommand> Commands = [];
@@ -346,6 +362,6 @@ public sealed class HyperXHelperTests
         public void RequestTermination() => Killed = true;
         public Task<bool> WaitForExitAsync(TimeSpan timeout) => Task.FromResult(!NeverExits && (!(MustKill || Mode == HelperMode.SimulateHold) || Killed));
         public void RetainUntilExit() => Retained = true;
-        public ValueTask DisposeAsync() { Disposed = true; return ValueTask.CompletedTask; }
+        public ValueTask DisposeAsync() { Disposed = true; if (FailDispose) throw new IOException("synthetic cleanup failure"); return ValueTask.CompletedTask; }
     }
 }

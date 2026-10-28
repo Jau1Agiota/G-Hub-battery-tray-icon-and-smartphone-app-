@@ -49,6 +49,10 @@ public sealed class BatteryMonitoringService : IAsyncDisposable
         {
             token.ThrowIfCancellationRequested();
             var result = await _provider.ReadAsync(token);
+            // CancelAsync marks the source immediately but linked-token callbacks may
+            // still be queued. Never publish a completed read after requested shutdown.
+            _stop.Token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             token.ThrowIfCancellationRequested();
             if (result.Keyboard.Availability == BatteryAvailability.Available) _lastKnown = result.Keyboard;
             if (result.DatabaseAccessedAt.HasValue) _lastAccess = result.DatabaseAccessedAt;

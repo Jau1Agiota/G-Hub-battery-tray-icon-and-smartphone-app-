@@ -24,7 +24,7 @@ public sealed record BatteryPanelView(int? Percentage, string BatteryText,
         var available = current.Availability == BatteryAvailability.Available &&
             current.Percentage is >= 0 and <= 100;
         if (available) return new(current.Percentage, $"Battery: {current.Percentage}%",
-            current.LastReported, "");
+            current.LastReported, "Stored G HUB report; freshness and connectivity unknown. " + current.Status);
 
         var previous = state.LastKnownKeyboard;
         var cached = previous?.Percentage is >= 0 and <= 100
