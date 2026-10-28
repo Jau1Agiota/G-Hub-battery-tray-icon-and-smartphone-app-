@@ -98,3 +98,7 @@ If convenient, run once with the candidate receiver absent (or on a machine with
 - [HidD_GetPreparsedData](https://learn.microsoft.com/windows-hardware/drivers/ddi/hidsdi/nf-hidsdi-hidd_getpreparseddata)
 - [HidP_GetCaps](https://learn.microsoft.com/windows-hardware/drivers/ddi/hidpi/nf-hidpi-hidp_getcaps) and [HIDP_CAPS](https://learn.microsoft.com/windows-hardware/drivers/ddi/hidpi/ns-hidpi-_hidp_caps)
 - [HidD_FreePreparsedData](https://learn.microsoft.com/windows-hardware/drivers/ddi/hidsdi/nf-hidsdi-hidd_freepreparseddata)
+
+## G305 Stage 2 — separate SQLite investigation
+
+The explicitly invoked [G HUB read-only diagnostic](G305_STAGE2_READONLY_REPORT.md) examines bounded structured SQLite/JSON evidence without changing this passive inspector or production providers. [The HID++ feasibility note](G305_HIDPP_FEASIBILITY.md) compares the owner-reported 7/20/32-byte metadata to manufacturer's public documentation; it does not establish a battery protocol or authorize an active query.

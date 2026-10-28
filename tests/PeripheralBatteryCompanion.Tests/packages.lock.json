@@ -145,6 +145,12 @@
           "PeripheralBatteryCompanion.HyperXHelperProtocol": "[1.0.0, )"
         }
       },
+      "peripheralbatterycompanion.g305ghubinspector": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Data.Sqlite": "[10.0.14, )"
+        }
+      },
       "peripheralbatterycompanion.g305inspector": {
         "type": "Project",
         "dependencies": {
