@@ -1,27 +1,29 @@
-# G305 Stage 3A.3 report
+# G305 Stage 3A.3 completed review report
 
-2026-10-28. **Partial review delivered; full primary PDF review blocked by access. Stage 3B NO-GO.** Do not describe this stage as a completed review of either PDF. No hardware I/O, source/test change, new decoder, executable packet, merge, release or branch deletion.
+2026-10-28. **Both supplied PDFs read in full; research access blocker resolved. Stage 3B remains NO-GO.** The initial partial report at e065251 is superseded by this completed review. Documentation only; no source/test change, sender, executable packet, hardware access, merge, release or branch deletion.
 
-## Branch and files
+## Branch and preservation
 
-Branch `feature/g305-stage3a3-primary-specification-review` starts at exact Stage 3A.2 `20b0041`, preserving 12da59c, 51e2821, 1af72a0 and 69b607a. No cherry-pick or duplicated implementation. Stage commit is reported at delivery and listed by `git log --oneline 20b0041..HEAD`.
+Continued on `feature/g305-stage3a3-primary-specification-review` from exact `e065251`, retaining Stage 3A.2 20b0041, Stage 3A.1 12da59c, Stage 3A 51e2821 and Stage 2 1af72a0/69b607a. No history rewrite, branch replacement or duplicated implementation. Completion commit is supplied in delivery and listed by `git log --oneline e065251..HEAD`.
 
-Changed files:
+Changed files: G305_STAGE3A3_PRIMARY_SPECS.md, G305_STAGE3A3_REPORT.md and G305_STAGE3B_EXPERIMENT_PROPOSAL.md. Previous stage documents remain historical records; this review/proposal states the current evidence. All production/source/test/launcher/packaging content remains byte-identical to e065251.
 
-- G305_STAGE3A3_PRIMARY_SPECS.md: access ledger, pinned readable manufacturer sources, owner-supplied excerpt provenance, unresolved routing/notification/error/battery semantics, field review and no-go.
-- G305_STAGE3B_EXPERIMENT_PROPOSAL.md: current source limits, C52B scope warning and next non-transmitting evidence step.
-- This report.
+## Sources and method
 
-## Research and limitations
+Owner attachments Logitech_HIDPP_1.0.pdf (19 pages, SHA-256 `24aca57c431863fbfdba9a2b838a5a4dad59deb90ebe5718a675cdc0bf54642c`) and Logitech_HIDPP_2.0.pdf (16 pages, June 4 2012 draft, SHA-256 `c3d642248df91ee2d00420c359e4693ea36384b63d308abbc45bb4838919e58b`) were extracted locally and read. Version and battery-status pages were rendered/visually checked to verify contradictory text. URLs and physical PDF page/section citations appear in the primary review. Public cpg-docs README/IRoot pinned at f9107a4e3190d798f9be8c5d596f255f5e5741d2 provides the earlier cross-check; no third-party monitor code/proprietary binaries used. No PDF, extracted proprietary data or runtime dependency added to git. Public-host access failures remain historical, not a claim that attachment review was blocked.
 
-Direct legacy/draft PDF requests and www-host equivalents failed with tunnel HTTP 403 Forbidden. No indexed-web/PDF tool exists in this session; search-engine access and GitHub API listing were also unavailable. Public manufacturer cpg-docs git clone succeeded at f9107a4e3190d798f9be8c5d596f255f5e5741d2: read root README, HID++ 2.0 README and IRoot. No PDF or detailed battery definition exists in that tree. Manufacturer-linked public Drive folder also returned 403. No third-party implementation or proprietary binary consulted, no insecure workaround attempted.
+## Findings
 
-Exact URLs/section citations and the distinction between independently read sources and owner's reported PDF sections are in the review. Full connection notification grammar, legacy/draft errors and 0x1000 function/output definition remain **unreviewed and outstanding**. General root function/success fields are documented, but mouse index, applicability, ownership, reserved values and exact dual-family decoder remain unresolved. No percentage fabricated. P1/descriptor IDs do not identify a live mouse.
+- C52B-scoped legacy routing assigns wireless indices at receiver level; neither passive report IDs nor P1 yields a C53F mouse index. Notification fields and enablement requirements are now documented, with no notification configuration/listening authorized.
+- Version request general fields include two explicit zero parameters, root/function and ping; success major/minor/echo and nonzero software-ID rules are established at specification level, not verified on this G305.
+- Legacy error envelope/code meanings are documented. The draft has a version error echoed-address discrepancy and conflicting ping prose; general 2.0 error codes are given without a complete wire envelope. No silent repair or speculative decoder.
+- Responses can differ in report size from requests; draft example returns a long version response to a short request. C53F cross-collection routing/receive ownership is unverified.
+- Battery 0x1000 functions 0 (status), 1 (capability), event 0, status fields and level capability mapping are now documented. 0 means unknown; 25%/50% can encode low/good categories. Actual G305 support/runtime index/precision remains unknown. Draft status enum/validation conflict and incomplete capability layout are retained as limitations.
 
-Smallest next step: owner supplies the two public PDFs as attachments or an accessible authoritative copy for offline review. No active or additional passive hardware query required. Implementation and physical execution each require separate later approval.
+No exact packet or hardware-test proposal emitted. Stop for owner review. Remaining questions concern C53F-specific route/identity/applicability, draft clarification/general error envelope, cross-collection response path, G HUB correlation and bounded transport cleanup. Explicit later implementation approval and separate physical execution approval are still required.
 
-## Checks and delivery
+## Validation
 
-Baseline recorded from Stage 3A.1: Release build passed with zero warnings/errors; 126 focused tests passed, zero failed/skipped. These results were **not rerun** here. Markdown-only stage: no new tests; Release build/full suite/Windows/clipboard/hardware tests **NOT RUN**. Documentation whitespace/local file links, exact-base ancestry and documentation-only path checks performed before push. All source, tests, launchers, G915/HyperX, tray/dashboard/startup and packaging remain byte-identical to 20b0041.
+Documentation whitespace, local Markdown file-link check, preserved-ancestry and documentation-only path audit passed. Attachment SHA-256 and physical page counts recorded; selected original diagrams visually checked. **Build/tests not rerun** for Markdown-only changes. Last recorded Stage 3A.1 baseline is Release build zero warnings/errors and 126 focused tests passed, zero failed/skipped; those are not new results. Windows/clipboard/hardware validation **NOT RUN**; owner-passive findings are attributed as such.
 
-[Compare with main](https://github.com/Jau1Agiota/G-Hub-battery-tray-icon-and-smartphone-app-/compare/main...feature/g305-stage3a3-primary-specification-review?expand=1). Includes preserved unmerged prior G305 stages plus this documentation stage. No PR creation is required by this briefing; compare link is the delivery path. Stop for owner review; no Stage 3B authorization inferred.
+[Compare with main](https://github.com/Jau1Agiota/G-Hub-battery-tray-icon-and-smartphone-app-/compare/main...feature/g305-stage3a3-primary-specification-review?expand=1). Includes preserved prior unmerged G305 stages. No PR/merge/release action required for this completion; branch push is the delivery.

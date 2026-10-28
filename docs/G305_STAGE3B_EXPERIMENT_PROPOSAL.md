@@ -11,11 +11,11 @@ A future experiment must choose **one purpose and at most one request**, not a d
 | Report ID / collection | 0x10 short 7 bytes, 0x11 long 20 bytes in manufacturer overview | Owner verified COL01 input/output button ID 0x10 (7 bytes), COL02 ID 0x11 (20 bytes); exact active choice and routing still **UNRESOLVED** |
 | Device index | Address routed wireless target; 0xFF documented for receiver/corded device | **UNRESOLVED**; never default to 0xFF or slot 1 as a G305 mouse |
 | Protocol family | Select legacy register vs feature semantics | **UNRESOLVED**; no generation inferred from size |
-| Feature index (2.0 byte 2) | Runtime index; root is documented index 0 | Battery index **UNRESOLVED**; 0x1000 is feature ID, not index; root 0 is not battery |
+| Feature index (2.0 byte 2) | Runtime index; root is documented index 0 | Battery index **UNRESOLVED**; 0x1000 is feature ID, not index; L2 documents battery functions 0/1, not G305 support; root 0 is not battery |
 | Function/software (2.0 byte 3) | Function high nibble, software ID low nibble in conventional byte layout | **UNRESOLVED** function/ID; root function 0 GetFeature and 1 GetProtocolVersion are documented, not selected for execution |
 | Register/operation (1.0 alternative) | Legacy register addressing | **UNRESOLVED**; do not overlay an assumed legacy register on 2.0 fields |
-| Parameters / reserved bytes | Function-specific arguments and exact padding | **UNRESOLVED**; no filled-in byte array; battery return format/function unverified |
-| Expected response/errors | Exact ID, length, route, family-specific function/register, software echo and documented status | **UNRESOLVED**; unsupported/legacy error layouts must be established before decoding |
+| Parameters / reserved bytes | Function-specific arguments and exact padding | Version-only general form now documents two zero parameters and software-defined ping; chosen echo **UNRESOLVED**; no filled-in byte array; G305 battery support unverified |
+| Expected response/errors | Exact ID, length, route, family-specific function/register, software echo and documented status | Legacy error envelope/codes and version success parameters now documented; draft version-error discrepancy and general 2.0 error envelope **UNRESOLVED** |
 
 No arbitrary software ID, “likely” wireless slot, extra initialization command or fabricated zero-padded packet is selected. Complete report bytes, exact chosen collection/directions, write API/transport and expected reply/error layout must be presented before implementation approval. HID++ root GetFeature is a **protocol command**, distinct from Windows HidD_GetFeature; neither is allowed in Stage 3A.
 
@@ -37,7 +37,7 @@ Return distinct sanitized outcomes: target missing, multiple/identity-unresolved
 
 ## Minimum next non-transmitting evidence
 
-Stage 3A.1's cached-capability extension is implemented and the owner has returned its successful passive result (see matrix below). Do not repeat it simply to reconfirm IDs. Stage 3A.2 recommends accessible public manufacturer routing/error specifications for offline review; no additional live report capture or hardware command. See [the identity/protocol review](G305_STAGE3A2_IDENTITY_PROTOCOL_REVIEW.md) for precise gaps and the receiver-versus-mouse distinction.
+Stage 3A.1's cached-capability extension is implemented and the owner has returned its successful passive result (see matrix below). Do not repeat it simply to reconfirm IDs. Stage 3A.3 has now read both attached primary specifications; source access is resolved. C53F routing/applicability, draft inconsistencies and general 2.0 error-envelope evidence remain unresolved; no additional live report capture or hardware command is proposed. See [the identity/protocol review](G305_STAGE3A2_IDENTITY_PROTOCOL_REVIEW.md) for precise gaps and the receiver-versus-mouse distinction.
 
 ## Go / no-go and approval checkpoint
 
@@ -62,21 +62,29 @@ Stage 3A.1 implements the [passive metadata extension](G305_STAGE3A1_PASSIVE_REP
 | Anonymous USB MI_02 grouping | Owner verified all three collections under P1 in that invocation; no wireless identity, stable ID or slot inferred |
 | Protocol family/version | UNRESOLVED; sizes or IDs alone cannot establish it |
 | Mouse device index/route and live identity | UNRESOLVED; receiver present is insufficient |
-| Battery feature/register/function and runtime index | UNRESOLVED; no request or decoder selected |
-| Battery precision/units/meaning | UNRESOLVED; G HUB bars not an exact percentage |
+| Battery feature/register/function and runtime index | Primary draft documents 0x1000 functions 0 status / 1 capability, event 0; G305 support and runtime index UNRESOLVED; no request/decoder selected |
+| Battery precision/units/meaning | Draft permits coarse category percentages and defines 0 as unknown; actual G305 semantics/precision UNRESOLVED |
 | Response matching/ownership and G HUB coexistence | UNRESOLVED; passive shared-open says nothing about consuming reports or unique active correlation |
 | Exact complete packet and safe active transport | NOT APPROVED / NOT IMPLEMENTED |
 
-## Stage 3A.2 decision
+## Stage 3A.2 decision (historical; superseded below)
 
 Owner results resolve the cached ReportID and per-invocation parent-group gaps, but not version, mouse route, physical identity, battery semantics or ownership. Logitech documents receiver index 0xFF and root function 1 GetProtocolVersion in general; a receiver answer would not identify a live G305. No wireless slot/software ID/reserved parameters or complete legacy error decoder is selected. **No exact executable packet is proposed.** See [Stage 3A.2 review](G305_STAGE3A2_IDENTITY_PROTOCOL_REVIEW.md) for byte-by-byte unresolved fields and source tables.
 
-Next: obtain accessible primary protocol routing/error documents for offline review. The historical PDFs remain inaccessible here. No new hardware command, sender or capture is authorized. Explicit implementation approval and separate physical-run approval remain mandatory after an exact proposal becomes reviewable.
+Next: obtain accessible primary protocol routing/error documents for offline review. At that stage the historical PDFs remained inaccessible; Stage 3A.3 below resolves that access blocker. No new hardware command, sender or capture is authorized. Explicit implementation approval and separate physical-run approval remain mandatory after an exact proposal becomes reviewable.
 
-## Stage 3A.3 source-access update and decision
+## Stage 3A.3 completed PDF review — current decision
 
-See [primary specification review](G305_STAGE3A3_PRIMARY_SPECS.md). **NO-GO remains.** Owner's new briefing reports the legacy excerpt §2.1 targets C52B, §§2.6–2.11 describe receiver-assigned indices/0x8F errors, and the draft pp.1–3 describes version/error rules. Those are owner-supplied section summaries, not independently read PDF contents: both PDF downloads still return tunnel HTTP 403 here, and no indexed-PDF tool is available. The manufacturer's linked public Drive folder is also inaccessible.
+The owner attached both PDFs; they have now been read in full. This supersedes earlier source-access blockers, not device-evidence or approval gates. See [completed primary review](G305_STAGE3A3_PRIMARY_SPECS.md) for attachment hashes, physical-page citations, exact semantics and discrepancies. **Stage 3B remains NO-GO.** No active hardware experiment is proposed at this checkpoint.
 
-Manufacturer cpg-docs was independently reviewed at commit f9107a4e3190d798f9be8c5d596f255f5e5741d2. README Packet Structure and IRoot tables establish general short/long framing, receiver reservation, root functions and version success parameter names. They do not supply full legacy/error grammar, the 0x1000 function definition or a C53F mouse route. No source-proven battery function/output layout is added. The owner-verified descriptor IDs remain valid evidence; they do not fill those gaps.
+Substantiated general rules now include:
 
-Next non-transmitting step: attach the public PDFs for full offline review, or provide an accessible authoritative copy. Do not repeat hardware diagnostics to compensate. No executable packet, active tool or test command is proposed. A general receiver response would not establish a live G305, and C52B examples cannot choose a C53F wireless index. Separate implementation and physical-execution approvals remain mandatory after a complete proposal is reviewable.
+- L1 p.3 §2.1 scopes the legacy excerpt to C52B, not C53F; p.5 §2.8 describes receiver-assigned device indices. Connection notifications (p.9 §§3.1–3.2) can convey index/type/wireless PID/link flags but require notification configuration (p.11 §4.1). No notification enablement, listening, register query or slot scan is authorized.
+- L2 p.2 version discovery uses root index 0/function 1, two explicit zero parameters and software-defined ping; success returns major/minor/echo. Software IDs are nonzero 1–15, firmware-echoed, not an exclusive allocation (pp.2–3). No target/software ID/echo value is selected.
+- L1 p.7 §§2.9.9–2.11 supplies a short legacy error envelope with echoed command/address and code; L2 p.3 supplies 2.0 code names but not a complete general error wire envelope. The L2 p.2 legacy illustration prints high nibble F where its request uses 1; ping prose also conflicts with its displayed request. Do not silently repair these contradictions into a classifier.
+- Short request does not guarantee short reply (L1 p.3 §2.4; L2 pp.15–16 long version replies). A COL01-only input completion may miss a legitimate reply. Cross-collection receive routing/safety remains unresolved; no extra read or automatic fallback is authorized.
+- L2 pp.9–10 documents battery 0x1000 functions 0/1, event 0, level/next-level/status fields, 0=unknown and capability-dependent coarse categories (e.g. 50% = good). G305 support/index/precision remain unknown; draft status validation and enum conflict. Battery is not the first experiment.
+
+Remaining gates: C53F-specific mouse route/identity/applicability, strict response/error grammar with draft discrepancies resolved, a nonexclusive software/echo correlation policy with honest ambiguity, verified collection routing and bounded resource/cleanup design. Multiple receiver parents, wrong target/response, shared-open refusal, timeout, disconnect, cancellation or uncertain cleanup must fail closed; never infer offline from silence. No G915 selection, G HUB termination, elevation, retries/polling/wake or pairing changes.
+
+No speculative executable packet is emitted. Stop for owner review of these findings. Future implementation requires an exact complete separately reviewed proposal and explicit approval; physical execution requires another approval after implementation review. No active hardware command follows from this document.
