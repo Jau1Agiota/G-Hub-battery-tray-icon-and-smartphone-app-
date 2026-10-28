@@ -8,7 +8,7 @@ A future experiment must choose **one purpose and at most one request**, not a d
 
 | Potential wire field | Purpose / documented general rule | This receiver's proposed value |
 |---|---|---|
-| Report ID / collection | 0x10 short 7 bytes, 0x11 long 20 bytes in manufacturer overview | **UNRESOLVED**; COL01/COL02 lengths alone insufficient; input/output IDs and routing must be established |
+| Report ID / collection | 0x10 short 7 bytes, 0x11 long 20 bytes in manufacturer overview | Owner verified COL01 input/output button ID 0x10 (7 bytes), COL02 ID 0x11 (20 bytes); exact active choice and routing still **UNRESOLVED** |
 | Device index | Address routed wireless target; 0xFF documented for receiver/corded device | **UNRESOLVED**; never default to 0xFF or slot 1 as a G305 mouse |
 | Protocol family | Select legacy register vs feature semantics | **UNRESOLVED**; no generation inferred from size |
 | Feature index (2.0 byte 2) | Runtime index; root is documented index 0 | Battery index **UNRESOLVED**; 0x1000 is feature ID, not index; root 0 is not battery |
@@ -35,9 +35,9 @@ Before any future send, validate exact target and clear experiment purpose. Afte
 
 Return distinct sanitized outcomes: target missing, multiple/identity-unresolved, shared-open denied, unsupported metadata/protocol, unexpected/ambiguous response, timeout, cancelled, disconnected, native/IPC failure, cleanup-unconfirmed. Unknown/asleep/offline are not distinguished from silence alone. No automatic fallback, disconnect recovery query or process restart query.
 
-## Minimum next passive evidence
+## Minimum next non-transmitting evidence
 
-No new hardware command is requested now. The existing capability summary is already supplied; repeating it alone cannot fill the gaps. Smallest useful additional diagnostic would be a **separately scoped metadata-only extension** of diagnose-g305.ps1: zero-access/shared-open, existing preparsed data, input/output HidP_GetButtonCaps/HidP_GetValueCaps ReportID sets, bounded counts, numeric errors and per-invocation anonymous parent grouping. No live descriptor request, report read/write, GetFeature/SetFeature, HidD_GetInputReport or DeviceIoControl. Do not expose raw instance IDs or add generic report dumps. If IDs cannot be represented by cached caps, report unknown and stop. This extension is not implemented here; owner should approve that scope before requesting it. Obtain accessible public specification copies as another non-hardware input.
+Stage 3A.1's cached-capability extension is implemented and the owner has returned its successful passive result (see matrix below). Do not repeat it simply to reconfirm IDs. Stage 3A.2 recommends accessible public manufacturer routing/error specifications for offline review; no additional live report capture or hardware command. See [the identity/protocol review](G305_STAGE3A2_IDENTITY_PROTOCOL_REVIEW.md) for precise gaps and the receiver-versus-mouse distinction.
 
 ## Go / no-go and approval checkpoint
 
@@ -53,13 +53,13 @@ No active implementation or physical attempt is authorized by this Stage 3A brie
 
 ## Stage 3A.1 evidence matrix
 
-Stage 3A.1 implements the previously proposed [passive metadata extension](G305_STAGE3A1_PASSIVE_REPORTIDS.md); that narrow implementation is now authorized. The earlier statement that it was not implemented describes Stage 3A history. It does not authorize an active experiment. **Stage 3B remains NO-GO.**
+Stage 3A.1 implements the [passive metadata extension](G305_STAGE3A1_PASSIVE_REPORTIDS.md). The Stage 3A.2 briefing supplies owner-verified Windows results, exit 0. This establishes cached metadata only, not active authorization. **Stage 3B remains NO-GO.**
 
 | Evidence | Current state after implementation |
 |---|---|
 | Exact USB hardware/collection lengths and usages | Owner-supplied observations retained; G915 excluded |
-| Input/output capability ReportIDs | Diagnostic ready; actual Windows owner output **pending**; absent IDs remain unknown, not exhaustive descriptor evidence |
-| Anonymous USB MI_02 grouping | Cached PnP ancestry implementation ready; actual owner result pending; no wireless identity inferred |
+| Input/output capability ReportIDs | Owner verified input/output button IDs: COL01 0x10, COL02 0x11, COL03 0x20/0x21; absent IDs remain unknown; not exhaustive descriptor evidence; COL03 unexplained/out of scope |
+| Anonymous USB MI_02 grouping | Owner verified all three collections under P1 in that invocation; no wireless identity, stable ID or slot inferred |
 | Protocol family/version | UNRESOLVED; sizes or IDs alone cannot establish it |
 | Mouse device index/route and live identity | UNRESOLVED; receiver present is insufficient |
 | Battery feature/register/function and runtime index | UNRESOLVED; no request or decoder selected |
@@ -67,4 +67,8 @@ Stage 3A.1 implements the previously proposed [passive metadata extension](G305_
 | Response matching/ownership and G HUB coexistence | UNRESOLVED; passive shared-open says nothing about consuming reports or unique active correlation |
 | Exact complete packet and safe active transport | NOT APPROVED / NOT IMPLEMENTED |
 
-Next step is only the owner-run passive command and sanitized summary in the Stage 3A.1 document. Review that evidence before proposing additional work; no sender, active request, input capture or production integration follows automatically.
+## Stage 3A.2 decision
+
+Owner results resolve the cached ReportID and per-invocation parent-group gaps, but not version, mouse route, physical identity, battery semantics or ownership. Logitech documents receiver index 0xFF and root function 1 GetProtocolVersion in general; a receiver answer would not identify a live G305. No wireless slot/software ID/reserved parameters or complete legacy error decoder is selected. **No exact executable packet is proposed.** See [Stage 3A.2 review](G305_STAGE3A2_IDENTITY_PROTOCOL_REVIEW.md) for byte-by-byte unresolved fields and source tables.
+
+Next: obtain accessible primary protocol routing/error documents for offline review. The historical PDFs remain inaccessible here. No new hardware command, sender or capture is authorized. Explicit implementation approval and separate physical-run approval remain mandatory after an exact proposal becomes reviewable.
