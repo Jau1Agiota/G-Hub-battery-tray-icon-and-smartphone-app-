@@ -8,7 +8,7 @@ public static class PopupPlacement
     public static int ClientWidthForDpi(int dpi)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(dpi);
-        return checked((int)Math.Round(360d * dpi / 96, MidpointRounding.AwayFromZero));
+        return DashboardLayout.NominalSize(dpi).Width;
     }
 
     public static Size FitSize(Size preferred, Size workingArea)

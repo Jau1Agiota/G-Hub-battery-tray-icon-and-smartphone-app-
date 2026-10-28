@@ -162,11 +162,11 @@ public sealed class TrayPresentationTests
     }
 
     [Theory]
-    [InlineData(96, 360)]
-    [InlineData(120, 450)]
-    [InlineData(144, 540)]
-    [InlineData(192, 720)]
-    [InlineData(240, 900)]
+    [InlineData(96, 520)]
+    [InlineData(120, 650)]
+    [InlineData(144, 780)]
+    [InlineData(192, 1040)]
+    [InlineData(240, 1300)]
     public void PopupWidthHasAnExplicitDpiScaledBaseline(int dpi, int expectedWidth) =>
         Assert.Equal(expectedWidth, PopupPlacement.ClientWidthForDpi(dpi));
 

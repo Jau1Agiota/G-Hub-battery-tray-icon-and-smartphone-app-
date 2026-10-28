@@ -1,5 +1,7 @@
 # Peripheral Battery Companion
 
+> Current owner addendum supersedes historical default-OFF/session-consent behavior for normal production monitoring: automatic startup, default ON / **120 seconds**, explicit OFF preserved, durable safety stops retained. See [current dashboard/startup specification](docs/ASSET_DASHBOARD_AND_STARTUP.md). Native protocol/containment guarantees and standalone POC guards remain unchanged.
+
 > Stage 4.0H adds optional, default-off automatic monitoring on the supervised helper. The manual-only/process-running restrictions below describe the earlier stage. See [current monitoring behavior](docs/HYPERX_AUTOMATIC_MONITORING.md), including session consent, safety latches, backoff and outstanding Windows validation.
 
 An unofficial, independent Windows 11 tray utility that displays the G915 keyboard's last reported battery percentage from Logitech G HUB. It is not affiliated with, endorsed by, or supported by Logitech.

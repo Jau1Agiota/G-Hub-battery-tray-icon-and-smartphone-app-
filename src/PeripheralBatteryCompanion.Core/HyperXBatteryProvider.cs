@@ -70,9 +70,17 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
     public string QueryBlocker => _stop.IsCancellationRequested ? "Provider stopped." : _attemptsStopped
         ? "Further attempts stopped after a failure; review diagnostics before any new physical test."
         : transport?.HasVerifiedLongRunningLifetime != true ? (transport as IHyperXTransportStatus)?.SafetyBlocker ?? LifetimeBlocker
-        : !_experimentalEnabled ? "Experimental active queries are disabled." : Current.Receiver != ReceiverPresence.Detected
+        : !_experimentalEnabled ? "HyperX monitoring is disabled." : Current.Receiver != ReceiverPresence.Detected
         ? "Exactly one validated receiver is required." : "";
 
+    // Production enablement is owner-authorized normal monitoring, independent of the legacy session API.
+    public bool ConfigureMonitoring(bool enabled)
+    {
+        _experimentalEnabled = enabled && !_stop.IsCancellationRequested;
+        return _experimentalEnabled;
+    }
+
+    // Legacy standalone/session callers retain their explicit acknowledgement behavior.
     // Session-only setting. Never enabled implicitly or persisted across application restarts.
     public bool ConfigureExperimentalQueries(bool enabled, bool acknowledgeInterferenceRisk = false)
     {
@@ -135,7 +143,7 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
         try
         {
             if (_attemptsStopped) return Refuse(HyperXStage.Stopped, QueryBlocker);
-            if (!_experimentalEnabled) return Refuse(HyperXStage.OptIn, "Experimental active queries are disabled.");
+            if (!_experimentalEnabled) return Refuse(HyperXStage.OptIn, "HyperX monitoring is disabled.");
             if (transport?.HasVerifiedLongRunningLifetime != true) return Refuse(HyperXStage.LifetimeGate, QueryBlocker);
             ApplyDiscovery(await discovery.DiscoverAsync(linked.Token));
             linked.Token.ThrowIfCancellationRequested();
@@ -163,7 +171,7 @@ public sealed class HyperXBatteryProvider(IHyperXReceiverDiscovery discovery, IN
                 Volatile.Write(ref _current, Current with { Percentage = result.CandidatePercentage,
                     LastReported = _clock.GetUtcNow(), Availability = BatteryAvailability.Available,
                     ObservationState = BatteryObservationState.CandidateAmbiguous,
-                    Source = "Experimental one-shot HID; response ownership ambiguous",
+                    Source = "Supervised one-shot HID; response ownership ambiguous",
                     Status = "Candidate observed; response ownership, freshness and headset connectivity remain unknown." });
                 return Current;
             }
