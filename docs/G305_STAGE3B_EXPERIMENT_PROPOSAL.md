@@ -88,3 +88,20 @@ Substantiated general rules now include:
 Remaining gates: C53F-specific mouse route/identity/applicability, strict response/error grammar with draft discrepancies resolved, a nonexclusive software/echo correlation policy with honest ambiguity, verified collection routing and bounded resource/cleanup design. Multiple receiver parents, wrong target/response, shared-open refusal, timeout, disconnect, cancellation or uncertain cleanup must fail closed; never infer offline from silence. No G915 selection, G HUB termination, elevation, retries/polling/wake or pairing changes.
 
 No speculative executable packet is emitted. Stop for owner review of these findings. Future implementation requires an exact complete separately reviewed proposal and explicit approval; physical execution requires another approval after implementation review. No active hardware command follows from this document.
+
+## Stage 3A.4 — current pause decision and blocking gates
+
+[Nontransmitting route-evidence audit](G305_STAGE3A4_ROUTE_EVIDENCE_AUDIT.md) selects **pause G305 (option 2)**. Already supplied SQLite names/types and USB/PnP metadata cannot associate the physical G305 with a wireless DeviceIndex. No verified new manufacturer route/API contract was obtained. Do not repeat diagnostics or infer a route from slotId, P1 or a single mouse. This does not prove that no public route API exists. **Stage 3B remains NO-GO.** No active experiment is proposed.
+
+| Gate | Current state | Evidence needed before reconsideration |
+|---|---|---|
+| Exact receiver/collection exclusion | Owner cached metadata supports C53F MI_02 and excludes G915; historical only | Any future authorized implementation must still reject multiple parents, wrong device/usage/IDs and identity changes; cached P1 is not stable identity |
+| Wireless route and physical mouse association | **BLOCKED** | Manufacturer-documented C53F/G305 route contract with applicable scope and trustworthy physical association, or separately authorized evidence of that mapping; not a guessed slot/config field |
+| Protocol applicability / reply and error grammar | **BLOCKED** | Applicable authoritative rules resolving draft version/error discrepancies and general 2.0 error envelope; receiver reply cannot become mouse identity |
+| Cross-collection receive path and bounded transport | **BLOCKED** | Reviewable applicable response routing/length design, one request/one bounded completion within three seconds, no automatic extra reads/fallback/retries |
+| G HUB sharing / response correlation | **BLOCKED** | Documented sharing/correlation assumptions and fail-closed ambiguity policy; software ID/echo or zero-access open alone insufficient; implementation then separate reviewed validation |
+| Cancellation / containment / cleanup | **NOT IMPLEMENTED** | Separately authorized isolated design and meaningful synthetic/native safety evidence; uncertain cleanup must latch refusal |
+| Battery capability / interpretation | **BLOCKED for any later battery work** | Actual G305 support/runtime index/capability/precision evidence plus draft ambiguity resolution; not required to manufacture a first identity result, and never bundled into it |
+| Authorization | **NOT GRANTED for Stage 3B** | Fresh approval for a specific reviewable planning/implementation scope as applicable, then separate physical-execution approval; route evidence alone grants neither |
+
+Recommend stable G915/HyperX work and Android for owner prioritization; no such implementation begins here. Reopen only on genuinely new evidence or a fresh owner request for narrowly scoped identity-only planning. Preserve all previous safety gates, no-go, production Unknown and no automatic polling/scan/wake/configuration changes. Stop for owner review.
