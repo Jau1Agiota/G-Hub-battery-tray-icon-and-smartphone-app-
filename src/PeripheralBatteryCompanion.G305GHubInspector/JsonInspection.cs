@@ -9,7 +9,7 @@ public sealed record InspectionReport(InspectionStatus Status, bool Opened = fal
     bool Parsed = false, int References = 0, int? Percentage = null, string? Level = null,
     bool AssociatedBattery = false, bool ConflictingValues = false, bool Limited = false,
     IReadOnlyList<FieldFinding>? Findings = null, int? SqliteCode = null, string PayloadType = "not inspected",
-    int RowsInspected = 0, bool AdditionalRows = false)
+    int RowsInspected = 0, bool? AdditionalRows = null)
 {
     public int ExitCode => Status == InspectionStatus.Success ? 0 : Status == InspectionStatus.MissingOrInaccessible ? 3 : 1;
     public string Format()
@@ -17,7 +17,7 @@ public sealed record InspectionReport(InspectionStatus Status, bool Opened = fal
         var output = new StringBuilder();
         output.AppendLine("G305 G HUB read-only inspection v1");
         output.AppendLine($"Result: {Status}; SQLite opened: {Opened}; supported data(_id,file): {SchemaSupported}");
-        output.AppendLine($"Rows inspected: {RowsInspected} (latest only); payload type: {PayloadType}; latest JSON parsed: {Parsed}; other rows present: {AdditionalRows}");
+        output.AppendLine($"Rows inspected: {RowsInspected} (latest only); payload type: {PayloadType}; latest JSON parsed: {Parsed}; other rows present: {AdditionalRows?.ToString() ?? "not inspected"}");
         output.AppendLine($"Candidate G305 references: {References}; structurally associated battery field: {AssociatedBattery}");
         output.AppendLine($"Attributed percentage field: {(Percentage.HasValue ? Percentage + "% (cached candidate)" : "not established")}");
         output.AppendLine($"Attributed qualitative level: {Level ?? "not established"}");

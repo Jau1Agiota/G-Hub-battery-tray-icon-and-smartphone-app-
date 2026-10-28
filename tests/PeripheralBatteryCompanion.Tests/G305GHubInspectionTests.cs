@@ -89,7 +89,7 @@ public sealed class G305GHubInspectionTests
         var before=File.ReadAllBytes(db.Path);
         var report=DatabaseInspection.Read(db.Path);
         Assert.Equal(InspectionStatus.Success,report.Status);Assert.True(report.Opened);Assert.True(report.SchemaSupported);
-        Assert.True(report.AdditionalRows);Assert.Equal(1,report.RowsInspected);Assert.Equal("medium",report.Level);
+        Assert.True(report.AdditionalRows is true);Assert.Equal(1,report.RowsInspected);Assert.Equal("medium",report.Level);
         Assert.Equal(blob?"blob":"text",report.PayloadType);Assert.Equal(before,File.ReadAllBytes(db.Path));
     }
     [Fact]
@@ -97,7 +97,7 @@ public sealed class G305GHubInspectionTests
     {
         var path=System.IO.Path.Combine(System.IO.Path.GetTempPath(),Guid.NewGuid()+"-private-user.db");
         var report=DatabaseInspection.Read(path);Assert.Equal(InspectionStatus.MissingOrInaccessible,report.Status);
-        Assert.False(File.Exists(path));Assert.DoesNotContain("private-user",report.Format());
+        Assert.False(File.Exists(path));Assert.Null(report.AdditionalRows);Assert.DoesNotContain("private-user",report.Format());
     }
     [Fact]
     public void EmptyMissingTableAndMalformedPayloadStayDistinct()
