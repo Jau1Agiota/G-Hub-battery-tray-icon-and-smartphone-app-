@@ -91,15 +91,24 @@ public sealed class GHubWebSocketBatteryProvider(IGHubGatewayConnectionFactory? 
             if (!payload.TryGetProperty("percentage", out var percent) || percent.ValueKind != JsonValueKind.Number || !percent.TryGetInt32(out var value) || value is < 0 or > 100)
                 throw new InvalidDataException("Invalid percentage");
             var support = Text(payload, "batteryStateOfChargeSupport");
-            if (support is not ("STATE_OF_CHARGE_SUPPORTED" or "STATE_OF_CHARGE_NOT_SUPPORTED"))
-                return Unknown(name, "Battery SOC support unknown", selection.Connection);
             // Optional fields are validated, never used to fabricate endurance or finer granularity.
             ValidateBoolean(payload, "charging"); ValidateBoolean(payload, "criticalLevel");
             ValidateEstimate(payload, "mileage"); ValidateEstimate(payload, "maxLifeSpan");
-            var exact = support == "STATE_OF_CHARGE_SUPPORTED" && selection.RealSoc != false;
+            // Battery response is authoritative per device; discovery useRealSoc is only a hint.
+            var precision = support switch
+            {
+                "STATE_OF_CHARGE_SUPPORTED" => BatteryPrecision.Percentage,
+                "STATE_OF_CHARGE_NOT_SUPPORTED" => BatteryPrecision.Approximate,
+                _ => BatteryPrecision.Unknown
+            };
             return new(name, value, _clock.GetUtcNow(), BatteryAvailability.Available,
-                exact ? "G HUB active · SOC-supported response" : "G HUB active · approximate battery status; precise SOC unsupported",
-                Source: SourceName, Precision: exact ? BatteryPrecision.Percentage : BatteryPrecision.Approximate,
+                precision switch
+                {
+                    BatteryPrecision.Percentage => "G HUB active · SOC-supported response",
+                    BatteryPrecision.Approximate => "G HUB active · approximate battery status; precise SOC unsupported",
+                    _ => "G HUB active · valid battery value; SOC precision unknown"
+                },
+                Source: SourceName, Precision: precision,
                 Connection: selection.Connection);
         }
         catch (GatewayResultException) { return Unknown(name, "Battery request rejected by G HUB", selection.Connection); }

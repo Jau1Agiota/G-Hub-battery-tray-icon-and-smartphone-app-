@@ -83,7 +83,7 @@ public sealed class GHubGatewayTests
     [InlineData("too-large")] [InlineData("binary")] [InlineData("close")]
     [InlineData("string-percent")] [InlineData("range")] [InlineData("fraction")]
     [InlineData("bad-charging")] [InlineData("bad-mileage")]
-    [InlineData("bad-list")] [InlineData("unsafe-id")] [InlineData("bad-real-soc")] [InlineData("id-collision")] [InlineData("soc-missing")] [InlineData("duplicate-id")]
+    [InlineData("bad-list")] [InlineData("unsafe-id")] [InlineData("bad-real-soc")] [InlineData("id-collision")] [InlineData("duplicate-id")]
     public async Task InvalidRepliesNeverBecomeMeasurements(string defect)
     {
         var socket = Good(); var original = socket.Respond;
@@ -112,7 +112,6 @@ public sealed class GHubGatewayTests
                     case "fraction": payload["percentage"] = 99.5; break;
                     case "bad-charging": payload["charging"] = "false"; break;
                     case "bad-mileage": payload["mileage"] = -1; break;
-                    case "soc-missing": payload.AsObject().Remove("batteryStateOfChargeSupport"); break;
                 }
             }
             return Encoding.UTF8.GetBytes(json.ToJsonString());
@@ -136,7 +135,7 @@ public sealed class GHubGatewayTests
 
     [Theory]
     [InlineData("STATE_OF_CHARGE_NOT_SUPPORTED", true, BatteryPrecision.Approximate)]
-    [InlineData("STATE_OF_CHARGE_SUPPORTED", false, BatteryPrecision.Approximate)]
+    [InlineData("STATE_OF_CHARGE_SUPPORTED", false, BatteryPrecision.Percentage)]
     [InlineData("STATE_OF_CHARGE_SUPPORTED", true, BatteryPrecision.Percentage)]
     [InlineData("UNRECOGNIZED", true, BatteryPrecision.Unknown)]
     public async Task SocAndDeviceCapabilityGovernPrecision(string support, bool realSoc, BatteryPrecision expected)
@@ -145,12 +144,13 @@ public sealed class GHubGatewayTests
         socket.Respond = (id, path) => path == "/devices/list" ? Frame(id, path, new { deviceInfos = new[] { Device("mouse-X", "g305_ext2", "g305", realSoc: realSoc) } }) : Frame(id, path, Battery("mouse-X", support, 90));
         var result = await new GHubWebSocketBatteryProvider(new Factory(socket)).ReadAsync(default);
         Assert.Equal(expected, result.Mouse!.Precision);
-        if (expected == BatteryPrecision.Unknown) Assert.Null(result.Mouse.Percentage);
+        Assert.Equal(90, result.Mouse.Percentage);
+        if (expected == BatteryPrecision.Unknown) Assert.Contains("precision unknown", result.Mouse.Status);
         var view = BatteryPanelView.From(new(result, null, null));
         if (expected == BatteryPrecision.Approximate)
         {
             Assert.Contains("~90%", view.MouseBatteryText); Assert.Contains("approx.", view.MouseBatteryText);
-            Assert.Null(view.MousePercentage); Assert.DoesNotContain("Good", view.MouseStatusText);
+            Assert.Equal(90, view.MousePercentage); Assert.DoesNotContain("Good", view.MouseStatusText);
         }
     }
 
@@ -258,6 +258,87 @@ public sealed class GHubGatewayTests
         var text = TrayTooltipView.Build(state, new("HyperX", 100, null, BatteryAvailability.Unavailable, "", BatteryObservationState.Stale));
         Assert.Contains("G915: 100% stale", text); Assert.Contains("G305: ~100% stale", text); Assert.Contains("HyperX: ~100% stale", text);
         Assert.InRange(text.Length, 1, 63);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task PerDeviceResponseOverridesHintsRegardlessOfDiscoveryOrder(bool reverse)
+    {
+        object[] devices = [Device("keyboard-precise", "g915", realSoc: false), Device("mouse-approx", "g305_ext2", "g305", realSoc: true)];
+        var socket = Good(reverse ? devices.Reverse().ToArray() : devices);
+        var result = await new GHubWebSocketBatteryProvider(new Factory(socket)).ReadAsync(default);
+        var view = BatteryPanelView.From(new(result, null, null));
+        Assert.Equal(BatteryPrecision.Percentage, result.Keyboard.Precision);
+        Assert.Equal("Battery: 99%", view.BatteryText); Assert.Equal(99, view.Percentage);
+        Assert.Equal("G HUB · Precise reading", view.KeyboardStatusText);
+        Assert.Equal("Battery: ~90% (approx.)", view.MouseBatteryText); Assert.Equal(90, view.MousePercentage);
+        Assert.Equal("G HUB · Approximate reading", view.MouseCompactStatus);
+    }
+
+    [Fact]
+    public async Task MissingSocRetainsAvailableValueWithoutClaimingPrecision()
+    {
+        var socket = Good(); var original = socket.Respond;
+        socket.Respond = (id, path) =>
+        {
+            var json = JsonNode.Parse(original(id, path))!;
+            if (path != "/devices/list") json["payload"]!.AsObject().Remove("batteryStateOfChargeSupport");
+            return Encoding.UTF8.GetBytes(json.ToJsonString());
+        };
+        var result = await new GHubWebSocketBatteryProvider(new Factory(socket)).ReadAsync(default);
+        Assert.Equal(BatteryAvailability.Available, result.Keyboard.Availability);
+        Assert.Equal(BatteryPrecision.Unknown, result.Keyboard.Precision);
+        var view = BatteryPanelView.From(new(result, null, null));
+        Assert.Equal(99, view.Percentage); Assert.Contains("~99%", view.BatteryText);
+        Assert.Equal("G HUB · Precision unknown", view.KeyboardStatusText);
+        Assert.Equal("G HUB · Precision unknown", view.MouseCompactStatus);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task StartupAttemptPrecedesTimerEvenWhenSlowOrInitiallyUnavailable(bool firstFailure)
+    {
+        var clock = new ManualClock(); var provider = new StartupProvider();
+        await using var monitor = new BatteryMonitoringService(provider, GHubWebSocketBatteryProvider.PollInterval, clock);
+        var states = new List<BatteryMonitoringState>();
+        var third = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        monitor.Updated += state => { states.Add(state); if (states.Count == 3) third.TrySetResult(); };
+        monitor.Start(); // Must return without waiting on the deliberately blocked first attempt.
+        await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(1, provider.Reads); Assert.False(clock.TimerCreated.Task.IsCompleted);
+        clock.Advance(60); // No poll timer exists until the initial attempt finishes.
+        await monitor.RefreshAsync(); Assert.Equal(1, provider.Reads);
+        provider.First.SetResult(new(new("G915 Keyboard", firstFailure ? null : 99, null,
+            firstFailure ? BatteryAvailability.Unavailable : BatteryAvailability.Available, "Synthetic startup result"), null));
+        await clock.TimerCreated.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(firstFailure ? BatteryAvailability.Unavailable : BatteryAvailability.Available, states[0].Current.Keyboard.Availability);
+        clock.Advance(59); Assert.Equal(1, provider.Reads);
+        await monitor.RefreshAsync(); Assert.Equal(2, provider.Reads); // Does not shift the timer.
+        clock.Advance(1); await third.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(3, provider.Reads); Assert.Equal(99, states[2].Current.Keyboard.Percentage);
+    }
+
+    [Fact]
+    public async Task ShutdownDuringInitialAttemptCancelsWithoutCreatingPollTimerOrPostingUpdate()
+    {
+        var clock = new ManualClock(); var provider = new StartupProvider();
+        var monitor = new BatteryMonitoringService(provider, GHubWebSocketBatteryProvider.PollInterval, clock);
+        var updates = 0; monitor.Updated += _ => updates++;
+        monitor.Start(); await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await monitor.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(1, provider.Reads); Assert.Equal(0, updates); Assert.False(clock.TimerCreated.Task.IsCompleted);
+    }
+
+    private sealed class StartupProvider : IBatteryProvider
+    {
+        public int Reads;
+        public TaskCompletionSource Entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<BatteryReadResult> First = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public async Task<BatteryReadResult> ReadAsync(CancellationToken token)
+        {
+            if (Interlocked.Increment(ref Reads) == 1) { Entered.TrySetResult(); return await First.Task.WaitAsync(token); }
+            return new(new("G915 Keyboard", 99, null, BatteryAvailability.Available, "Synthetic recovered response"), null);
+        }
     }
 
     private sealed class Factory(params Socket[] sockets) : IGHubGatewayConnectionFactory

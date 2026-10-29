@@ -222,15 +222,15 @@ internal sealed class BatteryPopupForm : Form
         _hyperXTip.SetToolTip(_reported, view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown");
         _keyboardDetails.Text = view.BatteryText + "\n" + view.StatusText + "\n" +
             (view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Timestamp unknown");
-        _status.Text = view.IsLiveGateway ? view.StatusText : view.Percentage.HasValue ? "Stored report · freshness unknown" : view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
+        _status.Text = view.IsLiveGateway ? view.KeyboardStatusText : view.Percentage.HasValue ? "Stored report · freshness unknown" : view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
             ? "Last report cached · see settings" : "Battery temporarily unavailable";
         _hyperXTip.SetToolTip(_status, view.StatusText);
         _status.Visible = view.StatusText.Length > 0;
-        _level.SetPercentage(view.Percentage);
+        _level.SetLogitechReading(view.Percentage, view.KeyboardPrecision);
         _mouseBattery.Text = view.MouseBatteryText;
-        _mouseLevel.SetPercentage(view.MousePercentage);
+        _mouseLevel.SetLogitechReading(view.MousePercentage, view.Mouse?.Precision ?? BatteryPrecision.Unknown);
         _mouseBattery.AccessibleDescription = view.MouseStatusText;
-        _mouseStatus.Text = view.MouseStatusText;
+        _mouseStatus.Text = view.MouseCompactStatus;
         _hyperXTip.SetToolTip(_mouseStatus, view.MouseStatusText + "\n" + (view.Mouse?.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "No current observation"));
         if (Visible) PositionNearTray();
     }

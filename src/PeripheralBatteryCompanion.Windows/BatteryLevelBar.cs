@@ -1,4 +1,5 @@
 using PeripheralBatteryCompanion.Core.Presentation;
+using PeripheralBatteryCompanion.Core;
 
 namespace PeripheralBatteryCompanion.Windows;
 
@@ -18,13 +19,21 @@ internal sealed class BatteryLevelBar : Control
         AccessibleDescription = "Unavailable";
     }
 
-    public void SetPercentage(int? percentage)
+    public void SetPercentage(int? percentage) => SetLogitechReading(percentage, BatteryPrecision.Percentage);
+
+    public void SetLogitechReading(int? percentage, BatteryPrecision precision)
     {
-        if (_percentage == percentage) return;
-        _percentage = percentage;
-        AccessibleDescription = percentage is int number ? $"{number}% last reported" : "Unavailable";
+        _estimateMode = false;
+        _percentage = percentage is >= 0 and <= 100 ? percentage : null;
+        AccessibleDescription = _percentage is int value ? precision switch
+        {
+            BatteryPrecision.Percentage => $"{value}% last reported",
+            BatteryPrecision.Approximate => $"{value}% approximate battery reading",
+            _ => $"{value}% battery reading; precision unknown"
+        } : "Unavailable; no current battery reading";
         Invalidate();
     }
+    internal float FillWidth => BatteryBarGeometry.FillWidth(Width, _percentage);
 
     public void SetEstimate(int? percentage)
     {
@@ -58,7 +67,7 @@ internal sealed class BatteryLevelBar : Control
         using var outline = DashboardDrawing.Rounded(bounds, Height / 2f);
         using var track = new SolidBrush(_track); using var border = new Pen(_border);
         e.Graphics.FillPath(track, outline); e.Graphics.DrawPath(border, outline);
-        var fillWidth = _percentage is >= 0 and <= 100 ? Math.Max(0, Width - 4) * _percentage.Value / 100f : 0;
+        var fillWidth = FillWidth;
         if (fillWidth <= 0 || Height <= 4) return;
         var color = _highContrast ? SystemColors.Highlight : _estimateMode ? Color.Gold : GetColor(_percentage);
         using var fill = new SolidBrush(color);

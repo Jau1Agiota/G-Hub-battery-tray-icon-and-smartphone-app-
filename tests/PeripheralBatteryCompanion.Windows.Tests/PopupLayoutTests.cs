@@ -340,8 +340,32 @@ public sealed class PopupLayoutTests
         AssertReadableAndOnScreen(form); AssertControlsReachable(form);
         form.Display(BatteryPanelView.From(state with { Current = new(keyboard with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable }, null,
             mouse with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable, Status = "G HUB reports device absent" }) }));
-        Assert.Contains(Descendants(form).OfType<Label>(), l => l.Text.Contains("~90% (stale)"));
+        Assert.Contains(Descendants(form).OfType<Label>(), l => l.Text == "Last reading stale · see details");
         Assert.DoesNotContain(Descendants(form).OfType<Label>(), l => l.Text == "Battery: 0%");
+    });
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(50)] [InlineData(90)] [InlineData(99)] [InlineData(100)] [InlineData(null)]
+    public void LogitechBarPaintUsesCurrentWidthAndKeepsApproximateAccessibility(int? percentage) => OnSta(() =>
+    {
+        using var bar = new BatteryLevelBar();
+        bar.SetLogitechReading(percentage, PeripheralBatteryCompanion.Core.BatteryPrecision.Approximate);
+        foreach (var width in new[] { 104, 272, 480 })
+        {
+            bar.Size = new(width, 16);
+            Assert.Equal(percentage.HasValue ? (width - 4) * percentage.Value / 100f : 0, bar.FillWidth);
+            using var bitmap = new Bitmap(width, 16);
+            bar.DrawToBitmap(bitmap, bar.ClientRectangle); // Actual GDI paint, including first layout and resize.
+            if (percentage is > 0)
+            {
+                var x = Math.Clamp((int)(2 + bar.FillWidth / 2), 2, width - 3);
+                if (percentage >= 50) Assert.Equal(BatteryLevelBar.GetColor(percentage).ToArgb(), bitmap.GetPixel(x, 8).ToArgb());
+            }
+        }
+        if (percentage.HasValue) Assert.Contains("approximate", bar.AccessibleDescription);
+        bar.SetLogitechReading(percentage, PeripheralBatteryCompanion.Core.BatteryPrecision.Percentage);
+        if (percentage.HasValue) Assert.DoesNotContain("approximate", bar.AccessibleDescription!);
+        bar.SetPercentage(101); Assert.Equal(0, bar.FillWidth);
     });
 
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
