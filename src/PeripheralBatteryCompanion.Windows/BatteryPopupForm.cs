@@ -305,8 +305,7 @@ internal sealed class BatteryPopupForm : Form
         _hyperXTip.SetToolTip(_hyperXEstimate, view.EstimateNote);
         _hyperXMonitoring.Text = view.MonitoringText;
         _hyperXMonitoring.Visible = view.MonitoringText.Length != 0;
-        _hyperXCompactStatus.Text = view.StatusText.Length == 0 && view.EstimateNote.Length != 0
-            ? "ⓘ Estimate · source not uniquely verified" : view.StatusText;
+        _hyperXCompactStatus.Text = view.SecondaryText;
         _hyperXTip.SetToolTip(_hyperXCompactStatus, view.StatusText + "\n" + view.EstimateNote);
         _hyperXCompactStatus.AccessibleDescription = view.AccessibleDescription;
         _hyperXCompactStatus.Visible = _hyperXCompactStatus.Text.Length != 0;

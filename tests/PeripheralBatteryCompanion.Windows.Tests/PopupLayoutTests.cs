@@ -368,6 +368,31 @@ public sealed class PopupLayoutTests
         bar.SetPercentage(101); Assert.Equal(0, bar.FillWidth);
     });
 
+    [Fact]
+    public void HyperXNeutralSecondaryCopyFitsAndRetainsTechnicalTooltip() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var device = new PeripheralBatteryCompanion.Core.BatteryDevice("HyperX", 76, DateTimeOffset.UtcNow,
+            PeripheralBatteryCompanion.Core.BatteryAvailability.Available, "", PeripheralBatteryCompanion.Core.BatteryObservationState.CandidateAmbiguous,
+            PeripheralBatteryCompanion.Core.ReceiverPresence.Detected);
+        var monitoring = new PeripheralBatteryCompanion.Core.HyperXMonitoringStatus(true, 60, false, false, DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddSeconds(60), PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 0, "");
+        form.DisplayHyperXCompact(HyperXCompactView.From(device, monitoring, true));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(label => label.Visible).ToArray();
+        var status = Assert.Single(labels, label => label.Text == "ⓘ Estimate · source under validation");
+        Assert.Contains(labels, label => label.Text == "Battery estimate: 76%");
+        var measured = TextRenderer.MeasureText(status.Text, status.Font, Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+        Assert.True(measured.Width <= status.ClientSize.Width, $"Copy width {measured.Width} exceeds label {status.ClientSize.Width}");
+        Assert.True(measured.Height <= status.ClientSize.Height);
+        Assert.Contains("not uniquely verified", status.AccessibleDescription!);
+        var tip = (ToolTip)typeof(BatteryPopupForm).GetField("_hyperXTip", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(form)!;
+        Assert.Contains("not uniquely verified", tip.GetToolTip(status)!);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;
