@@ -4,6 +4,8 @@ namespace PeripheralBatteryCompanion.Core.Presentation;
 public sealed record HyperXCompactView(string BatteryText, int? Percentage, string UpdatedText,
     string MonitoringText, string StatusText, string EstimateNote, string AccessibleDescription, string TimestampDetail)
 {
+    public const string FriendlyEstimateNote = "ⓘ Estimate · source under validation";
+    public string SecondaryText => StatusText.Length == 0 && EstimateNote.Length != 0 ? FriendlyEstimateNote : StatusText;
     public const string Uncertainty = "Estimate; response source not uniquely verified";
     public static HyperXCompactView From(HyperXBatteryProvider provider, HyperXMonitoringStatus monitoring,
         TimeZoneInfo? zone = null) => From(provider.Current, monitoring, provider.CanQuery, zone);

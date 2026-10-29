@@ -13,7 +13,7 @@ internal static class Program
         if (!OperatingSystem.IsWindows()) report = new([], [new(InspectionStep.UnsupportedPlatform)], target);
         else
         {
-            try { report = new CapabilityInspector(new WindowsHidMetadataBackend(target), target).Inspect(); }
+            try { report = new CapabilityInspector(new WindowsHidMetadataBackend(target, includeReportIds: target == HidInspectionTarget.G305), target).Inspect(); }
             catch (Exception error) when (error is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
             { report = new([], [new(InspectionStep.ApiUnavailable)], target); }
             catch (Exception)

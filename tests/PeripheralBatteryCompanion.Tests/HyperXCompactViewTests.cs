@@ -68,6 +68,32 @@ public sealed class HyperXCompactViewTests
     }
 
     [Fact]
+    public void SecondaryCopyIsNeutralWhileEstimateDiagnosticsRemainExplicit()
+    {
+        var device = new BatteryDevice("HyperX", 76, Observed, BatteryAvailability.Available, "",
+            BatteryObservationState.CandidateAmbiguous, ReceiverPresence.Detected);
+        var monitoring = new HyperXMonitoringStatus(true, 60, false, false, Observed, Observed.AddSeconds(60), HyperXCheckOrigin.Scheduled, 0, "");
+        var view = HyperXCompactView.From(device, monitoring, true);
+        Assert.Equal("Battery estimate: 76%", view.BatteryText);
+        Assert.Equal("ⓘ Estimate · source under validation", view.SecondaryText);
+        Assert.Equal("Estimate; response source not uniquely verified", view.EstimateNote);
+        Assert.Contains("not uniquely verified", view.AccessibleDescription);
+        Assert.Equal(BatteryObservationState.CandidateAmbiguous, device.ObservationState);
+        Assert.Equal(60, monitoring.IntervalSeconds);
+    }
+
+    [Fact]
+    public void NeutralCopyDoesNotHideOperationalStatusOrClaimEveryUserVerifiedIt()
+    {
+        var baseView = new HyperXCompactView("Battery estimate: 76%", 76, "Updated: now", "Every 60s", "", HyperXCompactView.Uncertainty, HyperXCompactView.Uncertainty, "now");
+        foreach (var status in new[] { "Receiver not found", "Battery temporarily unavailable", "Automatic monitoring off", "Monitoring paused · open HyperX settings" })
+            Assert.Equal(status, (baseView with { StatusText = status }).SecondaryText);
+        Assert.Empty((baseView with { EstimateNote = "" }).SecondaryText);
+        Assert.DoesNotContain("verified", baseView.SecondaryText);
+        Assert.DoesNotContain("official", baseView.SecondaryText);
+    }
+
+    [Fact]
     public void GatedPausedAndDisabledModesNeverPretendToBeRunning()
     {
         var gated = HyperXCompactView.From(Device, Monitoring, false);

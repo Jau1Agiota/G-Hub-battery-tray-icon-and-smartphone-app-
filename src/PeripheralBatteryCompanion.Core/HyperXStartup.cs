@@ -98,6 +98,7 @@ public sealed class HyperXStartupCoordinator : IAsyncDisposable
     private readonly CancellationTokenSource _stop = new();
     private volatile bool _prepared, _preflightAttempted, _latched, _disposed, _preflightInProgress;
     private Task? _shutdown;
+    private bool _initialReadPending = true; // Only the first eligible attempt bypasses the normal interval.
     private HyperXStartupPreferences _ephemeral = new();
     public HyperXStartupPreferences Preferences => _state?.Current ?? _ephemeral;
     public HyperXStartupCoordinator(HyperXBatteryProvider provider, HyperXAutomaticMonitor monitor,
@@ -167,11 +168,13 @@ public sealed class HyperXStartupCoordinator : IAsyncDisposable
                     { _preflightAttempted = false; return; }
                     _prepared = true;
                     _provider.ConfigureMonitoring(true);
-                    _monitor.Configure(true, Preferences.IntervalSeconds); // Full interval starts only after real readiness.
+                    _monitor.Configure(true, Preferences.IntervalSeconds); // Normal cadence begins at readiness; first eligible read is separate.
                 }
             }
             if (manual) await _monitor.QueryManuallyAsync(linked.Token).ConfigureAwait(false);
+            else if (_initialReadPending) await _monitor.QueryInitialAsync(linked.Token).ConfigureAwait(false);
             else await _monitor.TickAsync(linked.Token).ConfigureAwait(false);
+            if (_monitor.Status.LastChecked.HasValue) _initialReadPending = false;
             PersistSchedule();
         }
         catch (OperationCanceledException) { if (!_disposed) { _monitor.Cancel(); PersistSchedule(); } }
@@ -182,6 +185,7 @@ public sealed class HyperXStartupCoordinator : IAsyncDisposable
     public bool Resume()
     {
         if (_latched || Preferences.SafetyLatched || !_monitor.Resume()) return false;
+        _initialReadPending = false; // Explicit Resume retains its existing full-interval contract.
         PersistSchedule(); return true;
     }
     private void PersistSchedule()

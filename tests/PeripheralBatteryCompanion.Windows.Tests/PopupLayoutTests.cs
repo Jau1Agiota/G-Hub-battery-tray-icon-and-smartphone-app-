@@ -302,6 +302,97 @@ public sealed class PopupLayoutTests
         bar.DrawToBitmap(bitmap, bar.ClientRectangle);
     });
 
+    [Fact]
+    public void StoredKeyboardNoteIsVisibleAndCloseHidesWithoutDisposal() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var dismissals = 0;
+        form.DismissRequested += (_, _) => { dismissals++; form.Hide(); };
+        form.Display(new(45, "Battery: 45%", DateTimeOffset.UtcNow, "Stored G HUB report; freshness and connectivity unknown."));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(l => l.Visible).ToArray();
+        Assert.Contains(labels, l => l.Text == "Stored report · freshness unknown");
+        Assert.DoesNotContain(labels, l => l.Text == "Battery temporarily unavailable");
+        Assert.Contains(labels, l => l.Text == "G305 Mouse");
+        Assert.Contains(labels, l => l.Text == "Battery: Unknown");
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.Close(); Application.DoEvents();
+        Assert.Equal(1, dismissals); Assert.False(form.Visible); Assert.False(form.IsDisposed);
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        AssertReadableAndOnScreen(form);
+    });
+
+    [Fact]
+    public void LiveGatewayMouseIsApproximateAndFailureNeverShowsZeroOrCurrentBar() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var keyboard = new PeripheralBatteryCompanion.Core.BatteryDevice("G915 Keyboard", 99, DateTimeOffset.UtcNow,
+            PeripheralBatteryCompanion.Core.BatteryAvailability.Available, "G HUB active · SOC-supported response", Source: PeripheralBatteryCompanion.Core.GHubWebSocketBatteryProvider.SourceName);
+        var mouse = keyboard with { Name = "G305 Mouse", Percentage = 90, Precision = PeripheralBatteryCompanion.Core.BatteryPrecision.Approximate, Status = "G HUB active · approximate battery status" };
+        var state = new PeripheralBatteryCompanion.Core.BatteryMonitoringState(new(keyboard, null, mouse), keyboard, null, mouse);
+        form.Display(BatteryPanelView.From(state));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(l => l.Visible).Select(l => l.Text).ToArray();
+        Assert.Contains("Battery: 99%", labels); Assert.Contains("Battery: ~90% (approx.)", labels);
+        Assert.DoesNotContain("Stored report · freshness unknown", labels);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.Display(BatteryPanelView.From(state with { Current = new(keyboard with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable }, null,
+            mouse with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable, Status = "G HUB reports device absent" }) }));
+        Assert.Contains(Descendants(form).OfType<Label>(), l => l.Text == "Last reading stale · see details");
+        Assert.DoesNotContain(Descendants(form).OfType<Label>(), l => l.Text == "Battery: 0%");
+    });
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(50)] [InlineData(90)] [InlineData(99)] [InlineData(100)] [InlineData(null)]
+    public void LogitechBarPaintUsesCurrentWidthAndKeepsApproximateAccessibility(int? percentage) => OnSta(() =>
+    {
+        using var bar = new BatteryLevelBar();
+        bar.SetLogitechReading(percentage, PeripheralBatteryCompanion.Core.BatteryPrecision.Approximate);
+        foreach (var width in new[] { 104, 272, 480 })
+        {
+            bar.Size = new(width, 16);
+            Assert.Equal(percentage.HasValue ? (width - 4) * percentage.Value / 100f : 0, bar.FillWidth);
+            using var bitmap = new Bitmap(width, 16);
+            bar.DrawToBitmap(bitmap, bar.ClientRectangle); // Actual GDI paint, including first layout and resize.
+            if (percentage is > 0)
+            {
+                var x = Math.Clamp((int)(2 + bar.FillWidth / 2), 2, width - 3);
+                if (percentage >= 50) Assert.Equal(BatteryLevelBar.GetColor(percentage).ToArgb(), bitmap.GetPixel(x, 8).ToArgb());
+            }
+        }
+        if (percentage.HasValue) Assert.Contains("approximate", bar.AccessibleDescription);
+        bar.SetLogitechReading(percentage, PeripheralBatteryCompanion.Core.BatteryPrecision.Percentage);
+        if (percentage.HasValue) Assert.DoesNotContain("approximate", bar.AccessibleDescription!);
+        bar.SetPercentage(101); Assert.Equal(0, bar.FillWidth);
+    });
+
+    [Fact]
+    public void HyperXNeutralSecondaryCopyFitsAndRetainsTechnicalTooltip() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var device = new PeripheralBatteryCompanion.Core.BatteryDevice("HyperX", 76, DateTimeOffset.UtcNow,
+            PeripheralBatteryCompanion.Core.BatteryAvailability.Available, "", PeripheralBatteryCompanion.Core.BatteryObservationState.CandidateAmbiguous,
+            PeripheralBatteryCompanion.Core.ReceiverPresence.Detected);
+        var monitoring = new PeripheralBatteryCompanion.Core.HyperXMonitoringStatus(true, 60, false, false, DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddSeconds(60), PeripheralBatteryCompanion.Core.HyperXCheckOrigin.Scheduled, 0, "");
+        form.DisplayHyperXCompact(HyperXCompactView.From(device, monitoring, true));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(label => label.Visible).ToArray();
+        var status = Assert.Single(labels, label => label.Text == "ⓘ Estimate · source under validation");
+        Assert.Contains(labels, label => label.Text == "Battery estimate: 76%");
+        var measured = TextRenderer.MeasureText(status.Text, status.Font, Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+        Assert.True(measured.Width <= status.ClientSize.Width, $"Copy width {measured.Width} exceeds label {status.ClientSize.Width}");
+        Assert.True(measured.Height <= status.ClientSize.Height);
+        Assert.Contains("not uniquely verified", status.AccessibleDescription!);
+        var tip = (ToolTip)typeof(BatteryPopupForm).GetField("_hyperXTip", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(form)!;
+        Assert.Contains("not uniquely verified", tip.GetToolTip(status)!);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;

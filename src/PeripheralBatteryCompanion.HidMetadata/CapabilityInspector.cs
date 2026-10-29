@@ -27,7 +27,8 @@ public sealed class CapabilityInspector(IHidMetadataBackend backend, HidInspecti
             {
                 var read = backend.ReadCapabilities(path);
                 results.Add(new(collection, read.Capabilities, read.Failure ??
-                    (read.Capabilities is null ? new(InspectionStep.UnexpectedResult) : null)));
+                    (read.Capabilities is null ? new(InspectionStep.UnexpectedResult) : null),
+                    enumeration.ParentGroups is not null && enumeration.ParentGroups.TryGetValue(path, out var group) ? group : null));
             }
             catch (Win32Exception error)
             {

@@ -6,6 +6,7 @@ namespace PeripheralBatteryCompanion.Core;
 
 public sealed class GHubSqliteBatteryProvider : IBatteryProvider
 {
+    public const int MaxPayloadBytes = 4 * 1024 * 1024; // Same bounded JSON budget as the standalone diagnostic.
     private readonly string _databasePath;
     public GHubSqliteBatteryProvider(string? databasePath = null) => _databasePath = databasePath ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LGHUB", "settings.db");
@@ -28,6 +29,8 @@ public sealed class GHubSqliteBatteryProvider : IBatteryProvider
                 Pooling = false, DefaultTimeout = 1
             }.ToString());
             connection.Open();
+            // Connection-local allocation limit, not a database setting or write.
+            SQLitePCL.raw.sqlite3_limit(connection.Handle, SQLitePCL.raw.SQLITE_LIMIT_LENGTH, MaxPayloadBytes + 1024);
             cancellationToken.ThrowIfCancellationRequested();
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT file FROM data ORDER BY _id DESC LIMIT 1";
@@ -53,6 +56,7 @@ public sealed class GHubSqliteBatteryProvider : IBatteryProvider
     public static BatteryReadResult Parse(ReadOnlyMemory<byte> payload, DateTimeOffset accessedAt)
     {
         if (payload.IsEmpty) return Unavailable("G HUB battery payload is empty", accessedAt);
+        if (payload.Length > MaxPayloadBytes) return Unavailable("G HUB battery payload exceeds safe inspection limit", accessedAt);
         try
         {
             using var document = JsonDocument.Parse(payload);
@@ -75,11 +79,11 @@ public sealed class GHubSqliteBatteryProvider : IBatteryProvider
                 var hasZone = text.EndsWith('Z') || (separator >= 0 &&
                     (text.IndexOf('+', separator) >= 0 || text.IndexOf('-', separator) >= 0));
                 if (hasZone && DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var parsed)) timestamp = parsed.ToUniversalTime();
+                    DateTimeStyles.None, out var parsed) && parsed <= accessedAt) timestamp = parsed.ToUniversalTime();
             }
             return new(new("G915 Keyboard", number, timestamp, BatteryAvailability.Available,
                 timestamp.HasValue ? "Last reported value; connectivity unknown" :
-                "Last reported value; timestamp missing or invalid; connectivity unknown"), accessedAt);
+                "Last reported value; timestamp missing, invalid or ahead of database read; connectivity unknown"), accessedAt);
         }
         catch (JsonException) { return Unavailable("G HUB battery JSON is malformed", accessedAt); }
     }
