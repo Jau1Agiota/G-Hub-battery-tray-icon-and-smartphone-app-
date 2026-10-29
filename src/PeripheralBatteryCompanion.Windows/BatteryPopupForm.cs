@@ -10,6 +10,9 @@ internal sealed class BatteryPopupForm : Form
     private readonly Label _reported = MakeLabel("Last reported: Unknown");
     private readonly Label _status = MakeLabel("Reading G HUB…");
     private readonly BatteryLevelBar _level = new();
+    private readonly Label _mouseBattery = MakeLabel("Battery: Unknown");
+    private readonly BatteryLevelBar _mouseLevel = new() { AccessibleName = "G305 battery status", TabStop = false };
+    private readonly Label _mouseStatus = MakeLabel("Waiting for G HUB live status");
     private readonly Label _hyperXEstimate = MakeLabel("Battery: Unknown");
     private readonly BatteryLevelBar _hyperXLevel = new();
     private readonly Label _hyperXUpdated = MakeLabel("Updated: Never");
@@ -95,14 +98,13 @@ internal sealed class BatteryPopupForm : Form
         _layout.Controls.Add(_header);
         _gear.Click += (_, _) => SetHyperXAdvancedVisible(true);
         _close.Click += (_, _) => RequestDismiss();
-        var mouseBattery = MakeLabel("Battery: Unknown"); mouseBattery.Font = _headingFont;
-        var mouseLevel = new BatteryLevelBar { AccessibleName = "G305 battery unavailable", TabStop = false };
-        var mouseStatus = MakeLabel("Battery monitoring is not yet supported.");
+        _mouseBattery.Font = _headingFont;
+        _mouseStatus.AutoEllipsis = true;
         _hyperXLevel.SetEstimate(null); _hyperXLevel.TabStop = false;
         _cards.Add(new("G915 Keyboard", "g915.png", Color.FromArgb(9, 167, 244), _headingFont,
             _battery, _level, _reported, _status));
         _cards.Add(new("G305 Mouse", "g305.png", Color.FromArgb(154, 176, 203), _headingFont,
-            mouseBattery, mouseLevel, mouseStatus));
+            _mouseBattery, _mouseLevel, _mouseStatus));
         _cards.Add(new("HyperX Cloud III Wireless", "hyperx-cloud-iii.png", Color.FromArgb(239, 70, 88), _headingFont,
             _hyperXEstimate, _hyperXLevel, _hyperXUpdated, _hyperXCompactStatus));
         foreach (var card in _cards) _layout.Controls.Add(card);
@@ -216,15 +218,20 @@ internal sealed class BatteryPopupForm : Form
     public void Display(BatteryPanelView view)
     {
         _battery.Text = view.BatteryText;
-        _reported.Text = $"Last reported: {view.LastReported?.ToLocalTime().ToString("HH:mm") ?? "Unknown"}";
+        _reported.Text = $"{(view.IsLiveGateway ? "Observed" : "Last reported")}: {view.LastReported?.ToLocalTime().ToString("HH:mm") ?? "Unknown"}";
         _hyperXTip.SetToolTip(_reported, view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Unknown");
         _keyboardDetails.Text = view.BatteryText + "\n" + view.StatusText + "\n" +
             (view.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "Timestamp unknown");
-        _status.Text = view.Percentage.HasValue ? "Stored report · freshness unknown" : view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
+        _status.Text = view.IsLiveGateway ? view.StatusText : view.Percentage.HasValue ? "Stored report · freshness unknown" : view.StatusText.Length == 0 ? "" : view.StatusText.Contains("(cached)")
             ? "Last report cached · see settings" : "Battery temporarily unavailable";
         _hyperXTip.SetToolTip(_status, view.StatusText);
         _status.Visible = view.StatusText.Length > 0;
         _level.SetPercentage(view.Percentage);
+        _mouseBattery.Text = view.MouseBatteryText;
+        _mouseLevel.SetPercentage(view.MousePercentage);
+        _mouseBattery.AccessibleDescription = view.MouseStatusText;
+        _mouseStatus.Text = view.MouseStatusText;
+        _hyperXTip.SetToolTip(_mouseStatus, view.MouseStatusText + "\n" + (view.Mouse?.LastReported?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "No current observation"));
         if (Visible) PositionNearTray();
     }
 

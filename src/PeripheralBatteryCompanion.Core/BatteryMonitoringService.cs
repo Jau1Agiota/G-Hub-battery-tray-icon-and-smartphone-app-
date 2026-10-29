@@ -4,6 +4,7 @@ public sealed class BatteryMonitoringService : IAsyncDisposable
 {
     private readonly IBatteryProvider _provider;
     private readonly TimeSpan _interval;
+    private readonly TimeProvider _clock;
     private readonly CancellationTokenSource _stop = new();
     private readonly SemaphoreSlim _readGate = new(1, 1);
     private Task? _loop;
@@ -11,11 +12,13 @@ public sealed class BatteryMonitoringService : IAsyncDisposable
     private readonly object _lifetime = new();
     private BatteryDevice? _lastKnown;
     private DateTimeOffset? _lastAccess;
+    private BatteryDevice? _lastMouse;
     public event Action<BatteryMonitoringState>? Updated;
 
-    public BatteryMonitoringService(IBatteryProvider provider, TimeSpan? interval = null)
+    public BatteryMonitoringService(IBatteryProvider provider, TimeSpan? interval = null, TimeProvider? clock = null)
     {
         _provider = provider;
+        _clock = clock ?? TimeProvider.System;
         _interval = interval ?? TimeSpan.FromSeconds(30);
         if (_interval <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(interval));
     }
@@ -34,7 +37,7 @@ public sealed class BatteryMonitoringService : IAsyncDisposable
         try
         {
             await RefreshAsync();
-            using var timer = new PeriodicTimer(_interval);
+            using var timer = new PeriodicTimer(_interval, _clock);
             while (await timer.WaitForNextTickAsync(_stop.Token)) await RefreshAsync();
         }
         catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
@@ -56,7 +59,8 @@ public sealed class BatteryMonitoringService : IAsyncDisposable
             token.ThrowIfCancellationRequested();
             if (result.Keyboard.Availability == BatteryAvailability.Available) _lastKnown = result.Keyboard;
             if (result.DatabaseAccessedAt.HasValue) _lastAccess = result.DatabaseAccessedAt;
-            Updated?.Invoke(new(result, _lastKnown, _lastAccess));
+            if (result.Mouse?.Availability == BatteryAvailability.Available) _lastMouse = result.Mouse;
+            Updated?.Invoke(new(result, _lastKnown, _lastAccess, _lastMouse));
         }
         finally { _readGate.Release(); }
     }

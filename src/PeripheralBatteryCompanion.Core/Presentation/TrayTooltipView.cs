@@ -8,15 +8,20 @@ public static class TrayTooltipView
     {
         var current = keyboard?.Current.Keyboard;
         var g915 = current?.Availability == BatteryAvailability.Available && Valid(current.Percentage)
-            ? $"{current.Percentage}%" : Valid(keyboard?.LastKnownKeyboard?.Percentage)
-            ? $"{keyboard!.LastKnownKeyboard!.Percentage}% stale" : "Unknown";
+            ? $"{(current.Precision == BatteryPrecision.Percentage ? "" : "~")}{current.Percentage}%" : Valid(keyboard?.LastKnownKeyboard?.Percentage)
+            ? $"{(keyboard!.LastKnownKeyboard!.Precision == BatteryPrecision.Percentage ? "" : "~")}{keyboard.LastKnownKeyboard.Percentage}% stale" : "Unknown";
         var known = hyperX is not null && Valid(hyperX.Percentage);
         var candidate = known && hyperX!.ObservationState == BatteryObservationState.CandidateAmbiguous &&
             hyperX.Receiver == ReceiverPresence.Detected;
         var stale = known && (hyperX!.ObservationState is BatteryObservationState.Stale or BatteryObservationState.Unavailable ||
             hyperX.Receiver != ReceiverPresence.Detected);
         var headset = candidate ? $"~{hyperX!.Percentage}%" : stale ? $"~{hyperX!.Percentage}% stale" : "Unknown";
-        var text = $"G915: {g915}\nHyperX: {headset}\nG305: Unknown";
+        var mouse = keyboard?.Current.Mouse;
+        var cachedMouse = keyboard?.LastKnownMouse;
+        var mouseText = mouse?.Availability == BatteryAvailability.Available && Valid(mouse.Percentage)
+            ? $"{(mouse.Precision == BatteryPrecision.Percentage ? "" : "~")}{mouse.Percentage}%"
+            : Valid(cachedMouse?.Percentage) ? $"{(cachedMouse!.Precision == BatteryPrecision.Percentage ? "" : "~")}{cachedMouse.Percentage}% stale" : "Unknown";
+        var text = $"G915: {g915}\nHyperX: {headset}\nG305: {mouseText}";
         // Defensive runtime guard: never substring a percentage, estimate marker or stale qualifier.
         return text.Length <= MaximumLength ? text : "G915: Unknown\nHyperX: Unknown\nG305: Unknown";
     }

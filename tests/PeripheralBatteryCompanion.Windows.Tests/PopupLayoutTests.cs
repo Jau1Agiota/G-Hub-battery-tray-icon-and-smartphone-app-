@@ -323,6 +323,27 @@ public sealed class PopupLayoutTests
         AssertReadableAndOnScreen(form);
     });
 
+    [Fact]
+    public void LiveGatewayMouseIsApproximateAndFailureNeverShowsZeroOrCurrentBar() => OnSta(() =>
+    {
+        using var form = new BatteryPopupForm();
+        var keyboard = new PeripheralBatteryCompanion.Core.BatteryDevice("G915 Keyboard", 99, DateTimeOffset.UtcNow,
+            PeripheralBatteryCompanion.Core.BatteryAvailability.Available, "G HUB active · SOC-supported response", Source: PeripheralBatteryCompanion.Core.GHubWebSocketBatteryProvider.SourceName);
+        var mouse = keyboard with { Name = "G305 Mouse", Percentage = 90, Precision = PeripheralBatteryCompanion.Core.BatteryPrecision.Approximate, Status = "G HUB active · approximate battery status" };
+        var state = new PeripheralBatteryCompanion.Core.BatteryMonitoringState(new(keyboard, null, mouse), keyboard, null, mouse);
+        form.Display(BatteryPanelView.From(state));
+        var work = Screen.PrimaryScreen!.WorkingArea;
+        form.ShowNearTray(new(work.Right - 2, work.Bottom - 2)); Application.DoEvents();
+        var labels = Descendants(form).OfType<Label>().Where(l => l.Visible).Select(l => l.Text).ToArray();
+        Assert.Contains("Battery: 99%", labels); Assert.Contains("Battery: ~90% (approx.)", labels);
+        Assert.DoesNotContain("Stored report · freshness unknown", labels);
+        AssertReadableAndOnScreen(form); AssertControlsReachable(form);
+        form.Display(BatteryPanelView.From(state with { Current = new(keyboard with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable }, null,
+            mouse with { Percentage = null, Availability = PeripheralBatteryCompanion.Core.BatteryAvailability.Unavailable, Status = "G HUB reports device absent" }) }));
+        Assert.Contains(Descendants(form).OfType<Label>(), l => l.Text.Contains("~90% (stale)"));
+        Assert.DoesNotContain(Descendants(form).OfType<Label>(), l => l.Text == "Battery: 0%");
+    });
+
     private static void AssertReadableAndOnScreen(BatteryPopupForm form)
     {
         var work = Screen.FromRectangle(form.Bounds).WorkingArea;

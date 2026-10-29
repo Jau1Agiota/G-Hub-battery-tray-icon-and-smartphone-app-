@@ -11,7 +11,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly ToolStripMenuItem _refresh = new("Refresh");
     private readonly BatteryPopupForm _popup = new(); // One instance, retained until application exit.
     private readonly TrayPanelState _interaction = new();
-    private readonly BatteryMonitoringService _monitor = new(new GHubSqliteBatteryProvider());
+    private readonly BatteryMonitoringService _monitor = new(new GHubWebSocketBatteryProvider(), GHubWebSocketBatteryProvider.PollInterval);
     private readonly HyperXHelperTransport _hyperXTransport = new(new HyperXHelperProcessFactory(), allowRecoverableFailures: true);
     private readonly HyperXBatteryProvider _hyperX;
     private readonly HyperXAutomaticMonitor _hyperXAutomatic;
