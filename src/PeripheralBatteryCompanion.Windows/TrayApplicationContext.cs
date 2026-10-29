@@ -43,7 +43,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         {
             if (Closing) return;
             if (removed) _hyperXAutomatic.ReceiverRemoved();
-            DisplayHyperX(); // Arrival never queries; the next metadata wakeup rediscovers and schedules a full interval.
+            DisplayHyperX(); // Arrival never queries directly; the coordinator handles first-read readiness or normal reconnect cadence.
         });
         _hyperXAutomatic.Changed += () =>
         {
@@ -96,7 +96,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _refresh.Click += async (_, _) => await RefreshAsync();
         _monitor.Updated += OnUpdated;
         _monitor.Start();
-        _ = RefreshHyperXAsync();
         _hyperXScheduleTask = MonitorHyperXAsync();
     }
 
@@ -203,7 +202,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private async Task RefreshHyperXCoreAsync()
     {
-        try { await _hyperXAutomatic.RefreshMetadataAsync(_hyperXStop.Token); }
+        // Refresh is an explicit eligible read, not metadata-only. Coordinator owns discovery,
+        // preflight, OFF/suspension/backoff gates and single-flight with startup/ticks.
+        try { await Task.Run(() => _hyperXStartup.QueryManuallyAsync(_hyperXStop.Token)); }
         catch (OperationCanceledException) { }
         if (!Closing) DisplayHyperX();
     }

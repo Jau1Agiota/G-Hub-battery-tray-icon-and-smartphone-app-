@@ -104,8 +104,10 @@ public sealed class HyperXAutomaticMonitor(HyperXBatteryProvider provider, TimeP
 
     public Task TickAsync(CancellationToken token = default) => RunAsync(false, token);
     public Task QueryManuallyAsync(CancellationToken token = default) => RunAsync(true, token);
+    // Coordinator uses this once per session after discovery and real preflight. Same flight/safety path.
+    public Task QueryInitialAsync(CancellationToken token = default) => RunAsync(false, token, initial: true);
 
-    private async Task RunAsync(bool manual, CancellationToken token)
+    private async Task RunAsync(bool manual, CancellationToken token, bool initial = false)
     {
         if (!await _flight.WaitAsync(0, token)) return; // Drop overlaps, including metadata refresh/reconnect ticks.
         CancellationTokenSource? operation = null;
@@ -137,7 +139,8 @@ public sealed class HyperXAutomaticMonitor(HyperXBatteryProvider provider, TimeP
                 _lastReceiver = receiver;
                 if (_enabled && !_suspended && ready && _next is null && provider.CanQuery)
                     _next = DueAfterInterval();
-                shouldQuery = ready && !_suspended && (manual ? provider.CanQuery : _enabled && _next <= now);
+                var retryEligible = _retryNotBefore is { } retry ? now >= retry : _failures == 0;
+                shouldQuery = ready && !_suspended && (manual ? retryEligible : _enabled && (initial ? retryEligible : _next <= now));
                 if (!shouldQuery) return;
                 if (!provider.CanQuery && !provider.TryResumeAfterSafeFailure())
                 {
