@@ -8,9 +8,10 @@ namespace PeripheralBatteryCompanion.W1Offline.Tests;
 
 internal enum MetadataField { ExportPolicy, Usage, Scope, Bits, Algorithm, Group, ClrMarker, Name }
 internal enum MetadataStatus { Absent, Malformed, ProviderError, Error, Mismatch, ObservedExpectedMetadata, EmptyName }
-internal enum W1Phase { Preflight, CreateKey, Metadata, WrapSigner, CreateLeaf, InspectLeaf, DisposeLeaf, DisposeSigner, DisposeKey, Report }
+internal enum W1Phase { Preflight, CreateKey, Metadata, WrapSigner, CreateLeaf, InspectLeaf, DisposeLeaf, DisposeSigner, DisposeKey, Report, DisposeReport }
 internal sealed record MetadataObservation(MetadataField Field, MetadataStatus Status, int? HResult = null);
 internal sealed record CleanupObservation(W1Phase Phase, bool Attempted, bool DisposeReturned);
+internal sealed record FailureObservation(W1Phase Phase, int? HResult);
 
 // Pure classifier only. Never receives private-key bytes. Missing is not zero.
 internal static class W1MetadataClassifier
@@ -87,10 +88,24 @@ internal sealed class W1Evidence
     internal bool PublicLeafObserved { get; set; }
     internal bool ReportWriteReturned { get; set; }
     internal W1Phase Phase { get; set; } = W1Phase.Preflight;
-    internal W1Phase? FailurePhase { get; set; }
-    internal int? HResult { get; set; }
+    internal W1Phase? FailurePhase { get; private set; }
+    internal int? HResult { get; private set; }
     internal List<MetadataObservation> Metadata { get; } = new();
     internal List<CleanupObservation> Cleanup { get; } = new();
+    internal List<FailureObservation> SecondaryFailures { get; } = new();
+
+    internal void RecordFailure(W1Phase phase, string outcome, int? hResult = null)
+    {
+        // Preserve the first phase/outcome/code together, including a deliberately
+        // absent HRESULT for an observation stop. Later failures cannot replace it.
+        if (!FailurePhase.HasValue)
+        {
+            FailurePhase = phase;
+            HResult = hResult;
+            Outcome = outcome;
+        }
+        else SecondaryFailures.Add(new FailureObservation(phase, hResult));
+    }
 
     // No raw bytes, pins, names, subject/IP/serial, paths, handles, exception text,
     // environment, user identity or timestamps enter the shareable representation.
@@ -99,6 +114,7 @@ internal sealed class W1Evidence
         var text = new StringBuilder();
         text.AppendLine("W1 LIMITED OBSERVATIONS — NOT A SECURITY PASS");
         text.Append("Outcome=").AppendLine(Outcome);
+        text.AppendLine("Report=PRE_WRITE_SNAPSHOT;WriteFlushDispose=NOT_ATTESTED");
         text.Append("Phase=").AppendLine(Phase.ToString());
         if (FailurePhase.HasValue) text.Append("FailurePhase=").AppendLine(FailurePhase.Value.ToString());
         text.Append("NativeEntered=").AppendLine(NativeEntered ? "YES" : "NO");
@@ -107,6 +123,12 @@ internal sealed class W1Evidence
         text.Append("Cleanup=").AppendLine(NativeEntered ? "CleanupUnconfirmed" : "NOT_RUN");
         text.AppendLine("PRODUCTION SECURITY NOT PROVEN;TLS NOT RUN;LAN NOT RUN;ANDROID NOT RUN");
         if (HResult.HasValue) text.Append("ErrorHResult=").AppendLine(Hex(HResult.Value));
+        foreach (var item in SecondaryFailures)
+        {
+            text.Append("SecondaryFailure=").Append(item.Phase);
+            if (item.HResult.HasValue) text.Append(';').Append(Hex(item.HResult.Value));
+            text.AppendLine();
+        }
         foreach (var item in Metadata)
         {
             text.Append(item.Field).Append('=').Append(item.Status);
