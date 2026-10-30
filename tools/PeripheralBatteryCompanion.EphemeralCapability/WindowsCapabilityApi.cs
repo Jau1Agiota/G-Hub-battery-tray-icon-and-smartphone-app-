@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Text;
-using Microsoft.Win32.SafeHandles;
 
 namespace PeripheralBatteryCompanion.EphemeralCapability;
 
@@ -49,8 +48,8 @@ internal sealed class WindowsCapabilityApi : ICapabilityApi
             if (configured || finalized) throw new InvalidOperationException();
             Native.SetDword(handle, "Export Policy", 3); // AllowExport | AllowPlaintextExport, no archiving.
             Native.SetDword(handle, "Key Usage", 2); // signing only
-            var ui = new UiPolicy { Version = 1, Flags = 0 }; // no strong-key UI requested
-            Native.Check(Native.SetProperty(handle, "UI Policy", (IntPtr)(&ui), sizeof(UiPolicy), 0));
+            var ui = new NativeUiPolicy { Version = 1, Flags = 0 }; // no strong-key UI requested
+            Native.Check(Native.SetProperty(handle, "UI Policy", (IntPtr)(&ui), sizeof(NativeUiPolicy), 0));
             configured = true;
         }
         public void FinalizeOnce()
@@ -66,8 +65,8 @@ internal sealed class WindowsCapabilityApi : ICapabilityApi
             bool algorithm = Native.ReadText(handle, "Algorithm Name") == "ECDSA_P256" &&
                 Native.ReadText(handle, "Algorithm Group") == "ECDSA";
             var ui = Native.ReadProperty(handle, "UI Policy");
-            bool noUi = ui.Length >= 8 && BinaryPrimitives.ReadUInt32LittleEndian(ui) == 1 &&
-                BinaryPrimitives.ReadUInt32LittleEndian(ui.AsSpan(4)) == 0;
+            if (!InteropContracts.ValidUiPolicyShape(ui, IntPtr.Size)) throw new InvalidOperationException();
+            bool noUi = InteropContracts.NoUiFlags(ui, IntPtr.Size);
             // There is no documented universal IsEphemeral BOOL. Require successful empty Name readback,
             // together with NULL-name creation. Unsupported/not-found metadata never substitutes for evidence.
             bool unnamed = Native.ReadText(handle, "Name").Length == 0;
@@ -91,22 +90,13 @@ internal sealed class WindowsCapabilityApi : ICapabilityApi
             }
         }
     }
-    [StructLayout(LayoutKind.Sequential)]
-    private struct UiPolicy { public uint Version, Flags; public IntPtr CreationTitle, FriendlyName, Description; }
 }
 
 [SupportedOSPlatform("windows")]
-internal sealed class NCryptHandle : SafeHandleZeroOrMinusOneIsInvalid
+internal sealed class NCryptHandle : CheckedReleaseHandle
 {
-    public NCryptHandle() : base(ownsHandle: true) { }
-    internal bool? ReleaseSucceeded { get; private set; }
-    internal int? ReleaseHResult { get; private set; }
-    protected override bool ReleaseHandle()
-    {
-        ReleaseHResult = Native.FreeObject(handle);
-        ReleaseSucceeded = ReleaseHResult == 0;
-        return ReleaseSucceeded.Value;
-    }
+    public NCryptHandle() { }
+    protected override int ReleaseNativeHandle(IntPtr value) => Native.FreeObject(value);
 }
 
 [SupportedOSPlatform("windows")]
@@ -115,7 +105,7 @@ internal static class Native
     internal static void Check(int code) { if (code != 0) throw new NativeFailure(code); }
     internal static void CheckCreated(int code, NCryptHandle handle, Phase releasePhase)
     {
-        if (code == 0 && !handle.IsInvalid) return;
+        if (InteropContracts.Acquisition(code, !handle.IsInvalid) == AcquisitionDecision.AcceptNewHandle) return;
         bool hadHandle = !handle.IsInvalid;
         handle.Dispose();
         if (hadHandle) throw new AcquisitionFailure(code, releasePhase, handle.ReleaseSucceeded == true, handle.ReleaseHResult);

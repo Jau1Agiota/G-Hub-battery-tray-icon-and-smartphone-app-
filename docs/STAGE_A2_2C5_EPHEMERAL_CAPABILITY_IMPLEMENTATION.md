@@ -1,5 +1,9 @@
 # A2.2C5 — ephemeral capability implementation / security review
 
+> Latest: [native interop static audit](STAGE_A2_2C5_NATIVE_INTEROP_STATIC_AUDIT.md)
+> tightens full UI-policy validation and no-throw SafeHandle cleanup. Its687 portable
+> results supersede the historical674 below; native execution remains NOT RUN.
+
 **NATIVE CAPABILITY EXPERIMENT NOT RUN; OWNER AUTHORIZATION REQUIRED. POLICY PROOF REMAINS NO-GO.**
 
 ## Baseline / authorization boundary
