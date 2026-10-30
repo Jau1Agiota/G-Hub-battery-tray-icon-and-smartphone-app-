@@ -1,5 +1,9 @@
 # A2.2C5 — Contract B implementation review
 
+> Later evidence: [owner Windows B1 capability closure](STAGE_A2_2C5_CONTRACT_B_NATIVE_EVIDENCE_CLOSURE.md).
+> Implementation-stage native NOT RUN statements below describe the earlier Codex
+> delivery. The owner subsequently reported B1 PASS/no dialog; policy proof remains NO-GO.
+
 **CODE / PORTABLE TESTS ONLY. NATIVE EXPERIMENT NOT RUN; OWNER AUTHORIZATION REQUIRED FOR ANY FUTURE RUN; POLICY PROOF REMAINS NO-GO.**
 
 ## Authorization / baseline
