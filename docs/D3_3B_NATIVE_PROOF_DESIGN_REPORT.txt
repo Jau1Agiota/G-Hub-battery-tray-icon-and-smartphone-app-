@@ -1,0 +1,648 @@
+PERIPHERAL BATTERY COMPANION
+D3.3B — NATIVE TLS PROOF DESIGN AND EXECUTION-GATE PLAN
+DESIGN ONLY — NOT AN EXECUTION PERMIT
+
+NATIVE NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+No builds, tests, runner scripts, crypto, application connections, listeners,
+emulators, devices, provisioning or cleanup were executed in THIS stage.
+Read-only GitHub inspection and documentation publication are separate authorized
+source-control operations, not application LAN experiments.
+
+1. BASELINES, EVIDENCE AND REVIEW BOUNDARY
+
+Windows reviewed/remote-verified D3.3A head:
+60dc9da8c55a8cdbb3046849badb8881d60ea706
+https://github.com/Jau1Agiota/G-Hub-battery-tray-icon-and-smartphone-app-/pull/15
+Android reviewed/remote-verified D3.3A head:
+38351f32e5941d4adb053746521fdb73e94431ae
+https://github.com/Jau1Agiota/Peripheral-Battery-Companion/pull/4
+Both baseline PRs were open, draft, unmerged, based on feature/d3-2-inert-foundations.
+Local heads matched; working trees were clean before documentation changes.
+New documentation branch in each repo: feature/d3-3b-native-proof-design.
+New PR bases: feature/d3-3a-inert-tls-transport, never main.
+
+Authoritative records: D3_1_Secure_Connection_Design_Review.txt (Windows canonical),
+D3_2_FOUNDATIONS.md, D3_2_Implementation_Report.txt, D3_3A_TRANSPORT_REVIEW.md and
+D3_3A_IMPLEMENTATION_REPORT.txt. Prior reports remain unmodified and historical.
+D3.3A's reported 913 scoped Windows passes, 56 Android passes, build/lint results
+are historical evidence only; none was rerun or reclassified as a D3.3B result.
+
+Incident retained: an unfiltered D3.3A Windows run executed 11 legacy certificate
+cases and two secret-sample cases outside authorization. A subsequent selection
+excluded them. No claim of native TLS proof follows from that initial run.
+This report examines actual fixture/callee behavior, not test-name assurances.
+
+Static inspection here covers selected call paths and a conservative inventory;
+it is not an exhaustive formal proof of every transitive dependency or OS behavior.
+Unknown paths remain unsafe. Source/tests/CI/configuration and old fixture evidence
+are unchanged. Documentation commits use [skip ci]: the existing workflow only
+special-cases the exact D3.3A branch, so an ordinary new feature-branch push would
+otherwise select the full Windows test/publish job. No workflow dispatch/rerun or
+pull_request_target execution is authorized. A pending skipped check is not PASS.
+
+2. SHARED DECISION MATRIX — NO IMPLICIT POLICY CHANGES
+
+Topic | Existing constraint | Candidate / unresolved choice | Current gate
+Key protection | LanApprovalSession.Check requires NonExportable AND CurrentUserAclRestricted | Ephemeral key versus DPAPI-protected exportable envelope | REVISE; owner must decide test-only and production policies separately
+Certificate name | Existing LanApprovalSession/PublicServerCertificateInspector expect DNS authority | D3 exact canonical literal IP SAN, no DNS/CN fallback | REVISE; separately reviewed policy migration; no alias bridge
+Native ownership | Named creation and durable ownership binding are not atomic | Explicit ephemeral lifetime, no named key | Unproven platform semantics; NO-GO for creation now
+Anchor | Exact per-PC trust, chain and SPKI | Self-signed leaf anchor versus isolated dedicated CA+leaf | Compatibility unproven; no trust-all fallback
+Persistence | Protected bytes do not prove recency | Session-only reset versus durable anti-rollback authority | Restored state stays RESTART_LOCKED
+Endpoint | Private IPv4/ULA, explicit interface and unprivileged port | Exact address/port and profile observation | Not selected; default OFF
+Loopback | Production endpoint policy rejects loopback | Isolated proof-only loopback endpoint | Separate explicit exception/approval; no production policy bypass
+Android | minSdk26, compile/target35, OEM behavior varies | API26/API35 proof matrix and actual Xiaomi OS | Version/patch support not yet established
+Clock | UTC plus monotonic bounds, boot changes deny | Trusted restart-time authority and clock rollback strategy | Unknown/rollback locks; no epoch reuse
+Credential | Per-phone snapshot.read, no recovery shortcut | Expiry, rotation and revocation generation protocol | No actual issuance/storage; restart locked
+Pairing | Local PC consent plus authentic OOB identity | QR format, comparison-code transcript and entropy | Separate D3.3C/D3.4 design approval; not this experiment
+Budgets | Mandatory explicit byte/time/concurrency bounds | Exact reviewed values and timeout enforcement | Proposals are not defaults or approved limits
+Cleanup | Exact owned resources only; uncertain means STOP | Ephemeral disposal and scoped proof artifacts | No named-key adoption, prefix deletion or old-resource cleanup
+
+Recommendation for NEXT native stage: REVISE, not GO to execution. Resolve key
+policy/API/ownership and test-scope gates first. The smallest conditional native
+experiment would be W1 (offline Windows ephemeral lifecycle only), under a NEW
+specific approval. Approval of this design or its PR does not approve W1, any
+listener, Android execution, persistent storage or later experiments.
+
+3. WINDOWS IDENTITY OPTIONS AND CONCRETE API HAZARDS
+
+W-A. Session-only, explicitly ephemeral identity (preferred proof candidate).
+Potential APIs: CngKey.Create(CngAlgorithm.ECDsaP256, keyName:null,
+CngKeyCreationParameters) with a reviewed software provider and creation/export
+policy; ECDsaCng wrapping an owned ephemeral key; alternatively ECDsa.Create(
+ECCurve.NamedCurves.nistP256), whose Windows implementation/lifetime must be
+confirmed for the exact runtime. No API invocation is authorized now.
+An unnamed CNG key is documented as ephemeral; this is an assumption to verify,
+not evidence that every wrapper/certificate operation preserves that lifetime.
+Do not introduce a name, PersistKeySet, machine scope, overwrite, provider fallback
+or alternate KSP on failure. A nonexportability request/readback is not causal
+policy proof; B1 export success proved neither nonexportability nor persistence.
+
+After owner selects exact flags: creating the key is the FIRST native mutation.
+CertificateRequest construction and extension encoding prepare certificate data;
+CreateSelfSigned performs signing and creates an X509Certificate2 association.
+CopyWithPrivateKey, GetECDsaPrivateKey and provider wrapping may acquire/duplicate
+native handles. Public X509CertificateLoader.LoadCertificate loads DER into native
+certificate structures; it is not an OS store installation and is still a native
+operation requiring approval. Handle aliasing/lifetime must be traced, not guessed.
+Use a test-only self-signed leaf, P-256, serverAuth EKU OID1.3.6.1.5.5.7.3.1,
+digitalSignature usage, non-CA basic constraints, and exact IP SAN type7 bytes.
+Validity/endpoint are owner-specified, never invented timestamps for snapshots.
+No PKCS12/private export, DPAPI, certificate-store Add or socket is needed for W1.
+Private-key ownership must survive TLS use and end only after all users drain.
+
+W-B. DPAPI CurrentUser-protected exportable envelope (NOT selected).
+Potential APIs: certificate.Export(X509ContentType.Pkcs12,...) or the supported
+PKCS12 export API, ProtectedData.Protect/Unprotect with DataProtectionScope.CurrentUser,
+and X509CertificateLoader.LoadPkcs12 with explicit X509KeyStorageFlags.EphemeralKeySet.
+These involve private export, plaintext in process, profile-bound DPAPI and native
+import. DPAPI may itself involve profile master-key state; do not describe it as
+only a file write. A normal loaded user profile and exact Windows/runtime support
+must be prerequisites. Account reset, missing profile, restore/roaming and user
+context changes can make unprotect fail; disable rather than fall back to machine
+scope or plaintext. ACL/nonreparse checks, atomic durable replacement and bounded
+buffers require a separately reviewed storage plan. Password protection on PFX is
+not the storage security boundary. Managed/OS copies cannot be globally zeroized.
+Critical conflict: encrypted exportable key material does NOT satisfy the existing
+NonExportable prerequisite. No bool, storage enum or quiet rule relaxation resolves
+that. Owner must explicitly approve a revised policy before production consideration.
+
+W-C. Owner-selected pre-existing identity (alternative, NOT selected).
+X509Store(StoreName.My, StoreLocation.CurrentUser), Open(ReadOnly), explicit exact
+certificate selection and GetECDsaPrivateKey may touch OS store/KSP/profile state,
+access checks and potentially provider UI. Pre-existence alone does not establish
+ownership/protection or permission to use it. No broad scan/adoption, ACL repair,
+key deletion or mutation is allowed. A separately owned test identity would require
+fresh scope; older A2 resources are categorically excluded.
+
+W-D. Newly named persisted identity (excluded).
+CngKey.Create with non-null name / NCryptCreatePersistedKey plus finalize can create
+state before independent durable binding. Dispose/NCryptFreeObject is not deletion.
+This is the Option2 orphan window. No D3 design depends on its harness or attempts
+to solve it by name-only recovery, retry, best-effort delete or provisional records.
+
+Flag/lifetime checklist for later proof:
+- EphemeralKeySet is a private-key import storage flag, not a proof about an
+  unrelated key created earlier; public DER LoadCertificate has no imported key.
+- UserKeySet/MachineKeySet choose scope, not ephemerality. DefaultKeySet or legacy
+  PFX constructor defaults must not silently choose profile/persistent storage.
+- PersistKeySet is excluded. Exportable changes policy. UserProtected can request
+  UI; no UI-free guarantee follows from flags0, Silent or successful earlier tests.
+- X509Certificate2.Dispose and key-wrapper Dispose release owned references. They
+  do not prove deletion of separately persisted containers. NCryptDeleteKey success
+  consumes its handle; no such deletion is part of these proposed ephemeral proofs.
+- Define who owns each key, certificate and wrapper and the disposal order.
+  Avoid double disposal of aliases; release leaf/TLS users before underlying key.
+- Normal process exit may release ephemeral handles. Abrupt death bypasses finally;
+  persisted side effects survive. Unexpected named state/UI makes the run STOP/
+  INCONCLUSIVE, never permission to enumerate or clean a store.
+- Do not infer absence of side effects from a missing UI, one clean process exit
+  or a filesystem snapshot. Any broader observation needs its own permission.
+
+4. WINDOWS TLS / EVIDENCE BINDING PLAN
+
+Candidate isolated test stack: .NET10 SslStream first; later ASP.NET Core Kestrel
+with explicit Listen(IPAddress,port) and HTTPS options, not wildcard ListenAnyIP,
+URL fallback, HTTP endpoint, HTTP/3 or discovery. No dependency added here.
+Review SslServerAuthenticationOptions.EnabledSslProtocols / Kestrel HTTPS
+SslProtocols for TLS1.2 and TLS1.3 support. Review AllowTlsResume=false and
+AllowRenegotiation=false where supported. No early application data; do not equate
+that with a proven blanket0-RTT guarantee. Demonstrate actual resumption behavior
+or mark it INCONCLUSIVE; no credentials/pairing mutation in resumed/early requests.
+Restrict initial proof to full new handshakes and HTTP/1.1 after separate approval.
+Schannel/OS controls Windows cipher support. CipherSuitesPolicy is platform-limited;
+do not assume a Linux .NET cipher configuration works on Windows or alter group
+policy/registry. Record negotiated protocol/cipher against an owner-reviewed policy;
+unsupported controls => STOP/REVISE, not accept obsolete settings.
+
+Certificate proof binds: exact chosen endpoint/interface/port, actual chain and
+trusted anchor, DER SPKI SHA256 (not certificate thumbprint), IP SAN, serverAuth,
+validity and confident clock, key association, trust generation, connection identity,
+credential generation and boot/session. Never issue AuthenticatedTlsPeer from
+SyntheticTrust or self-reported hashes. The native issuer remains absent now.
+No callback may return success after failed platform chain/hostname checks.
+Old DNS-only PublicServerCertificateInspector is not an IP-SAN TLS validator or
+chain verifier. Its use must not bypass the unresolved DNS/IP policy migration.
+
+Handshake/header/body/request/shutdown deadlines, concurrency/byte limits and
+CancellationToken propagation need exact reviewed values, fake tests and later
+native observation. Bind failure creates no fallback endpoint or automatic retry.
+Cancel stops accepts, joins/aborts in-flight work and verifies closure; uncertain
+close leaves STOP. Network/profile/interface change invalidates approval and
+connection evidence. No automatic firewall, UPnP or public-address adaptation.
+
+5. ANDROID PLATFORM PLAN — NO API INSTANTIATION
+
+Current build: minSdk26, compileSdk35, targetSdk35, JVM17. Proposed proof coverage
+starts with separately approved API26 and API35 environments; that is not a promise
+of all OEM/intermediate versions or an authorization to run emulators. Record
+OS/API/security patch/provider for actual Xiaomi17t; the owner has not supplied
+those exact runtime facts. Older API may lack TLS1.3; TLS1.2 remains minimum.
+
+Concrete JSSE candidates: CertificateFactory.getInstance("X.509") for public DER;
+an in-memory java.security.KeyStore holding only this PC's exact anchor;
+TrustManagerFactory.getInstance(defaultAlgorithm).init(thatStore); SSLContext(
+"TLS"); SSLSocket/SSLSocketFactory; SSLParameters.setEndpointIdentificationAlgorithm(
+"HTTPS"); SSLSocket.startHandshake; SSLSession peer certificates. These load/
+allocate native/platform resources and are NOT run in this stage. This per-client
+anchor store is NOT system/user trust-store installation or AndroidKeyStore.
+
+Path validation must delegate to the platform X509TrustManager and preserve every
+failure. Endpoint verification must remain enabled. Exact IP SAN verification uses
+X509Certificate.getSubjectAlternativeNames type7 value, canonical literal parsing
+with no DNS resolution, equivalent IP bytes and exact approved endpoint semantics;
+SPKI is SHA256 of PublicKey.getEncoded, constant-time expected-byte comparison
+(e.g. MessageDigest.isEqual), independently derived from actual peer certificate.
+checkValidity plus serverAuth EKU, basic constraints/usage, path/anchor constraints
+and current trust-generation/revocation checks all remain required. A pinned cert
+does not waive validity/EKU/path checks, including when the leaf itself is an anchor.
+
+Self-signed leaf as narrow anchor is an UNPROVEN compatibility hypothesis across
+Android/JSSE versions. If platform validation rejects it, STOP and compare a dedicated
+test CA+leaf alternative under new approval; never use an accept-all TrustManager.
+Anchor-chain certificate revocation policy for private/offline PKI is undecided;
+phone credential revocation and local PC trust-generation invalidation are distinct
+and required, not a substitute for a stated certificate compromise/rotation policy.
+
+Critical pre-credential gate: a standalone SSLSocket proof can perform full TLS,
+path/hostname/SAN/pin checks and generation validation BEFORE any application write.
+It must use no credentials at all in early experiments. HttpsURLConnection is a
+later integration candidate, not a proven way to connect, inspect a pin and then
+modify an already-connected Authorization header. That sequence may already have
+committed headers or disallow changes; it is NOT an acceptable security design.
+Before future HTTP use, prove either a strict platform-delegating
+X509ExtendedTrustManager boundary that checks all required socket/engine overloads
+before handshake success, or a vetted HTTP client's built-in pre-request pin gate
+with normal trust/hostname checks. Neither is implemented/approved. A wrapper
+must never swallow errors, silently use a default trust-all path or expose trusted
+evidence via a boolean. Any third-party library requires separate dependency review.
+No permissive HostnameVerifier, CN/DNS alias/wildcard fallback, HTTP fallback,
+redirect with credentials, silent TOFU, silent pin reset or platform store mutation.
+
+Dedicated client/session per PC, exact endpoint and trust generation; connection
+pool/resumption cannot survive revoke/rotation/endpoint change unchecked. Disable
+automatic redirects and retries; explicitly scope proxy behavior. On cancel,
+close the owned socket or disconnect connection, join work and report uncertainty;
+interrupt alone is not proof of closed I/O. No background reconnect/polling yet.
+Offline means offline/stale, never demo-as-live. D3.2's wire/domain provenance gap
+remains: readAt is receipt, observedAt is observation, lastKnown stays historical;
+duplicate revisions never refresh measurement age and unknowns do not become0%.
+
+Keystore design only: AndroidKeyStore KeyGenerator / KeyGenParameterSpec for a
+nonexportable AES-GCM wrapping key, unique per-encryption nonce/tag and authenticated
+PC/pin/credential-generation metadata. Key creation and Cipher operations need
+separate approval. Key user-auth/device-unlock requirements, StrongBox support and
+device lock behavior are owner choices, not portable guarantees. Never fall back to
+plaintext/software export on unsupported hardware or KeyPermanentlyInvalidatedException.
+Encrypted credential files must be excluded from backup/device transfer or require
+explicit re-pair after restore; original allowBackup=false is not universal proof
+across OEM transfer paths. Reinstall, profile removal, key invalidation or decryption
+failure => lose local credential and re-pair, not restore trust silently. Keystore
+confidentiality does not establish stored-state recency.
+
+6. DURABLE CREDENTIAL / REVOCATION THREAT MODEL
+
+Model per phone: opaque phone ID, snapshot.read scope, credential verifier only,
+trust/identity generation, credential generation, issued/expiry evidence, durable
+transaction version and revoked tombstone. No real token examples/issuance here.
+Creation commits verifier+generation durably before token delivery. Rotation is
+one atomic replacement invalidating prior generation; no implicit grace overlap.
+Revocation installs local denial/fence BEFORE persistence, then atomically commits
+tombstone and generation. Every commit is compare-version plus complete flush;
+lost ack, partial write, corruption, unexpected version or rollback => UNCERTAIN,
+deny all, stop listener if one exists. Never infer NOT-COMMITTED from an exception.
+Repeated confirmed revoke is idempotent; uncertain revoke is not retried/repaired.
+Crash after commit but before delivery may leave an orphan enrollment; expose only
+local redacted uncertainty, require owner review/re-pair; no token replay/reissue.
+
+Disk threat: attacker or backup restores an older well-formed DPAPI/Keystore-
+protected image containing a now-revoked credential. Ciphertext integrity, ACLs,
+write-through/flush and atomic rename prevent some corruption but not rollback.
+An HMAC/digest/version kept in the SAME rollback domain is not an independent
+freshness witness. Multiple local files/journal copies do not solve that alone.
+OS crash and power-loss durability also need separate storage/volume evidence.
+RESTART_LOCKED remains mandatory until an authenticated nonrollback authority and
+reconciliation algorithm are proven and approved. No import/unlock shortcut exists.
+
+Safer alternatives for owner decision:
+A. Session-only authorization: every PC restart discards registry, requires fresh
+local consent and explicit re-pair, never restores old verifiers. Fresh session
+authority must be unpredictable and never reused; production policy/identity
+lifetime still requires separate proof. Simpler, with usability cost.
+B. Independent rollback-resistant authority (reviewed TPM-backed monotonic mechanism
+or authenticated external witness). Adds platform/state/provisioning or external
+availability/trust dependencies; none is approved, installed or assumed present.
+C. A surviving phone as witness can detect SOME PC rollback only if that phone's
+own state is trustworthy/current. Simultaneous rollback/loss/new phone has no proof;
+not a general solution, no automatic unlock.
+D. Keep all restored state locked and require owner reset/re-pair after review.
+This is the current safe behavior, not a functioning durable credential system.
+If product requirements demand unattended restored credentials with no trustworthy
+witness, durable revocation may require a different architecture. Say NO-GO.
+
+Response-commit authorization (proposed linearization contract):
+1) Authenticate against generation g, parse/prepare bounded cached snapshot only;
+   no HID/provider refresh. Preparation is not permission to send.
+2) Under a per-credential/trust-generation coordinator, recheck active generation,
+   expiry/clock and listener consent, then acquire a tracked response lease for g.
+3) Enqueue/write only while lease remains valid; check at each write boundary.
+   A naked check-then-await-write without coordination is a revocation race.
+4) Revoke advances denial fence immediately, prevents new leases/queues, cancels
+   old-generation writers, and waits for owned completion/abort acknowledgments.
+   Do not report revocation complete while old leases can still enqueue bytes.
+5) Persist tombstone/version with independently proven freshness; failure locks
+   all responses and listener. Release/join in finally; uncertain exit => STOP.
+Proposed guarantee: no NEW authorized enqueue after the revoke fence, and revoke
+completion waits for old writers to end. Already sent/OS-buffered data cannot be
+recalled and may arrive after revocation. Do not promise instantaneous remote
+erasure or no post-click delivery. Native cancellation/queue semantics must be
+proven before claiming even this contract. Existing fake lock tests do not prove it.
+
+UTC determines certificate/credential windows; monotonic ticks only bound a single
+boot/session. Never subtract across boot IDs or overflow counters. Backward/uncertain
+time, untrusted boot identity or inconsistent elapsed evidence locks access. A
+persisted last-seen UTC high-water mark is itself rollbackable; it is not trusted
+time. Wall-clock forward jumps may expire early; do not silently extend/revive.
+Choose a restart time authority/session-only alternative before durable unlock.
+
+7. FUTURE EXPERIMENT MATRIX — EACH NEEDS ITS OWN APPROVAL
+
+IDs below are PLAN LABELS, not operation IDs, permits or commands. No fresh native
+operation ID is generated. Required owner approvals are separate, not cumulative
+blanket consent. A preceding PASS never authorizes the next experiment.
+
+S0 — STATIC API / POLICY CLOSURE (recommended next review step)
+Platform/preconditions: exact reviewed source/runtime/API documentation and owner
+decisions; no runtime. Hypothesis: selected lifecycle has documented no-named-key
+semantics and a reconciled test-only protection/name policy.
+Side effects/resources: documentation only; no key/cert/file-store resources.
+Consent: separately approve any follow-up implementation or execution, not now.
+Evidence/negatives: complete call graph including default constructors, factories,
+test discovery, build targets and CI; show why PersistKeySet, named create, policy
+bypass, legacy whole-suite discovery and unexpected fallback are unreachable.
+Abort: unresolved policy/API semantics or inability to prevent automatic execution.
+Cleanup/rollback: no native cleanup; leave/revise documentation commits.
+INCONCLUSIVE: missing platform-specific documentation; an API name alone is not proof.
+
+W1 — OFFLINE WINDOWS EPHEMERAL KEY + TEST LEAF LIFECYCLE
+Preconditions: S0 accepted, exact Windows build/.NET version/provider/API flags,
+ordinary user/profile state, isolated reviewed test-only harness and exact resource
+budget. Owner explicitly approves key creation/signing/public certificate loading,
+normal disposal and a separately specified crash subcase if desired. No listener.
+Hypothesis: one explicitly ephemeral P-256 key and one serverAuth/IP-SAN test leaf
+can be associated and disposed without named provider/store state.
+Resources/side effects: one ephemeral key, one leaf and bounded wrapper/public DER
+objects in process; native provider allocations. Expected named/store objects zero,
+but unexpected side effects remain possible and must be reported, not auto-cleaned.
+Evidence: API/flag/provider trace, ownership ledger, key association, public SAN/EKU/
+SPKI/validity observations, normal disposal result and permitted scoped observations.
+Negatives: missing EKU/wrong SAN/public-key association; provider error/UI; controlled
+failure boundaries. No private export probe or persisted-key policy experiment.
+Abort: any UI, named/container ambiguity, error after side effect, unknown disposal,
+extra resource creation, protected-policy mismatch; no retry/provider fallback.
+Cleanup evidence: release only owned live handles/cert refs; never delete by name.
+If unexpected persistent state exists, preserve redacted uncertainty and stop for
+owner review. Process termination is not cleanup proof.
+Rollback: end isolated process, keep production OFF; no old fixture cleanup.
+INCONCLUSIVE: no UI observed, process exited or a metadata property matched; none
+alone proves absence of persistence, nonexportability or TLS compatibility.
+
+A1 — ANDROID OFFLINE CERTIFICATE/TRUST PRIMITIVES (NO SOCKET)
+Preconditions: approved API/provider/device or emulator scope, public synthetic
+test certificates with reviewed provenance created only under separately approved
+W1/fixture preparation; exact narrow-anchor plan and test corpus. No real secrets.
+Consent: separately approve native public-cert parsing/path operations and emulator
+or physical installation if needed. Do not bundle with W1 or LAN permission.
+Hypothesis: exact leaf/chain/anchor, IP SAN, EKU/time and SPKI decisions survive
+real JSSE parsing; self-signed leaf anchoring may fail and is explicitly unproven.
+Resources/side effects: process-local cert/anchor-store/trust-manager/context objects;
+test-app sandbox if installation separately approved. No AndroidKeyStore key.
+Evidence/negatives: wrong anchor/pin/SAN, malformed DER/SAN, expired/not-yet-valid,
+missing EKU, revoked trust generation, unknown/rolled-back time. No credential path.
+Abort: validation bypass needed, platform trust-store mutation, unsupported API,
+unexpected network/provider access. Disable any implicit path fetching before proof.
+Cleanup: release in-memory/test-app-owned resources only; no system trust deletion.
+Rollback: isolated test app remains disabled or owner-approved uninstall; no prod change.
+INCONCLUSIVE: offline parser results do not prove a real handshake enforces checks.
+
+L1 — WINDOWS FULL-HANDSHAKE LOOPBACK PROOF
+Preconditions: W1 evidence accepted, explicit loopback-only test SAN/address/port,
+reviewed client/server adapters, native trust preparation and bounded time/resources.
+Current production policy rejects loopback: approve an isolated proof context only,
+never flip its production gate. No real credentials or persistent registry.
+Consent: separate approval to bind ONE exact loopback listener and make bounded
+loopback handshakes; every negative certificate fixture requires explicit scope.
+Hypothesis: SslStream/Kestrel presents the exact identity and required TLS/chain/name/
+pin checks fail closed before a synthetic request, with verified stop/cancel.
+Resources: owned listener/socket pair(s) sequentially, reviewed ephemeral identities
+and bounded process-local buffers. No wildcard/public bind or firewall rule.
+Evidence/negatives: negotiated protocol/cipher, resumption/early-data behavior,
+wrong anchor/SPKI/SAN, expired/missing-EKU leaf, bind collision, handshake timeout,
+cancelled body/write, simulated revocation fence and replay/old revision.
+Abort: wrong pin accepted, unexpected bind/network/UI, retry/fallback, unknown close,
+old generation writes after fence or required control unavailable.
+Cleanup: explicit listener/client closure, joined writers, released identity refs;
+owned address no longer listening by approved observation, not broad port scan.
+Rollback: isolated processes stop, no production enablement or firewall cleanup.
+INCONCLUSIVE: loopback PASS does not prove Android, Wi-Fi, durable revoke or battery data.
+
+N1 — CONTROLLED TWO-ENDPOINT LAN TLS PROOF
+Preconditions: W1/A1/L1 evidence reviewed; native client handshake integration vetted;
+exact private address/interface/profile/port, router context and endpoint devices
+named in a new approval; Android emulator/phone connection separately allowed.
+Consent: separate LAN listener/client permission, exact test schedule/case budget;
+any manual firewall rule requires its OWN review/approval. No app-created rule.
+Hypothesis: real Android stack rejects wrong identity before any application secret
+and binds successful proof to the intended PC/session. Use no real bearer tokens.
+Resources: one explicitly bound test service, one approved Android endpoint/client,
+test-only ephemeral identity/anchor/context and bounded fake snapshot buffers.
+Evidence/negatives: actual stack callback/order trace, IP SAN/SPKI/anchor checks,
+expired/EKU failures, Wi-Fi/interface/profile change, disconnect/cancel, DNS/ARP
+redirection in an explicitly controlled test environment, no redirect credential leak.
+Abort: any secret would be sent before validation, public/wildcard exposure,
+unapproved firewall/profile adaptation, unknown resource ownership or shutdown.
+Cleanup: owned listeners/connections end, test identity refs disposed; no automatic
+firewall modifications. Any manually added rule removed only under its approved scope.
+Rollback: transport OFF, discard test trust under explicit owner action.
+INCONCLUSIVE: a successful connection is not pairing, revocation durability, physical
+device accuracy, resistance to compromised hosts or permission for normal polling.
+
+D1 — DURABLE STORAGE / REVOCATION AND RESPONSE-FENCE PROOF
+Preconditions: owner chooses anti-rollback architecture and exact storage/clock
+threat model; reviewed native storage and response coordinator; old fixtures excluded.
+Consent: separate DPAPI/ACL/filesystem or Keystore approval, exact NEW test-owned
+resources/paths and crash points; network writes need separate L1/N1 scope.
+Hypothesis: corrupted/partial/old images, failure before/after commit and lost ack
+never restore revoked access; generation fence linearizes revoke with real writes.
+Resources: precisely budgeted new protected test records/tombstones; any DPAPI profile
+or Keystore master/wrapping key side effects explicitly listed BEFORE approval.
+Evidence/negatives: durable version witness, revoked phone, rotation stale token,
+read/revoke race, repeated revoke, partial flush, process crash/restart, disk rollback,
+clock rollback/reboot, credential loss, phone backup/restore/reinstall/lock cases.
+Abort: unavailable independent freshness proof, unexpected profile/key/file, any
+uncertain commit/unlock, incomplete writer shutdown, plaintext credential logging.
+Cleanup: only independently proven exact test-owned files/keys and references under
+approved policy; unknown ownership STOP. No prefix/key-store-wide deletion.
+Rollback: restored state RESTART_LOCKED and transport OFF. No repair/recovery shortcut.
+INCONCLUSIVE: DPAPI/Keystore decrypt success, an atomic rename or fake CAS passes do
+not prove rollback resistance or power-loss durability.
+
+P1 — PHYSICAL XIAOMI / SNAPSHOT VALIDATION
+Preconditions: earlier evidence separately accepted, Android adapter provenance gap
+resolved under separate implementation approval; exact APK/device/OS/network scope.
+Consent: separate installation, foreground operation and two-device/physical checks;
+no blanket permission for hardware queries or production launch.
+Hypothesis: approved real stack and read-only cached snapshot path preserve source,
+confidence, lastKnown/receipt/observation, unknown/stale/offline semantics on Xiaomi.
+Resources: owner-approved test app installation and per-session trust/credential
+resources ONLY if earlier approvals explicitly permit them; no device-control route.
+Evidence/negatives: wrong pin/revoked phone, unavailable peripheral, duplicate/replayed
+snapshot, PC restart/offline, app lock/reopen, lost credentials, no demo-as-live and
+no new HID/gateway request caused by network GET. Battery reference accuracy separate.
+Abort: app behaves connected on demo/stale auth, false timestamp, extra exposure,
+unapproved query, trust bypass or uncertain stop.
+Cleanup/rollback: explicit PC OFF/revoke and phone forget/test-app teardown under
+owner control; no existing Windows preferences/monitoring/fixture evidence touched.
+INCONCLUSIVE: matching displayed percentages do not validate telemetry ownership,
+physical battery accuracy, unattended polling or production readiness.
+
+8. SAFE TEST INVENTORY — CLASSIFICATION IS NOT EXECUTION AUTHORIZATION
+
+Legend: M pure/in-memory metadata; C cryptographic allocation/digest/randomness;
+K OS key/certificate/security-store interaction; F filesystem/native database;
+N network; D device/emulator; P child-process/OS control; U incompletely inspected.
+All runtime tests/builds/scripts, including apparently pure ones, are forbidden NOW.
+U is unsafe until its full call graph, fixtures, discovery and runner are reviewed.
+
+Windows project tests/PeripheralBatteryCompanion.Tests:
+- D33ATransportTests: inspected fields/fixture helpers and callees.
+  LifecycleEligibilityNeverBindsAndRestartRequiresConsentAgain and
+  LimitsRejectOverflowZeroTimeoutAndMissingCancellation -> data records,
+  InertTransportLifecycle lock/state methods and arithmetic only: M.
+  NoCallerMetadataCanIssueNativeEvidenceOrReadProductionSnapshot -> reflection,
+  DisabledTlsBoundary and a poison fake source never invoked: M.
+  ReentrantCrashAndReadDuringCommitCannotAuthorizeOrResurrect,
+  ConcurrentRevocationReadAndRepeatedRevokeCannotRestoreAccess,
+  InvalidRestoreAndBootClockNeverBecomeReady -> in-memory Store callback,
+  SyntheticCredentialLedger/EpochClock/ClockGuard; locks/tasks for race case: M/P
+  (managed scheduling, no child process or native key API). Other vector methods
+  read checked-in files/JSON (F-read); digest method uses SHA256.HashData (C).
+- D3FoundationTests: mixed M with file/JSON/digest reads F-read/C and managed race
+  scheduling. Never infer whole-class purity from the word Foundation.
+- PublicServerCertificateInspectorTests: ALL11 cases C/K-native-allocation.
+  Certificate helper -> ECDsa.Create -> CertificateRequest.CreateSelfSigned ->
+  X509CertificateLoader.LoadCertificate; Pin/Inspect export public SPKI and hash.
+  No store-write API in that inspected chain, but real native crypto occurs.
+- TransportSecurityPrerequisiteTests: mostly injected policy; TWO methods
+  GeneratedSecretIs256BitsRedactedRevocableAndDisposed and
+  SecretExportRequiresExplicitCorrectSizedBuffer -> Ephemeral256BitSecret.Create
+  -> RandomNumberGenerator.GetBytes; first also builds a synthetic bearer string
+  for registry tests. C, not pure metadata. Other methods need scoped audit.
+- ProviderTests, G305GHubInspectionTests, WindowsStabilizationTests: observed
+  temporary directory/database creation, SQLite writes/locks and deletion: F,
+  native SQLite allocation; class-wide selectors are not pure/approved.
+- GHubGatewayTests: the Socket helper observed here is a test fake implementing
+  IGHubGatewayConnection, not System.Net.Sockets.Socket. Fake factory injection
+  must be re-audited transitively before any future selector; M/U, not blanket N
+  and not blanket safe merely because a fake class name was found.
+- Option2HarnessTests, Option2StaticAuditTests, Option2OwnershipTests,
+  ContractBCapabilityTests, EphemeralCapabilityTests, EphemeralInteropAuditTests,
+  EphemeralMetadataDiagnosticsTests, SecurityFixtureConsentTests and
+  SecurityFixtureDiagnosticsTests: recorded fake/pure evidence only, not native
+  authorization. Some use linked harness source/buffers/ABI observations; U for
+  whole-suite reuse in this review. Never run their executable Program routes.
+- Remaining legacy suites were NOT fully transitively audited and are U/unsafe:
+  ActiveCoexistenceTests; BatteryBarGeometryTests; DashboardLayoutTests;
+  DashboardPresentationTests; BatterySnapshotTests; SnapshotServiceTests;
+  HidInspectorTests; HyperXAutomaticMonitorTests; HyperXBatteryPocTests;
+  HyperXCompactViewTests; HyperXHelperTests; HyperXInspectorTests;
+  HyperXProviderTests; HyperXStartupTests; MonitoringTests;
+  PassiveCoexistenceTests; PassiveReportIdTests; TrayPresentationTests.
+  Many contain fakes/layout logic, but absence of a dangerous search hit is not
+  a call-graph proof; default factories and fixture setup can change effects.
+
+Windows project tests/PeripheralBatteryCompanion.Windows.Tests:
+- ReadOnlySecurityInspectionTests -> ReadOnlyWindowsSecurityInspection ->
+  CurrentUser/My certificate metadata and assigned NIC inspection: K/N-metadata,
+  no claimed socket connection. Read-only OS access is still outside this stage.
+- ReadOnlyFixtureKeyInspectionTests -> random missing fixture selection and
+  ReadOnlyFixtureKeyInspection -> native KSP open/inspection attempts: K/C.
+  No creation in inspected source; not permitted now and no old key inspection.
+- HelperProcessTests -> SimulationOnlyFactory -> HyperXHelperProcessFactory ->
+  Windows child/job handles/termination (simulation mode guards NativeOneShot): P/F.
+  No-HID is not pure metadata; transitive OS behavior requires approval.
+- PopupLayoutTests: WinForms/native UI dependencies; U/P, no whole-class approval.
+
+Android:
+- D33ATransportTest: same split as C#: lifecycle/limit/disabled-boundary/fake ledger
+  methods M, race method managed executor scheduling, vector/resource reads F-read,
+  digest test C via MessageDigest. No socket/TLS/Keystore calls in inspected methods.
+- D3FoundationTest: M plus classpath file reads/digests and executor races F-read/C.
+- BatteryTest, DataFoundationTest: demo/domain/presentation and coroutine fixtures;
+  U for any blanket future test run until all leaf paths/discovery are audited.
+- CompanionUiTest (androidTest): createComposeRule and Compose rendering/navigation
+  require instrumentation/emulator/device D; demo content does not make it portable.
+
+Runners, tooling and CI:
+- test.ps1: restore/build BOTH test projects, unfiltered tests, filesystem logs/
+  results and optional clipboard. C/K/F/P plus restore network; NOT a pure runner.
+- scripts/Test-D33ACodeOnly.ps1: restore/build plus a NEGATIVE13-case filter,
+  test result writes F and possible restore N. Safer than full runner, but exclusion
+  list is not an allowlist or guarantee against new transitive effects. NOT run now.
+- scripts/Test-A22C4ReadOnly.ps1: restore/build plus native OS certificate/NIC/
+  missing-key inspection K/F, potential dependency N. The label read-only is no grant.
+- scripts/Show-A22C5FixtureScope.ps1: generates a fresh Guid and prints a mutation
+  command; not harmless document display. C/U. No preview/ID generation now.
+- scripts/Invoke-A22C5Fixture.ps1 -> SecurityFixture Program: named CNG creation,
+  public certificate/store/key operations, private export attempt, journaling and
+  cleanup K/C/F. Forbidden; not reused for D3 experiments.
+- tools/PeripheralBatteryCompanion.EphemeralCapability Program native A/B/Option2
+  routes: C/K and Option2 named persisted operations/journal F. All forbidden.
+  Preview routes still execute code and may emit identifiers/commands; do not run.
+- scripts/Test-VerificationRunner.ps1: creates temporary fake SDK shims/results,
+  spawns runner processes, changes process environment and deletes test temp state:
+  F/P, not pure text review. Not executed here.
+- scripts/Verify-DashboardAssets.py: Pillow/hash reads and generated composite PNG
+  write under artifacts: F/C, not a read-only script. Not executed here.
+- scripts/Test-HyperXArtifact.ps1: package metadata/directory reads F-read; no child
+  hardware launch in inspected text. Still a script; not executed now.
+- scripts/Publish-Windows.ps1: dotnet publish/build/restore, package checks, hash and
+  archive replacement F/C/N-dependencies; no release permission inferred. Not run.
+- gradlew/gradlew.bat unit/build/lint tasks: build/cache/report/APK writes and possible
+  dependency downloads F/N. connectedDebugAndroidTest also installs/runs D.
+- Existing Windows CI windows job: runner-contract script, unfiltered test.ps1,
+  publish/artifact upload. C/K/F/P/N; unsafe for D3.3B docs. d33a-code-only job:
+  filtered restore/build/tests F/C/N; ALSO forbidden now. Its condition applies
+  only to exact D3.3A refs, NOT this new D3.3B branch.
+- No Android workflow was present in inspected checkout. Remote checks must still
+  be inspected; do not assume repository-level/external automation cannot exist.
+
+All other scripts/commands, tool entrypoints, test targets and transitive paths not
+explicitly covered above are U and disallowed. Builds can execute targets/generators;
+test discovery can execute constructors/static initialization. No inventory label
+overrides the present no-build/no-test/no-script boundary.
+
+Future separately approved selector candidates (DOCUMENTATION ONLY; NOT RUN):
+Prefer exact method allowlists, not project/class wildcards or exclusion-only runs.
+C# filter alternatives, with fully qualified prefix
+PeripheralBatteryCompanion.Tests.D33ATransportTests.:
+  LifecycleEligibilityNeverBindsAndRestartRequiresConsentAgain
+  LimitsRejectOverflowZeroTimeoutAndMissingCancellation
+  NoCallerMetadataCanIssueNativeEvidenceOrReadProductionSnapshot
+Use FullyQualifiedName=<exact method> and OR only those individually re-audited
+methods; approved cached binaries/runner setup and discovery need separate review.
+Kotlin exact --tests candidates:
+  dev.peripheral.battery.D33ATransportTest.lifecycleRemainsInertAndRestartOff
+  dev.peripheral.battery.D33ATransportTest.limitsRejectOverflowTimeoutAndMissingCancellation
+  dev.peripheral.battery.D33ATransportTest.nativeEvidenceHasNoIssuerAndDisabledBoundaryNeverCallsSnapshotSource
+These names are not instructions to invoke Gradle or a test runner now. Any build,
+dependency download, fixture/digest read, scheduling or native expansion requires
+the corresponding future authorization and call-graph re-audit at the exact SHA.
+
+9. INCIDENT-PREVENTION PREFLIGHT / RESULT HANDLING
+
+Before a separately approved future command:
+1) Match exact local+remote SHA, clean/preserved working tree, OS/API/runtime and
+   approved scope. Unknown divergence STOP; no reset/cleanup/rebase to get unstuck.
+2) Enumerate the exact entrypoint, static initialization, constructors, fixtures,
+   theory data sources, callbacks/default factories and all leaf API calls. Read
+   actual code and referenced build/runner hooks, not test names or past counts.
+3) Categorize C/K/F/N/D/P effects; U means no run. Record exact allowlist, resource
+   count/ownership, potential profile/provider side effects and intended evidence.
+4) Review CI trigger/ref conditions and external automation BEFORE push. Design-only
+   commits carry [skip ci]; never click Run workflow/rerun or remove the skip marker.
+   If a prohibited job nevertheless starts, stop/cancel via authorized owner workflow
+   rather than observe it to completion; report the unexpected execution honestly.
+5) Owner grants ONE explicit experiment/case budget and abort/cleanup policy. No
+   blanket approval, shell wildcard runner, negative-only scope assurance or retry.
+6) Guard the approved entrypoint: fail closed before side effects on wrong scope,
+   native adapter availability, ambiguous flags or missing ownership. No self-signed
+   certificate hidden in a supposedly pure fixture. Use no real credentials.
+7) After execution (not now), record exact commands/versions/counts and ordered
+   sanitized events, including observed provider UI, uncertain ownership/exit and
+   any unexpected native work. Redact secrets, user paths, hardware IDs and raw keys.
+8) Separate PASS/FAIL/NOT RUN/EXCLUDED/INCONCLUSIVE. A caught error is not evidence
+   of no side effects. Preserve an incident and do not rerun for a cleaner report.
+9) Stop for review before next experiment. Cleanup only exact independently owned
+   resources under approval. Never inspect/delete/adopt/recover old A2 state.
+
+Retired IDs remain prohibited:
+3c4a7c190ef34f2e90625276aa9cbfdb
+3bb5de0629d640569843367dd3407fc8
+6df3c74dc1804991a04730bd39aa519d
+Blocked preview-only ID: ff28360e68f249439294475e8da21614
+They are recorded only as deny-list history, never as parameters to a future test.
+
+10. STATIC-ONLY EVIDENCE, REFERENCES AND NEXT DECISION
+
+Checks actually performed in D3.3B: local Git head/branch/status reads; remote
+ls-remote and GitHub PR metadata reads; selected source/fixture/callee/runner/CI
+text inspection with cat/sed/rg; documentation diff/scope/whitespace checks.
+No runtime verification result or new test count exists for this design stage.
+Later GitHub publication evidence records new doc heads/PRs and skipped/no-check
+observations separately; do not reinterpret historical CI success as a new run.
+
+API/reference anchors for S0 review (not fetched/executed as platform proof here):
+- https://learn.microsoft.com/dotnet/api/system.security.cryptography.cngkey.create
+- https://learn.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509keystorageflags
+- https://learn.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509certificateloader.loadpkcs12
+- https://learn.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.createselfsigned
+- https://learn.microsoft.com/dotnet/api/system.security.cryptography.protecteddata
+- https://learn.microsoft.com/dotnet/api/system.net.security.sslserverauthenticationoptions
+- https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
+- https://developer.android.com/privacy-and-security/security-ssl
+- https://developer.android.com/reference/javax/net/ssl/X509ExtendedTrustManager
+- https://developer.android.com/reference/javax/net/ssl/SSLParameters
+- https://developer.android.com/privacy-and-security/keystore
+- https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/skipping-workflow-runs
+Review exact version/platform remarks before selecting APIs. These links are not
+a claim that support, revocation, UI absence or lifetime semantics were verified.
+
+Owner next decision: accept/revise S0, choose test-only ephemeral identity policy
+and resolve the nonexportability/DNS-IP conflicts, then request a narrowly scoped
+W1 execution proposal with exact platform/flags/resources. No execution is approved
+by answering a generic GO for this design. Keep restored credentials locked.
+
+Current stage: documentation review deliverable only.
+NEXT native stage: REVISE / NO-GO TO EXECUTION pending the decisions above.
+NATIVE NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+STOP AND WAIT FOR OWNER REVIEW. NO MERGE OR RELEASE.
