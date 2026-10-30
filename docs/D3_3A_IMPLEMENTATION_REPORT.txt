@@ -1,0 +1,183 @@
+D3.3A TLS IDENTITY / TRANSPORT — CODE-ONLY IMPLEMENTATION REPORT
+
+STATUS: source implemented and scoped verification passed; no production activation.
+IMPORTANT VALIDATION INCIDENT: the stage's no-native-crypto test criterion was
+not fully met. An initial unfiltered legacy test run generated in-memory keys/
+certificates and real-secret samples. This is retained and disclosed below.
+It is not counted as native TLS proof. Owner review required.
+
+Repository branches: feature/d3-3a-inert-tls-transport (both)
+Windows implementation commit: c609dad6ea75766513c32071b99729b14b48c541
+Windows reviewed D3.2 base: da8acf883edc61445c1d97a3c956ae809b7c5a7f
+Android implementation commit: 9762ddf16e6c7b3a766e7d00b63c994fb4aa0e12
+Android reviewed D3.2 base: d7315bd6eb12b3a76343123e38d74839b0cf7bea
+Draft PRs target feature/d3-2-inert-foundations in their separate repositories.
+Following documentation-only commit adds this report in both; final head URLs/
+remote verification/CI observations are provided in delivery evidence.
+
+IMPLEMENTED
+- Small identity, TLS evidence, endpoint, lifecycle, authentication and cached
+read-only retrieval interfaces. No concrete I/O/security adapter or production DI.
+- AuthenticatedTlsPeer is opaque/private-constructor, with no issuer or factory.
+Synthetic metadata/booleans/hashes cannot create real evidence. DisabledTlsBoundary
+always denies/native-proof-required and never calls a snapshot source.
+- OFF/configured/eligible/stopped/shutdown planning lifecycle; restart OFF,
+shutdown terminal, no socket/start method. Explicit data-only limits, wide integer
+budget sum, timeout/cancellation metadata, no approved policy defaults.
+- Synthetic identity session checks exact canonical private IPv4/ULA, IP SAN
+type/value, endpoint port, chain/anchor digest metadata, SPKI, validity, path/EKU,
+revoked trust and monotonic/UTC/boot confidence. Failure latches.
+- Atomic commit/flush credential model with issuance, rotation, revoke, scopes,
+expiry, bounded metadata/label history, serialization and uncertain acknowledgments.
+No actual credential/token issuance or native/disk storage.
+- Every restored ledger is RESTART_LOCKED, with no unlock/recovery API. Current
+session failures/unknown writes deny all. Lost acknowledgment/crash closes it.
+A fake new-empty-session constructor argument is NOT a production recovery gate.
+- Canonical v1 schema/example/D3.2 fixture bytes unchanged. New shared fixture set:
+46 identity traces,12 credential traces,9 freshness steps,9 malformed byte cases.
+Digest manifests and identical expected decisions executed independently in C#/Kotlin.
+- Strict snapshot readers now reject malformed UTF8, negative-zero and other
+noncanonical revision forms, and unpaired surrogate escapes consistently.
+No lossy Android adapter, timestamp invention or demo/live promotion.
+- Branch-scoped safe Windows CI selection and script, preserving original tests,
+assertions and ordinary test.ps1 for other branches. No runtime dependencies added.
+
+VERIFICATION EXECUTED
+Windows Linux .NET SDK10.0.403:
+dotnet restore PeripheralBatteryCompanion.sln --locked-mode
+  PASS.
+dotnet build PeripheralBatteryCompanion.sln -c Release --no-restore
+  PASS, zero warnings/errors. Windows-targeted projects compile only.
+Initial unfiltered command:
+dotnet test tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj -c Release --no-build --no-restore
+  926 passed, zero failed/skipped, INCLUDING 13 out-of-scope legacy cases.
+Corrected subsequent selection:
+dotnet test tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName!~PublicServerCertificateInspectorTests&FullyQualifiedName!~GeneratedSecretIs256BitsRedactedRevocableAndDisposed&FullyQualifiedName!~SecretExportRequiresExplicitCorrectSizedBuffer"
+  913 passed, zero failed/skipped;13 explicitly excluded from this run.
+  Includes10 new D3.3A cases and all other eligible portable regressions.
+  Exclusions are not silently called skipped or not-run across this entire stage.
+
+Android Temurin JDK17.0.21 / Gradle8.9 / existing AGP8.7.3, Kotlin2.0.21, SDK35:
+./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
+  PASS. 56 JVM tests passed, zero failed/errors/skipped:
+  BatteryTest10, DataFoundationTest20, D3FoundationTest16, D33ATransportTest10.
+  Lint zero errors,9 existing warnings (7 GradleDependency notices,
+  DataExtractionRules, MissingApplicationIcon).
+  Existing SDK tools also emit XML-version compatibility warning (v3/v4).
+  UI-test APK compiled only; emulator/phone execution NOT RUN.
+
+Additional checks:
+Full cross-repository contract directory byte parity PASS.
+Both git diff --check PASS. Workflow YAML parsing and branch-condition review PASS.
+New runtime/test source audit found no socket/key/certificate/security-store API
+calls. Production startup/tray/HID/dashboard/manifest/publisher unchanged.
+Original v1 schema SHA256 remains:
+2d9ac5bf5e5263340bcd15736df7a9f6f6c201f5f4ad30b1fb7e858ec694bdc2
+PowerShell is absent in local executor: new PowerShell script itself NOT executed
+locally; equivalent dotnet commands ran. CI execution/status reported separately.
+
+INCIDENT DETAILS / PREVENTION
+Before inspecting all legacy test crypto calls, the unfiltered Windows project
+run executed PublicServerCertificateInspectorTests (11 cases): ECDsa.Create,
+CertificateRequest, CreateSelfSigned, public DER certificate loading/inspection.
+Two TransportSecurityPrerequisiteTests also created real-secret test samples.
+Those pre-existing tests were not edited or weakened. This exceeded the explicit
+no-certificate/native-crypto boundary despite being in-memory test material.
+No native TLS handshake/proof resulted. No Option2 fixture, certificate store
+mutation, DPAPI/Keystore, actual listener, firewall change, device install or
+physical LAN operation was invoked. No prior experiment journal was accessed.
+The initial TRX/log is preserved alongside the corrected scoped results.
+
+Subsequent runs exclude the11+2 legacy cases. scripts/Test-D33ACodeOnly.ps1 uses the
+same filter. On this exact D3.3A branch/PR head, CI skips the ordinary Windows
+full-test/publish-artifact job and runs a scoped Linux compile/test job instead.
+Other branches keep their original job. It uploads only test results, no release.
+Original test.ps1 remains available, but MUST NOT be used under current D3.3A scope.
+No further native execution is authorized by this correction or report.
+
+EVIDENCE MATRIX
+New portable metadata/model code: TESTED,10 new tests/platform, shared cases PASS.
+Scoped Windows portable selection:913 PASS,13 exclusions.
+Initial legacy certificate/secret generation: RAN OUTSIDE SCOPE (incident above).
+Native TLS identity/stack/DPAPI/ACL/Keystore proof: NOT RUN.
+Physical LAN / Android installation / two-device proof: NOT RUN.
+Production security: NOT PROVEN.
+
+RISKS / HARD BLOCKERS / D3.3B QUESTIONS
+Synthetic path/chain/EKU/hash/clock metadata is untrusted and cannot replace actual
+platform evidence. Future native issuer must bind validated immutable identity to
+connection, trust generation, endpoint, clock/boot and credential lifecycle.
+Default-off eligibility opens nothing. Limits/cancellation are not enforced sockets.
+Locks serialize fake read/revoke decisions, not a future network response write.
+
+Native persistence anti-rollback and durable revocation/restart recovery are NOT
+established. DPAPI/Keystore confidentiality alone cannot identify the latest image.
+Restored credentials must remain blocked until a separately approved durable model
+is proven; there is no fallback. Bootstrap/pairing, QR format, clock authority,
+port/interface, budgets and lifetime proposals remain owner decisions.
+
+Intended future stacks: isolated Kestrel/.NET TLS with separately proven ephemeral
+identity lifecycle; Android per-PC HttpsURLConnection/SSLSocketFactory with narrow
+anchor and normal platform chain/hostname verification plus exact IP SAN/SPKI.
+No native adapter/dependency/handshake implemented here. No trust-all, CN/DNS alias
+fallback, pin-only bypass, implicit TOFU, HTTP fallback or silent trust reset.
+Existing key-protection requirements were NOT weakened to accept a candidate
+exportable identity; policy conflict requires separate owner decision.
+
+D3.3B needs separate reviewed plan/approval: supported OS/API/flags, no named-key
+side effects, ownership/disposal, chain/EKU/time/SAN/SPKI enforcement, narrow anchor,
+connection binding, allowed listening/handshake scope and port/interface, cleanup
+ownership, durable revocation/anti-rollback, clock/boot authority, real response-
+commit races and explicit negative cases. DPAPI/Keystore/native persistence/
+physical devices each require explicit scope. No old IDs/resources may be reused.
+
+Recommendation: GO only for owner source review; NO-GO for automatic D3.3B native
+execution. Stage safety criterion exception must be reviewed, not hidden by passes.
+Rollback: keep these feature PRs unmerged, or owner-reviewed revert of just D3.3A
+commits. No key/store/journal cleanup or destructive repository operation.
+Both repositories separate; preserve unrelated/untracked files/assets/recovery.
+
+EXACT WINDOWS IMPLEMENTATION FILES
+.github/workflows/build.yml
+docs/D3_3A_TRANSPORT_REVIEW.md
+docs/contracts/d3-3a/SHA256SUMS
+docs/contracts/d3-3a/credentials.json
+docs/contracts/d3-3a/freshness.json
+docs/contracts/d3-3a/identity.json
+docs/contracts/d3-3a/rejected/escape.json
+docs/contracts/d3-3a/rejected/exponent-revision.json
+docs/contracts/d3-3a/rejected/fraction-revision.json
+docs/contracts/d3-3a/rejected/leading-zero.json
+docs/contracts/d3-3a/rejected/negative-zero.json
+docs/contracts/d3-3a/rejected/overflow.json
+docs/contracts/d3-3a/rejected/surrogate.json
+docs/contracts/d3-3a/rejected/trailing-junk.json
+docs/contracts/d3-3a/rejected/utf8.json
+scripts/Test-D33ACodeOnly.ps1
+src/PeripheralBatteryCompanion.Core/ConnectionFoundations/SnapshotWirePolicy.cs
+src/PeripheralBatteryCompanion.Core/ConnectionFoundations/SyntheticCredentialLedger.cs
+src/PeripheralBatteryCompanion.Core/ConnectionFoundations/TlsTransportBoundary.cs
+tests/PeripheralBatteryCompanion.Tests/D33ATransportTests.cs
+
+EXACT ANDROID IMPLEMENTATION FILES
+app/src/main/java/dev/peripheral/battery/foundations/StrictJsonGuard.kt
+app/src/main/java/dev/peripheral/battery/foundations/SyntheticCredentialLedger.kt
+app/src/main/java/dev/peripheral/battery/foundations/TlsTransportBoundary.kt
+app/src/test/java/dev/peripheral/battery/D33ATransportTest.kt
+docs/D3_3A_TRANSPORT_REVIEW.md
+docs/contracts/d3-3a/SHA256SUMS
+docs/contracts/d3-3a/credentials.json
+docs/contracts/d3-3a/freshness.json
+docs/contracts/d3-3a/identity.json
+docs/contracts/d3-3a/rejected/escape.json
+docs/contracts/d3-3a/rejected/exponent-revision.json
+docs/contracts/d3-3a/rejected/fraction-revision.json
+docs/contracts/d3-3a/rejected/leading-zero.json
+docs/contracts/d3-3a/rejected/negative-zero.json
+docs/contracts/d3-3a/rejected/overflow.json
+docs/contracts/d3-3a/rejected/surrogate.json
+docs/contracts/d3-3a/rejected/trailing-junk.json
+docs/contracts/d3-3a/rejected/utf8.json
+
+Following report-only file per repo: docs/D3_3A_IMPLEMENTATION_REPORT.txt
+STOP FOR OWNER REVIEW. NO MERGE, RELEASE OR NATIVE PROOF AUTHORIZED.
