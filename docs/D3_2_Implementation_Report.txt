@@ -1,0 +1,165 @@
+D3.2 CODE-ONLY FOUNDATIONS — IMPLEMENTATION REPORT
+
+Scope: portable/inert foundations only. Both repositories separate.
+GO: owner review of code-only foundations.
+NO-GO: native proof execution until separate reviewed plan and owner approval.
+Native/platform enforcement NOT RUN. Physical LAN NOT RUN.
+Production security NOT PROVEN. No listener/pairing/monitor/UI behavior enabled.
+
+Branch in each repository: feature/d3-2-inert-foundations
+Windows implementation commit: d5f611a001344ab6d8d7b4dc5ee8fc82efc63b59
+Windows base: feature/stage-a2-2c5-isolated-security-harness
+Reviewed baseline: 928e110827f02c28d4bb8fdd2fa21d483f53ed7b
+Android implementation commit: a1e03ad9fd0def184f56149a96a30d7a36a2811d
+Android base: feature/stage-a2-1-android-data-foundation
+Reviewed baseline: 29871c38ae5c69f8182d7d5f125910a9e3ed291c
+A following documentation-only commit records this report in each repository;
+final branch/PR head and CI observations are recorded in delivery evidence.
+No main-branch PR, merge/rebase/release or branch deletion authorized.
+
+CHANGES
+- Full D3.1 design checked in at Windows docs/D3_1_Secure_Connection_Design_Review.txt;
+Android links to canonical Windows design and has independent implementation notes.
+- Existing schema/example unchanged. Schema SHA256:
+2d9ac5bf5e5263340bcd15736df7a9f6f6c201f5f4ad30b1fb7e858ec694bdc2
+- Both contract directories byte-identical: digest manifest, four accepted
+synthetic vectors and thirteen rejected vectors plus expected-decision manifest.
+Both suites independently pin original schema digest and check all file digests.
+- Pure injected consent/admission/trust/pairing/credential/publication models;
+fake stores/transport only in tests. No API calls or native adapters.
+- Strict bounded readers preserve all wire fields without UI/domain adaptation.
+Android strict syntax guard rejects JSON extensions and duplicate names.
+- No runtime dependencies added. Android org.json:json:20240303 is JVM test-only
+to supply Android's existing platform JSON API under local unit tests.
+- Existing tests/assertions preserved. Existing tracked-file changes limited to
+Windows test resource configuration and Android test dependency/resource setup.
+All monitoring, tray, dashboard, manifest, assets and previous harness code unchanged.
+No old experiment artifacts accessed, adopted, cleaned or repaired.
+
+VERIFICATION EXECUTED
+Windows: .NET SDK10.0.403, Linux.
+dotnet restore PeripheralBatteryCompanion.sln --locked-mode
+  PASS.
+dotnet build PeripheralBatteryCompanion.sln -c Release --no-restore
+  Final PASS, zero warnings/errors. Initial new-test xUnit2031 analyzer error fixed
+  with predicate Assert.Single overload; assertions were not weakened.
+dotnet test tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj -c Release --no-build --no-restore
+  Final full portable suite: 916 passed, zero failed/skipped.
+  27 new D3 cases, existing889 preserved. Also final focused27 passed.
+  Windows-targeted projects compile only; Windows-specific tests NOT RUN.
+  Owner-reported prior Windows936 result is historical, not a D3.2 execution.
+
+Android: Temurin JDK17.0.21, Gradle8.9 wrapper, existing AGP8.7.3/
+Kotlin2.0.21, Android SDK35.
+./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
+  Final PASS. JVM tests46 passed, zero failures/errors/skipped:
+  BatteryTest10, DataFoundationTest20, D3FoundationTest16.
+  Lint zero errors, nine existing warnings: seven dependency-version notices,
+  DataExtractionRules and MissingApplicationIcon.
+  UI-test APK compilation PASS; UI/emulator/device test execution NOT RUN.
+  Debug APK generated at app/build/outputs/apk/debug/app-debug.apk, not committed.
+
+Additional executed checks:
+- Both repositories git diff --check PASS.
+- Independent byte parity over entire contract directory PASS.
+- Four accepted synthetic vectors validated with installed Python jsonschema
+  Draft202012Validator + FormatChecker against unchanged schema: PASS.
+- Source diff shows no production integration or INTERNET manifest permission.
+- Native CNG/certificate creation/import, DPAPI/ACL/Keystore, actual TLS or pairing,
+  sockets/listeners, firewall, real credential storage and physical LAN: NOT RUN.
+Build/dependency GitHub operations used configured proxy; no application HTTPS
+request or alternative network route was introduced.
+
+TESTED FAILURE EDGES
+Denied consent/restart/shutdown, admission byte/time/concurrency/lease limits and
+races; wrong pin/anchor/SAN/kind/endpoint/port, expired leaf, missing path/EKU,
+unknown clock; pairing claim/confirmation races, denied owner consent, expiry,
+wrong flow/verifier, lost response/crash, storage failure after possible side effect,
+including reentrant uncertainty during commit; credential scope/expiry/revocation/
+clock rollback; malformed/oversize/deep/unknown/duplicate JSON; zero versus null;
+receipt versus observation and retained provenance; unavailable/stale values;
+demo/cached/unauthenticated, duplicate/receding revisions, session changes/retired
+sessions and bounded history. These are synthetic metadata tests, not real TLS,
+native storage, cryptographic bootstrap or device accuracy proof.
+
+UNRESOLVED DECISIONS AND GATES
+No numeric policy proposal became an approved default; limits/expiry/history
+budgets are required injected values. Numbers in tests are synthetic boundary data.
+Invalid claims close this inert instance; future retry/QR UX is not approved.
+Admission has no timer; adapters must enforce actual resource limits.
+Metadata booleans cannot establish native facts or local consent from remote JSON.
+Credential decisions are in-memory only; no durable/restart/response-write guarantee.
+Publication remains unknown freshness; duplicate/reconnect cannot fabricate age.
+
+Android UI adapter intentionally NOT implemented: existing domain lacks structured
+source/socSupport/ownership, separate readAt/observedAt, lastKnown and all
+availability/reason/deviceConnection/freshness distinctions. New reader retains
+them. D3.4 needs separately reviewed domain/DTO/UI additions and stale thresholds;
+no lossy mapping or schema change invented to bypass this gap.
+
+Before native proof: review/approve exact ephemeral .NET lifecycle/flags/no-named-
+persistence semantics, DPAPI owner-ACL/nonreparse/durable envelope, narrow-anchor/
+SAN/pin platform enforcement, Keystore envelope, durable revocation/response-commit
+coordination, clock and credential epochs, QR/code/bootstrap consent, port/interface,
+lifetimes and budgets. Only then a separately authorized isolated native proof,
+followed by separately approved physical LAN tests. Option2 stays native NO-GO.
+Retired and preview IDs remain prohibited. No security proof from portable passes.
+
+EXACT WINDOWS IMPLEMENTATION FILES
+docs/D3_1_Secure_Connection_Design_Review.txt
+docs/D3_2_FOUNDATIONS.md
+docs/contracts/SHA256SUMS
+docs/contracts/golden/demo.json
+docs/contracts/golden/stale-last-known.json
+docs/contracts/golden/unavailable.json
+docs/contracts/golden/zero-and-unknown.json
+docs/contracts/rejected/demo-time.json
+docs/contracts/rejected/duplicate-device.json
+docs/contracts/rejected/duplicate-key.json
+docs/contracts/rejected/gateway-observation.json
+docs/contracts/rejected/hyperx-confidence.json
+docs/contracts/rejected/malformed.json
+docs/contracts/rejected/missing-field.json
+docs/contracts/rejected/null-available.json
+docs/contracts/rejected/percent-range.json
+docs/contracts/rejected/quoted-percent.json
+docs/contracts/rejected/unknown-enum.json
+docs/contracts/rejected/unknown-field.json
+docs/contracts/rejected/version.json
+docs/contracts/scenarios.json
+src/PeripheralBatteryCompanion.Core/ConnectionFoundations/InertPolicies.cs
+src/PeripheralBatteryCompanion.Core/ConnectionFoundations/SnapshotWirePolicy.cs
+tests/PeripheralBatteryCompanion.Tests/D3FoundationTests.cs
+tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj
+
+EXACT ANDROID IMPLEMENTATION FILES
+app/build.gradle.kts
+app/src/main/java/dev/peripheral/battery/foundations/InertPolicies.kt
+app/src/main/java/dev/peripheral/battery/foundations/SnapshotWirePolicy.kt
+app/src/main/java/dev/peripheral/battery/foundations/StrictJsonGuard.kt
+app/src/test/java/dev/peripheral/battery/D3FoundationTest.kt
+docs/D3_2_FOUNDATIONS.md
+docs/contracts/SHA256SUMS
+docs/contracts/battery-snapshot-v1.schema.json
+docs/contracts/battery-snapshot-v1.synthetic.json
+docs/contracts/golden/demo.json
+docs/contracts/golden/stale-last-known.json
+docs/contracts/golden/unavailable.json
+docs/contracts/golden/zero-and-unknown.json
+docs/contracts/rejected/demo-time.json
+docs/contracts/rejected/duplicate-device.json
+docs/contracts/rejected/duplicate-key.json
+docs/contracts/rejected/gateway-observation.json
+docs/contracts/rejected/hyperx-confidence.json
+docs/contracts/rejected/malformed.json
+docs/contracts/rejected/missing-field.json
+docs/contracts/rejected/null-available.json
+docs/contracts/rejected/percent-range.json
+docs/contracts/rejected/quoted-percent.json
+docs/contracts/rejected/unknown-enum.json
+docs/contracts/rejected/unknown-field.json
+docs/contracts/rejected/version.json
+docs/contracts/scenarios.json
+
+Following report-only file in each repo: docs/D3_2_Implementation_Report.txt
+STOP FOR OWNER REVIEW. NO NATIVE EXECUTION AUTHORIZED.
