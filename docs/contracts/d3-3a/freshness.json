@@ -1,0 +1,74 @@
+[
+  {
+    "session": "a",
+    "revision": 1,
+    "authenticated": true,
+    "synthetic": true,
+    "uncached": true,
+    "result": 0
+  },
+  {
+    "session": "a",
+    "revision": 1,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 1
+  },
+  {
+    "session": "a",
+    "revision": 1,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 3
+  },
+  {
+    "session": "a",
+    "revision": 0,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 0
+  },
+  {
+    "session": "b",
+    "revision": 0,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 1
+  },
+  {
+    "session": "a",
+    "revision": 2,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 0
+  },
+  {
+    "session": "b",
+    "revision": 9223372036854775807,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 2
+  },
+  {
+    "session": "b",
+    "revision": 9223372036854775807,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 3
+  },
+  {
+    "session": "b",
+    "revision": -1,
+    "authenticated": true,
+    "synthetic": false,
+    "uncached": true,
+    "result": 0
+  }
+]

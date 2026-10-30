@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   windows:
+    if: ${{ github.ref_name != 'feature/d3-3a-inert-tls-transport' && github.head_ref != 'feature/d3-3a-inert-tls-transport' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,4 +40,22 @@ jobs:
             test-results/latest.log
             test-results/summary.txt
             test-results/automated/**/*.trx
+          if-no-files-found: warn
+
+  d33a-code-only:
+    if: ${{ github.ref_name == 'feature/d3-3a-inert-tls-transport' || github.head_ref == 'feature/d3-3a-inert-tls-transport' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: D3.3A scoped compile and synthetic regression
+        shell: pwsh
+        run: ./scripts/Test-D33ACodeOnly.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d33a-code-only-results
+          path: test-results/d33a-code-only/*.trx
           if-no-files-found: warn

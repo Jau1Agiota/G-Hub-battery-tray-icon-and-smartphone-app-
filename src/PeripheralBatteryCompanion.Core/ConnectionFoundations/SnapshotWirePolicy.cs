@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PeripheralBatteryCompanion.Core.ConnectionFoundations;
 
@@ -9,12 +11,13 @@ public static class SnapshotWirePolicy
     public static JsonElement Read(ReadOnlyMemory<byte> bytes)
     {
         if (bytes.Length == 0 || bytes.Length > MaxBytes) throw new FormatException();
+        _ = new UTF8Encoding(false,true).GetString(bytes.Span);
         using var doc = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 16 });
         var root = doc.RootElement;
         Shape(root, "schemaVersion synthetic serverInstanceId revision capturedAt devices");
-        if (root.GetProperty("schemaVersion").GetInt32() != 1 ||
+        if (Integer(root.GetProperty("schemaVersion")) != 1 ||
             !Guid.TryParseExact(Text(root, "serverInstanceId"), "D", out var id) || id == Guid.Empty || id.ToString("D") != Text(root, "serverInstanceId") ||
-            root.GetProperty("revision").GetInt64() < 0) throw new FormatException();
+            Integer(root.GetProperty("revision")) < 0) throw new FormatException();
         var synthetic = root.GetProperty("synthetic").GetBoolean();
         Time(root.GetProperty("capturedAt"), synthetic);
         var devices = root.GetProperty("devices");
@@ -40,7 +43,7 @@ public static class SnapshotWirePolicy
     {
         Shape(r, "batteryPercent precision source readAt observedAt");
         if (r.GetProperty("batteryPercent").ValueKind != JsonValueKind.Null &&
-            r.GetProperty("batteryPercent").GetInt32() is < 0 or > 100) throw new FormatException();
+            Integer(r.GetProperty("batteryPercent")) is < 0 or > 100) throw new FormatException();
         One(r, "precision", "PRECISE APPROXIMATE ESTIMATE UNKNOWN");
         var s = r.GetProperty("source"); Shape(s, "kind socSupport ownership");
         One(s, "kind", "GHUB_GATEWAY HYPERX_SUPERVISED GHUB_STORED UNKNOWN");
@@ -51,6 +54,11 @@ public static class SnapshotWirePolicy
         if (kind == "HYPERX_SUPERVISED" && (Text(r, "precision") != "ESTIMATE" || Text(s, "ownership") != "AMBIGUOUS")) throw new FormatException();
         if (kind is "GHUB_GATEWAY" or "HYPERX_SUPERVISED" && r.GetProperty("observedAt").ValueKind != JsonValueKind.Null) throw new FormatException();
         Time(r.GetProperty("readAt"), synthetic); Time(r.GetProperty("observedAt"), synthetic);
+    }
+    private static long Integer(JsonElement x)
+    {
+        if (x.ValueKind != JsonValueKind.Number || !Regex.IsMatch(x.GetRawText(), "^(0|[1-9][0-9]*)$")) throw new FormatException();
+        return x.GetInt64();
     }
     private static void Shape(JsonElement x, string fields)
     {
