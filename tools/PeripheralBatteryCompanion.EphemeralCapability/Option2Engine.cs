@@ -119,13 +119,12 @@ internal static class Option2Engine
             try {
                 if (output is not null) {
                     // Any nonzero data after a failed fill is unexpected output, not denial proof. Never log bytes.
-                    bool observedOutput = fillReturned || fillAttempted && output.Any(b => b != 0);
+                    var clearedBuffer = Option2PrivateBuffer.Clear(output, fillReturned, fillAttempted);
+                    bool observedOutput = clearedBuffer.OutputObserved;
+                    memory = clearedBuffer.Cleared ? MemoryOutcome.ClearedFullCapacity : MemoryOutcome.Unconfirmed;
                     if (observedOutput) { outcome = Outcome.Fail; evidence.Add(new(O2Phase.Fill, Outcome.Fail, "OutputObservedEvenIfNativeCallRejected")); }
-                    CryptographicOperations.ZeroMemory(output);
-                    bool cleared = output.All(b => b == 0);
-                    memory = cleared ? MemoryOutcome.ClearedFullCapacity : MemoryOutcome.Unconfirmed;
-                    evidence.Add(new(O2Phase.Zeroization, cleared ? Outcome.Pass : Outcome.Fail));
-                    if (!cleared) outcome = Outcome.Fail;
+                    evidence.Add(new(O2Phase.Zeroization, clearedBuffer.Cleared ? Outcome.Pass : Outcome.Fail));
+                    if (!clearedBuffer.Cleared) outcome = Outcome.Fail;
                     // Never hold uncleared private output across journal I/O/flush, including rejected partial fill.
                     if (journal is not null && !journalUnsafe) {
                         try {

@@ -18,34 +18,22 @@ internal sealed class WindowsOption2Api : IO2Calls
     private sealed class Key(NCryptHandle handle) : Resource(handle), IO2Key
     {
         private readonly object sync = new();
-        private bool deleteAttempt;
-        public O2HandleState State { get; private set; } = O2HandleState.Owned;
+        private readonly Option2KeyOwnership ownership = new();
+        public O2HandleState State => ownership.State;
         public override bool? ReleaseSucceeded => State == O2HandleState.ConsumedByDelete ? true : State == O2HandleState.OwnershipUnknown ? false : base.ReleaseSucceeded;
         public override int? ReleaseHResult => State == O2HandleState.ConsumedByDelete ? 0 : State == O2HandleState.OwnershipUnknown ? null : base.ReleaseHResult;
         public override void Dispose()
         {
             lock (sync) {
-                if (State != O2HandleState.Owned) return;
-                base.Dispose(); State = O2HandleState.Released;
+                if (!ownership.BeginRelease()) return;
+                base.Dispose();
             }
         }
         internal O2Deletion DeleteOnce(int flags)
         {
             lock (sync) {
-                if (State != O2HandleState.Owned || deleteAttempt || flags != 0) throw new InvalidOperationException();
-                deleteAttempt = true;
-                try {
-                    int code = Option2Native.DeleteKey(Handle, flags);
-                    if (code == 0) {
-                        // NCryptDeleteKey has ALREADY freed this native handle. Never NCryptFreeObject it.
-                        Handle.SetHandleAsInvalid(); State = O2HandleState.ConsumedByDelete;
-                    }
-                    return new(code, State); // Known failure: still owned; docs permit FreeObject only.
-                } catch {
-                    // Unknown call outcome is not ownership. Avoid a possibly second free; report orphan/unknown.
-                    Handle.SetHandleAsInvalid(); State = O2HandleState.OwnershipUnknown;
-                    return new(null, State);
-                }
+                if (flags != 0) throw new InvalidOperationException();
+                return ownership.Delete(() => Option2Native.DeleteKey(Handle, flags), Handle.SetHandleAsInvalid);
             }
         }
     }

@@ -1,5 +1,9 @@
 # A2.2C6 — Option 2 persisted-key evidence harness / safety review
 
+> Later [focused static safety audit](STAGE_A2_2C6_STATIC_SAFETY_AUDIT.md) hardens
+> clearing-before-reporting and delete ownership, with874 portable passes. Historical
+> results below describe the original implementation; native proof still NOT RUN.
+
 **NATIVE NOT RUN; OWNER APPROVAL REQUIRED; POLICY PROOF NO-GO.**
 
 ## Authorization / preserved baseline
