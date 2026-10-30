@@ -22,5 +22,9 @@
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBModel.cs" Link="EphemeralCapability/ContractBModel.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBEngine.cs" Link="EphemeralCapability/ContractBEngine.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBNativeFlow.cs" Link="EphemeralCapability/ContractBNativeFlow.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Model.cs" Link="EphemeralCapability/Option2Model.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Engine.cs" Link="EphemeralCapability/Option2Engine.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalProtocol.cs" Link="EphemeralCapability/Option2JournalProtocol.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalSecurity.cs" Link="EphemeralCapability/Option2JournalSecurity.cs" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,17 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        // Independent Option 2 test-only route. Never falls back to A, B1 or original fixture.
+        if (args is ["--preview-option2"]) {
+            Console.WriteLine(O2Presentation.Preview(Guid.NewGuid().ToString("N"))); return 0;
+        }
+        if (args.Length > 0 && args[0] == "--reviewed-option2") {
+            var permit = O2Permit.Parse(args);
+            if (permit is null || !OperatingSystem.IsWindows()) { Console.WriteLine(O2Presentation.Stop); return 2; }
+            var result2 = Option2Engine.Run(permit, new WindowsOption2Api(), new WindowsOption2Journals());
+            foreach (string line in O2Presentation.Format(result2)) Console.WriteLine(line);
+            return result2.Result == Outcome.Pass ? 0 : result2.Result == Outcome.Inconclusive ? 3 : 1;
+        }
         // Contract B is explicitly selected and always returns here; errors never fall back to A.
         if (args is ["--preview-contract-b"]) {
             Console.WriteLine(BPresentation.Preview(Guid.NewGuid().ToString("N")));
