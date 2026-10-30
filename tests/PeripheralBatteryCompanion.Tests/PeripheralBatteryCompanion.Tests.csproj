@@ -11,4 +11,22 @@
 </ItemGroup>
 <ItemGroup>
   <ProjectReference Include="..\..\src\PeripheralBatteryCompanion.G305GHubInspector\PeripheralBatteryCompanion.G305GHubInspector.csproj" />
-</ItemGroup></Project>
+</ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../tools/PeripheralBatteryCompanion.SecurityFixture/FixtureConsent.cs" Link="SecurityFixture/FixtureConsent.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.SecurityFixture/FixtureDiagnostics.cs" Link="SecurityFixture/FixtureDiagnostics.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/CapabilityModel.cs" Link="EphemeralCapability/CapabilityModel.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/CapabilityEngine.cs" Link="EphemeralCapability/CapabilityEngine.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/InteropContracts.cs" Link="EphemeralCapability/InteropContracts.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/MetadataDiagnostics.cs" Link="EphemeralCapability/MetadataDiagnostics.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBModel.cs" Link="EphemeralCapability/ContractBModel.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBEngine.cs" Link="EphemeralCapability/ContractBEngine.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBNativeFlow.cs" Link="EphemeralCapability/ContractBNativeFlow.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Model.cs" Link="EphemeralCapability/Option2Model.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Engine.cs" Link="EphemeralCapability/Option2Engine.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalProtocol.cs" Link="EphemeralCapability/Option2JournalProtocol.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalSecurity.cs" Link="EphemeralCapability/Option2JournalSecurity.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Safety.cs" Link="EphemeralCapability/Option2Safety.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Ownership.cs" Link="EphemeralCapability/Option2Ownership.cs" />
+  </ItemGroup>
+</Project>
