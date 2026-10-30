@@ -1,5 +1,9 @@
 # A2.2C5 — ephemeral capability implementation / security review
 
+> Latest: [metadata failure investigation](STAGE_A2_2C5_METADATA_FAILURE_INVESTIGATION.md)
+> adds property-specific diagnostics after an owner metadata-inconclusive result.
+> UI-policy applicability remains unresolved; no gate bypass or native rerun authorized.
+
 > Latest: [native interop static audit](STAGE_A2_2C5_NATIVE_INTEROP_STATIC_AUDIT.md)
 > tightens full UI-policy validation and no-throw SafeHandle cleanup. Its687 portable
 > results supersede the historical674 below; native execution remains NOT RUN.

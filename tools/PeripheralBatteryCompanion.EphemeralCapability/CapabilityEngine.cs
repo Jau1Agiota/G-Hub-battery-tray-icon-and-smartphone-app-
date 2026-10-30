@@ -62,12 +62,15 @@ internal static class CapabilityEngine
             outcome = Outcome.Pass;
         }
         catch (Exception error) {
-            int? code = error is NativeFailure native ? native.Code : error is AcquisitionFailure partial ? partial.Code : null;
+            int? code = error is NativeFailure native ? native.Code : error is AcquisitionFailure partial ? partial.Code :
+                error is MetadataReadFailure read ? read.Code : null;
             outcome = code is unchecked((int)0x80090029) or unchecked((int)0x80090022) ||
                 error is MetadataFailure { Verdict: MetadataVerdict.UiRequired } ? Outcome.Inconclusive : Outcome.Fail;
             evidence.Add(new(phase, outcome, code, code is not null ? "NativeStatus" :
                 error is MetadataFailure invalid ? invalid.Verdict.ToString() :
-                error is InvalidOperationException ? "ValidationFailure" : "UnexpectedException"));
+                error is MetadataReadFailure badRead ? badRead.Error == MetadataReadError.MalformedValue ? "MalformedMetadata" : "UnexpectedMetadataException" :
+                error is InvalidOperationException ? "ValidationFailure" : "UnexpectedException",
+                error is MetadataReadFailure propertyRead ? propertyRead.Property : null));
             if (error is AcquisitionFailure acquired) {
                 evidence.Add(new(acquired.ReleasePhase, acquired.Released ? Outcome.Pass : Outcome.Fail,
                     acquired.ReleaseCode, acquired.Released ? "PartialAcquisitionReleased" : "PartialAcquisitionReleaseUnconfirmed"));

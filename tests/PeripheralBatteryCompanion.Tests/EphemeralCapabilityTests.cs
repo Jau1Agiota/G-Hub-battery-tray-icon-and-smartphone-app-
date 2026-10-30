@@ -259,6 +259,59 @@ public sealed class EphemeralCapabilityTests
             e.Category.StartsWith("PartialAcquisition", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
+    public void UnsupportedMetadataIdentifiesPropertyAndDoesNotExportOrInventZeroization(int property)
+    {
+        var api = new FakeApi();
+        api.Provider.Key.MetadataError = new MetadataReadFailure((MetadataProperty)property,
+            MetadataReadError.NativeStatus, unchecked((int)0x80090029));
+        var result = Run(api);
+        Assert.Equal(Outcome.Inconclusive, result.Capability);
+        Assert.Equal(MemoryOutcome.NotAllocated, result.Memory);
+        Assert.Equal("NO-GO", result.PolicyProof);
+        Assert.Contains(result.Evidence, e => e.Phase == Phase.Metadata && e.Property == (MetadataProperty)property &&
+            e.Category == "NativeStatus" && e.HResult == unchecked((int)0x80090029));
+        Assert.DoesNotContain("size", api.Calls);
+        Assert.DoesNotContain("fill", api.Calls);
+        Assert.Equal(1, api.Provider.Key.DisposeCount);
+        Assert.Equal(1, api.Provider.DisposeCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MalformedOrUnexpectedMetadataFailsWithSafePropertyAndCleans(bool unexpected)
+    {
+        var api = new FakeApi();
+        api.Provider.Key.MetadataError = new MetadataReadFailure(MetadataProperty.KeyName,
+            unexpected ? MetadataReadError.UnexpectedException : MetadataReadError.MalformedValue);
+        var result = Run(api);
+        Assert.Equal(Outcome.Fail, result.Capability);
+        Assert.Contains(result.Evidence, e => e.Property == MetadataProperty.KeyName && e.HResult is null &&
+            e.Category == (unexpected ? "UnexpectedMetadataException" : "MalformedMetadata"));
+        Assert.DoesNotContain("size", api.Calls);
+        Assert.Equal(1, api.Provider.Key.DisposeCount);
+        Assert.Equal(1, api.Provider.DisposeCount);
+    }
+
+    [Fact]
+    public void SecondRetiredOperationCannotEvenReadOwnerContext()
+    {
+        var api = new FakeApi();
+        foreach (var id in new[] { "3bb5de0629d640569843367dd3407fc8", "3BB5DE0629D640569843367DD3407FC8" })
+            Assert.Equal(Outcome.NotRun, CapabilityEngine.Run(id, Consent.Confirmation, api).Capability);
+        Assert.Empty(api.Calls);
+    }
+
     private sealed class FakeApi : ICapabilityApi
     {
         internal readonly List<string> Calls = [];
@@ -301,11 +354,12 @@ public sealed class EphemeralCapabilityTests
         internal bool BadMagic, BadLength, CloseFails;
         internal int DisposeCount;
         internal KeyMetadata Metadata = Expected;
+        internal MetadataReadFailure? MetadataError;
         public bool? ReleaseSucceeded { get; private set; }
         public int? ReleaseHResult => ReleaseSucceeded is null ? null : ReleaseSucceeded.Value ? 0 : unchecked((int)0x80090020);
         public void ConfigureExportableSigningOnly() => api.Step("configure");
         public void FinalizeOnce() => api.Step("finalize");
-        public KeyMetadata ReadMetadata() { api.Step("metadata"); return Metadata; }
+        public KeyMetadata ReadMetadata() { api.Step("metadata"); if (MetadataError is not null) throw MetadataError; return Metadata; }
         public int QueryEccPrivateSize() { api.Step("size"); if (SizeCode is int code) throw new NativeFailure(code); return Size; }
         public int FillEccPrivate(Span<byte> output)
         {

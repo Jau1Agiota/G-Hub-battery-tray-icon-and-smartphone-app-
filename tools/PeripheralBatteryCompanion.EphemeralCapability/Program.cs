@@ -20,7 +20,7 @@ internal static class Program
             var items = result.Evidence.Where(e => e.Phase == phase).ToArray();
             if (items.Length == 0) Console.WriteLine($"phase={phase}; status=NotRun");
             foreach (var item in items)
-                Console.WriteLine($"phase={phase}; status={item.Outcome}; category={item.Category}; HRESULT={(item.HResult is int code ? $"0x{code:X8}" : "none")}");
+                Console.WriteLine($"phase={phase}; status={item.Outcome}; category={item.Category}; property={MetadataProperties.Label(item.Property)}; HRESULT={(item.HResult is int code ? $"0x{code:X8}" : "none")}");
         }
         Console.WriteLine($"CAPABILITY={result.Capability}; zeroization={result.Memory}; POLICY PROOF={result.PolicyProof}; no persisted-target conclusion; STOP for owner review.");
         return result.Capability == Outcome.Pass ? 0 : 1;

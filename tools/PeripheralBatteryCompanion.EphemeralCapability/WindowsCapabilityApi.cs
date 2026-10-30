@@ -1,8 +1,6 @@
-using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
-using System.Text;
 
 namespace PeripheralBatteryCompanion.EphemeralCapability;
 
@@ -61,18 +59,18 @@ internal sealed class WindowsCapabilityApi : ICapabilityApi
         public KeyMetadata ReadMetadata()
         {
             if (!finalized) throw new InvalidOperationException();
-            bool software = Native.ReadText(provider, "Name") == ProviderName;
-            bool algorithm = Native.ReadText(handle, "Algorithm Name") == "ECDSA_P256" &&
-                Native.ReadText(handle, "Algorithm Group") == "ECDSA";
-            var ui = Native.ReadProperty(handle, "UI Policy");
-            if (!InteropContracts.ValidUiPolicyShape(ui, IntPtr.Size)) throw new InvalidOperationException();
+            bool software = Native.ReadText(provider, MetadataProperty.ProviderName) == ProviderName;
+            bool algorithm = Native.ReadText(handle, MetadataProperty.KeyAlgorithmName) == "ECDSA_P256" &&
+                Native.ReadText(handle, MetadataProperty.KeyAlgorithmGroup) == "ECDSA";
+            var ui = Native.ReadProperty(handle, MetadataProperty.KeyUiPolicy);
+            if (!InteropContracts.ValidUiPolicyShape(ui, IntPtr.Size)) throw new MetadataReadFailure(MetadataProperty.KeyUiPolicy, MetadataReadError.MalformedValue);
             bool noUi = InteropContracts.NoUiFlags(ui, IntPtr.Size);
             // There is no documented universal IsEphemeral BOOL. Require successful empty Name readback,
             // together with NULL-name creation. Unsupported/not-found metadata never substitutes for evidence.
-            bool unnamed = Native.ReadText(handle, "Name").Length == 0;
-            return new(software, algorithm, checked((int)Native.ReadDword(handle, "Length")),
-                Native.ReadDword(handle, "Export Policy"), Native.ReadDword(handle, "Key Type") == 0,
-                unnamed, noUi, Native.ReadDword(handle, "Key Usage") == 2);
+            bool unnamed = Native.ReadText(handle, MetadataProperty.KeyName).Length == 0;
+            return new(software, algorithm, MetadataProperties.ParseBitLength(Native.ReadDword(handle, MetadataProperty.KeyLength)),
+                Native.ReadDword(handle, MetadataProperty.KeyExportPolicy), Native.ReadDword(handle, MetadataProperty.KeyType) == 0,
+                unnamed, noUi, Native.ReadDword(handle, MetadataProperty.KeyUsage) == 2);
         }
         public int QueryEccPrivateSize()
         {
@@ -115,27 +113,23 @@ internal static class Native
     internal static unsafe void SetDword(NCryptHandle key, string property, uint value) =>
         Check(SetProperty(key, property, (IntPtr)(&value), sizeof(uint), 0));
     // Public metadata only, fixed bound; never retrieve unique/key-file names or copy any private blob here.
-    internal static unsafe byte[] ReadProperty(NCryptHandle handle, string property)
+    internal static unsafe byte[] ReadProperty(NCryptHandle handle, MetadataProperty property)
     {
-        var output = new byte[512];
-        int length;
-        fixed (byte* pointer = output) Check(GetProperty(handle, property, (IntPtr)pointer, output.Length, out length, 0));
-        if (length < 0 || length > output.Length) throw new InvalidOperationException();
-        return output[..length];
+        try {
+            var output = new byte[512];
+            int length, code;
+            fixed (byte* pointer = output)
+                code = GetProperty(handle, MetadataProperties.Describe(property).WireName, (IntPtr)pointer, output.Length, out length, 0);
+            if (code != 0) throw new MetadataReadFailure(property, MetadataReadError.NativeStatus, code);
+            if (length < 0 || length > output.Length) throw new MetadataReadFailure(property, MetadataReadError.MalformedValue);
+            return output[..length];
+        } catch (MetadataReadFailure) { throw; }
+        catch { throw new MetadataReadFailure(property, MetadataReadError.UnexpectedException); }
     }
-    internal static uint ReadDword(NCryptHandle handle, string property)
-    {
-        var bytes = ReadProperty(handle, property);
-        if (bytes.Length != 4) throw new InvalidOperationException();
-        return BinaryPrimitives.ReadUInt32LittleEndian(bytes);
-    }
-    internal static string ReadText(NCryptHandle handle, string property)
-    {
-        var bytes = ReadProperty(handle, property);
-        if (bytes.Length == 0) return "";
-        if (bytes.Length < 2 || bytes.Length % 2 != 0 || bytes[^1] != 0 || bytes[^2] != 0) throw new InvalidOperationException();
-        return Encoding.Unicode.GetString(bytes, 0, bytes.Length - 2);
-    }
+    internal static uint ReadDword(NCryptHandle handle, MetadataProperty property) =>
+        MetadataProperties.ParseDword(property, ReadProperty(handle, property));
+    internal static string ReadText(NCryptHandle handle, MetadataProperty property) =>
+        MetadataProperties.ParseText(property, ReadProperty(handle, property));
     [DllImport("ncrypt.dll", EntryPoint = "NCryptOpenStorageProvider", CharSet = CharSet.Unicode, ExactSpelling = true)]
     internal static extern int OpenProvider(out NCryptHandle provider, string name, int flags);
     [DllImport("ncrypt.dll", EntryPoint = "NCryptCreatePersistedKey", CharSet = CharSet.Unicode, ExactSpelling = true)]

@@ -3,7 +3,7 @@ namespace PeripheralBatteryCompanion.EphemeralCapability;
 internal enum Outcome { NotRun, Pass, Fail, Inconclusive }
 internal enum Phase { Consent, OwnerContext, OpenProvider, CreateUnnamedKey, Configure, Finalize, Metadata, Sizing, Fill, Structure, Zeroization, ReleaseKey, ReleaseProvider }
 internal enum MemoryOutcome { NotAllocated, ClearedFullCapacity, Unconfirmed }
-internal sealed record Evidence(Phase Phase, Outcome Outcome, int? HResult = null, string Category = "None");
+internal sealed record Evidence(Phase Phase, Outcome Outcome, int? HResult = null, string Category = "None", MetadataProperty? Property = null);
 internal sealed record CapabilityResult(Outcome Capability, MemoryOutcome Memory, IReadOnlyList<Evidence> Evidence)
 {
     internal const string Stop = "NATIVE CAPABILITY EXPERIMENT NOT RUN; OWNER AUTHORIZATION REQUIRED. POLICY PROOF REMAINS NO-GO.";
@@ -45,6 +45,7 @@ internal static class Consent
     internal const string Confirmation = "APPROVE-EPHEMERAL-CAPABILITY-ONLY";
     internal static bool ValidId(string? id) => id is not null && id.Length == 32 &&
         !id.Equals("3c4a7c190ef34f2e90625276aa9cbfdb", StringComparison.OrdinalIgnoreCase) &&
+        !id.Equals("3bb5de0629d640569843367dd3407fc8", StringComparison.OrdinalIgnoreCase) &&
         Guid.TryParseExact(id, "N", out var value) && value != Guid.Empty && id[12] == '4' && "89abAB".Contains(id[16]);
     internal static bool Allowed(string? id, string? confirmation) => ValidId(id) && confirmation == Confirmation;
     internal static string Preview(string id)
