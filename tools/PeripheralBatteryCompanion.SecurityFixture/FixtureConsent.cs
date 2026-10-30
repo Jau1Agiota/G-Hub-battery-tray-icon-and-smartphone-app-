@@ -7,6 +7,7 @@ internal static class FixtureConsent
         args[0] == "--confirm-fixture-creation" && ValidOperation(args[1]);
 
     private static bool ValidOperation(string operation) =>
+        !string.Equals(operation, "3c4a7c190ef34f2e90625276aa9cbfdb", StringComparison.OrdinalIgnoreCase) &&
         Guid.TryParseExact(operation, "N", out var id) && id != Guid.Empty &&
         operation[12] == '4' && "89abAB".Contains(operation[16]);
 

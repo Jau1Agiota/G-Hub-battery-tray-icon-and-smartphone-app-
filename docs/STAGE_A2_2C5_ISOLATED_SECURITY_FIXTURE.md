@@ -1,5 +1,10 @@
 # A2.2C5 — isolated Windows security proof harness
 
+> STOP: the first owner fixture failed at native ECC private export with 0x80090029.
+> See [failure investigation](STAGE_A2_2C5_CNG_FAILURE_INVESTIGATION.md), which supersedes
+> the export interpretation and cleanup wording below. No rerun is authorized.
+> Historical owner commands below are not a current request to execute fixtures.
+
 ## Decision / baseline
 
 Implemented for owner review and explicit Windows execution. **No native proof was

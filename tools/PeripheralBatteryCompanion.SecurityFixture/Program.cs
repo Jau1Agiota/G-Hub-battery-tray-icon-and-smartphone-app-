@@ -30,7 +30,7 @@ internal static class Fixture
     private static readonly string[] ProofCases = [
         "ordinary unelevated owner process", "fresh operation resources", "non-reparse fixture ancestor",
         "fixture directory protected current-user ownership", "fixture directory exact user-only DACL",
-        "reopened user software P256 nonexportable metadata", "native private export explicitly denied (no PFX attempted)",
+        "reopened user software P256 nonexportable metadata", "native private export rejection observed (not policy-causality proof)",
         "native nonempty key DACL read", "key owner is current user",
         "reviewed key DACL allow principals only user/SYSTEM/administrators", "preexisting key collision refused",
         "collision preserved exact public key", "leaf absent before store write", "exact CurrentUser My leaf association",
@@ -46,6 +46,7 @@ internal static class Fixture
 
     internal static int Run(string operation)
     {
+        Results.Clear();
         string keyName = "PBC-A22C5-Fixture-" + operation;
         string dns = "fixture-" + operation + ".invalid"; // Offline test SAN only, never production mapping.
         string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PBC-A22C5-Fixtures");
@@ -56,7 +57,15 @@ internal static class Fixture
         byte[]? expectedSpki = null;
         byte[]? expectedDer = null;
         var journalBytes = new List<byte>();
-        bool certificatePlanned = false, passed = false, clean = true, creationAttempted = false;
+        bool certificatePlanned = false, passed = false, clean = true, creationAttempted = false, operationFailed = false;
+        var cleanup = CleanupOutcome.NoCreationAttempted;
+        var activeOperation = FixtureOperation.Preflight;
+        string? activeProof = null;
+        void Begin(FixtureOperation operationId, string? proof = null)
+        {
+            activeOperation = operationId; activeProof = proof;
+            Console.WriteLine("CHECK: operation=" + operationId);
+        }
         Console.WriteLine("Operation: " + operation); // Anonymous operation identifier only.
         Console.WriteLine("Scope: CurrentUser software-CNG fixture key, CurrentUser/My leaf, isolated local manifest. No production identity.");
         void Record(object value)
@@ -104,27 +113,42 @@ internal static class Fixture
                 KeyUsage = CngKeyUsages.Signing, KeyCreationOptions = CngKeyCreationOptions.None
             };
             // CreateNew semantics: CNG refuses existing key; NEVER OverwriteExistingKey.
+            Begin(FixtureOperation.CreateKey);
             creationAttempted = true;
+            cleanup = CleanupOutcome.CreationOutcomeUncertain;
             createdKey = CngKey.Create(CngAlgorithm.ECDsaP256, keyName, parameters);
+            cleanup = CleanupOutcome.CreatedCleanupUnconfirmed;
             using var signing = new ECDsaCng(createdKey);
             expectedSpki = signing.ExportSubjectPublicKeyInfo();
             Record(new { state = "key-created", spki = Convert.ToBase64String(expectedSpki) });
+            Begin(FixtureOperation.ReopenKey, "reopened user software P256 nonexportable metadata");
             using (var reopened = CngKey.Open(keyName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.Silent)) {
                 Require(!reopened.IsMachineKey && reopened.Provider == CngProvider.MicrosoftSoftwareKeyStorageProvider &&
                     reopened.AlgorithmGroup == CngAlgorithmGroup.ECDsa && reopened.KeySize == 256 && reopened.ExportPolicy == CngExportPolicies.None,
                     "reopened user software P256 nonexportable metadata");
+                Begin(FixtureOperation.ExportEccPrivate, "native private export rejection observed (not policy-causality proof)");
                 byte[]? exported = null;
-                bool denied = false;
-                try { exported = reopened.Export(CngKeyBlobFormat.EccPrivateBlob); }
-                catch (CryptographicException error) when (error.HResult is unchecked((int)0x8009000B) or unchecked((int)0x80090010)) { denied = true; }
+                var observation = ExportObservation.UnexpectedFailure;
+                try {
+                    exported = reopened.Export(CngKeyBlobFormat.EccPrivateBlob);
+                    observation = FixtureDiagnostics.ClassifyExport(returnedBytes: true, hresult: null);
+                }
+                catch (CryptographicException error) {
+                    observation = FixtureDiagnostics.ClassifyExport(returnedBytes: false, hresult: error.HResult);
+                    Console.WriteLine("DIAGNOSTIC: " + FixtureDiagnostics.Failure(activeOperation, error));
+                }
                 finally { if (exported is not null) CryptographicOperations.ZeroMemory(exported); }
-                Require(denied, "native private export explicitly denied (no PFX attempted)");
+                Console.WriteLine("EXPORT OBSERVATION: " + observation + "; export-policy-causality=NOT PROVEN");
+                Require(FixtureDiagnostics.IsRejectionObserved(observation), "native private export rejection observed (not policy-causality proof)");
+                Begin(FixtureOperation.ReadKeyDacl, "native nonempty key DACL read");
                 var descriptor = reopened.GetProperty("Security Descr", (CngPropertyOptions)4).GetValue() ?? throw new InvalidOperationException(); // DACL_SECURITY_INFORMATION
                 var security = new RawSecurityDescriptor(descriptor, 0);
                 Require(security.DiscretionaryAcl is not null && security.DiscretionaryAcl.Count > 0, "native nonempty key DACL read");
                 // Owner is retrieved separately with OWNER_SECURITY_INFORMATION; never infer from file ACL.
+                Begin(FixtureOperation.ReadKeyOwner, "key owner is current user");
                 var owner = new RawSecurityDescriptor(reopened.GetProperty("Security Descr", (CngPropertyOptions)1).GetValue() ?? throw new InvalidOperationException(), 0).Owner;
                 Require(owner == sid, "key owner is current user");
+                Begin(FixtureOperation.ReadKeyDacl, "reviewed key DACL allow principals only user/SYSTEM/administrators");
                 bool safeAcl = true, userAllowed = false;
                 foreach (GenericAce ace in security.DiscretionaryAcl!) {
                     if (ace is not CommonAce entry || entry.IsCallback) { safeAcl = false; continue; }
@@ -139,11 +163,13 @@ internal static class Fixture
                 Require(safeAcl && userAllowed, "reviewed key DACL allow principals only user/SYSTEM/administrators");
             }
             // Duplicate native create must refuse, without overwrite flag.
+            Begin(FixtureOperation.DuplicateKeyCreate, "preexisting key collision refused");
             bool collisionDenied = false;
             try { using var duplicate = CngKey.Create(CngAlgorithm.ECDsaP256, keyName, parameters); }
             catch (CryptographicException error) when (error.HResult == unchecked((int)0x8009000F)) { collisionDenied = true; }
             Require(collisionDenied, "preexisting key collision refused");
             Require(signing.ExportSubjectPublicKeyInfo().AsSpan().SequenceEqual(expectedSpki), "collision preserved exact public key");
+            Begin(FixtureOperation.CreateLeaf);
             var request = new CertificateRequest("CN=PBC isolated fixture", signing, HashAlgorithmName.SHA256);
             var san = new SubjectAlternativeNameBuilder(); san.AddDnsName(dns);
             request.CertificateExtensions.Add(san.Build());
@@ -153,11 +179,13 @@ internal static class Fixture
             var now = DateTimeOffset.UtcNow;
             leaf = request.CreateSelfSigned(now.AddMinutes(-1), now.AddHours(1));
             expectedDer = leaf.RawData;
+            Begin(FixtureOperation.OpenCertificateStore);
             using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
             Require(CountExact(store, leaf.Thumbprint, expectedDer) == 0, "leaf absent before store write");
             Record(new { state = "certificate-planned", thumbprint = leaf.Thumbprint, publicDer = Convert.ToBase64String(expectedDer) });
             certificatePlanned = true;
+            Begin(FixtureOperation.AssociateLeaf, "exact CurrentUser My leaf association");
             store.Add(leaf);
             using var selected = FindExact(store, leaf.Thumbprint, expectedDer);
             Require(selected is not null, "exact CurrentUser My leaf association");
@@ -169,46 +197,59 @@ internal static class Fixture
                 Core.TransportSecurity.PublicCertificateStatus.PublicFieldsMatch, "offline exact SAN SPKI leaf fields (not TLS trust)");
             var challenge = RandomNumberGenerator.GetBytes(32);
             try {
+                Begin(FixtureOperation.SignChallenge, "associated key challenge possession");
                 var signature = privateKey!.SignData(challenge, HashAlgorithmName.SHA256);
                 using var publicKey = selected.GetECDsaPublicKey();
                 Require(publicKey!.VerifyData(challenge, signature, HashAlgorithmName.SHA256), "associated key challenge possession");
                 using var mismatch = ECDsa.Create(ECCurve.NamedCurves.nistP256);
                 Require(!mismatch.VerifyData(challenge, signature, HashAlgorithmName.SHA256), "mismatched key rejected");
             } finally { CryptographicOperations.ZeroMemory(challenge); }
+            Begin(FixtureOperation.RecordEvidence);
             Record(new { state = "proof-complete" });
             passed = true;
         }
         catch (Exception error) {
-            Console.WriteLine($"FAIL: isolated fixture halted; category={error.GetType().Name}; HRESULT=0x{error.HResult:X8}. Details withheld; no automatic adoption/repair.");
+            operationFailed = true;
+            if (activeProof is not null && (!Results.TryGetValue(activeProof, out var prior) || !prior)) Results[activeProof] = false;
+            Console.WriteLine("FAIL: isolated fixture halted; " + FixtureDiagnostics.Failure(activeOperation, error) + ". Details withheld; no automatic adoption/repair.");
         }
         finally
         {
             // Live journal + exact public identity are mandatory. Never prefix-based cleanup or startup recovery.
             try {
                 if (createdKey is not null) {
+                    Begin(FixtureOperation.CleanupValidateOwnership);
                     if (!JournalMatches() || expectedSpki is null) throw new InvalidOperationException();
                     using var current = CngKey.Open(keyName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.Silent);
                     using var currentPublic = new ECDsaCng(current);
                     if (!FixtureConsent.CanDeleteKey(operation, current.KeyName, expectedSpki,
                         currentPublic.ExportSubjectPublicKeyInfo(), JournalMatches())) throw new InvalidOperationException();
                     if (certificatePlanned && leaf is not null && expectedDer is not null) {
+                        Begin(FixtureOperation.CleanupRemoveLeaf);
                         using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
                         store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
                         using var exact = FindExact(store, leaf.Thumbprint, expectedDer);
                         if (exact is not null) store.Remove(exact);
                         if (CountExact(store, leaf.Thumbprint, expectedDer) != 0) throw new InvalidOperationException();
                     }
+                    Begin(FixtureOperation.CleanupDeleteKey);
                     current.Delete();
                     if (CngKey.Exists(keyName, CngProvider.MicrosoftSoftwareKeyStorageProvider)) throw new InvalidOperationException();
-                    Record(new { state = "owned-key-and-leaf-cleaned" });
-                    Console.WriteLine("PASS: exact owned key/leaf cleanup; ownership journal retained locally");
+                    Begin(FixtureOperation.CleanupRecordEvidence);
+                    Record(new { state = "owned-key-and-leaf-cleaned", certificatePlanned });
+                    cleanup = CleanupOutcome.CreatedThenCleaned;
+                    Console.WriteLine("PASS: cleanup=" + FixtureDiagnostics.Cleanup(cleanup, certificatePlanned));
                 } else if (creationAttempted) { clean = false; Console.WriteLine("FAIL: creation outcome uncertain; review operation orphan locally"); }
                 else Console.WriteLine("PASS: no key or certificate creation attempted; any manifest retained locally");
-            } catch { clean = false; Console.WriteLine("FAIL: CLEANUP NOT CONFIRMED; preserve operation journal for manual review; no broad cleanup"); }
+            } catch (Exception error) {
+                clean = false;
+                Console.WriteLine("FAIL: CLEANUP NOT CONFIRMED; " + FixtureDiagnostics.Failure(activeOperation, error) +
+                    "; preserve operation journal for manual review; no broad cleanup");
+            }
             leaf?.Dispose(); createdKey?.Dispose(); journal?.Dispose();
         }
         foreach (var test in ProofCases) if (!Results.ContainsKey(test)) Console.WriteLine("NOT RUN: " + test);
-        Console.WriteLine($"Proof checks: passed={Results.Count(p => p.Value)}, failed={Results.Count(p => !p.Value)}, not-run={ProofCases.Count(p => !Results.ContainsKey(p))}; cleanup={(clean ? "confirmed/no-key-created" : "NOT CONFIRMED")}");
+        Console.WriteLine($"Proof checks: passed={Results.Count(p => p.Value)}, failed={Results.Count(p => !p.Value)}, not-run={ProofCases.Count(p => !Results.ContainsKey(p))}; operation-errors={(operationFailed ? 1 : 0)}; cleanup={FixtureDiagnostics.Cleanup(cleanup, certificatePlanned)}");
         Console.WriteLine("NOT RUN: cross-user denial, separate-process/session restart, PFX export, DPAPI, TLS, pairing, physical devices");
         Console.WriteLine("LIMIT: ACL evidence does not exclude privileged administrators/SYSTEM or same-user tampering.");
         Console.WriteLine(passed && clean ? "RESULT: PASS (isolated proof only); STOP for review" : "RESULT: FAIL; STOP for review");

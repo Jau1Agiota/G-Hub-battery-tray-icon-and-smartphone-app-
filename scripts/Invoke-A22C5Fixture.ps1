@@ -6,6 +6,7 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 if ($env:OS -ne 'Windows_NT') { throw 'Windows required. Nothing executed.' }
 $parsed = [Guid]::Empty
+if ($OperationId -ieq '3c4a7c190ef34f2e90625276aa9cbfdb') { throw 'Retired failed operation: no rerun, adoption, or cleanup authorized. Nothing executed.' }
 if ($Confirmation -cne 'CREATE-ISOLATED-CURRENTUSER-FIXTURE' -or
     -not [Guid]::TryParseExact($OperationId, 'N', [ref]$parsed) -or $parsed -eq [Guid]::Empty) {
     throw 'Exact confirmation and fresh preview operation ID required. Nothing executed.'
