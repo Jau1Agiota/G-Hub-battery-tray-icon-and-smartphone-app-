@@ -1,0 +1,86 @@
+W1-PREP STATIC EVIDENCE — DOCUMENTATION ONLY
+NATIVE NOT RUN; TESTS NOT RUN; LAN NOT RUN; PRODUCTION SECURITY NOT PROVEN.
+
+1. AUTHORITY / BASELINE
+Owner accepted preparation direction: unnamed None-policy P-256 key plus one
+PUBLIC leaf; TEST-ONLY ACL evidence NOT ESTABLISHED. This is not runnable-project,
+build, discovery, native execution or production approval. No need to reapprove
+that accepted preparation direction; exact later gates still require consent.
+
+Windows S0 local+remote:3c374e6f595f62c0cb011888bf764ba01b9cba98.
+Android S0 local+remote:a9c933d01af446ec06fb802fbb9d7f4c3799b2d5.
+PR17 / PR6 inspected open, draft, unmerged, base feature/d3-3b-native-proof-design.
+Working trees initially clean. New branches feature/w1-prep-isolated-implementation-spec
+created from those respective S0 heads after remote verification. No history rewrite.
+
+2. ACTUAL STATIC WORK
+Read S0 report/checklist/Android implications, inherited incident/policy records,
+existing project/package/version metadata and the current CI/runner text. Re-read
+selected S0-retrieved official v10.0.0 source excerpts for creation, factory export
+policy, certificate CreateSelfSigned/CopyWithPrivateKey and unnamed-key association.
+Text was inspected, never compiled, interpreted or executed.
+
+S0 source anchor remains60629d14374c56f1cb51819049ad1fa529307f8d.
+Documentation D / source-inference I / actual-platform U distinctions retained.
+The actual owner runtime is UNKNOWN, so no servicing reconciliation was invented.
+No claim that v10.0.0 matches the owner's eventual testhost is made.
+
+Static operations: Git status/head/branch/remote/PR metadata reads; source/docs
+text reads; documentation edits; whitespace/path-diff review; docs-only commits/
+push and draft PR publication. Only newly requested documentation is changed.
+No dotnet/version probe, PowerShell block, build/test/discovery, native API,
+certificate/key generation/import/signing, provider/store inspection, emulator,
+device, application client/listener or firewall operation executed by this stage.
+The one owner-only metadata command is text inside a Markdown file, not a new script.
+
+3. KNOWN VS UNKNOWN
+Known: repository SDK declaration10.0.402/latestPatch; historical owner SDK10.0.402
+report exists. Neither is current Windows/runtime/provider proof.
+Known: accepted preparation scope and existing production protection requirements;
+they are not weakened. Native export denial/ACL/TLS are not proven.
+Unknown: current owner Windows edition/build/UBR/architecture, installed and selected
+SDK/runtime servicing versions, user/profile/elevation/provider context and module.
+Unknown: exact runtime-specific call graph/interop/helpers and imported testhost /
+SDK/package targets. No resolved W1 project/dependency/binary manifests exist.
+Unset: test IP, validity/clock confidence, serial, precise limits/output destination,
+source/binary hashes, exact later commands and consent mechanism.
+Blocked: runnable implementation, build/discovery and native execution until their
+independent gates are fulfilled. Metadata intake is not implementation permission.
+
+4. DOCUMENTATION FILE DELTA
+Windows NEW ONLY:
+docs/W1_PREP_ISOLATED_IMPLEMENTATION_SPEC.txt
+docs/W1_PREP_APPROVAL_GATES.md
+docs/W1_PREP_STATIC_EVIDENCE.txt
+Android NEW ONLY:
+docs/W1_PREP_ANDROID_DEPENDENCIES.md
+No source/tests/build/CI/solution/runtime configuration/old report changes.
+No test project, permit, operation ID, key/cert/output fixture or native artifacts.
+Any downloadable prep report is documentation, not a W1 execution result.
+
+5. INCIDENT / PUBLICATION PREVENTION
+D3.3A11 certificate cases + two secret-sample cases ran out of scope; report
+unchanged and incident not relabeled. Existing unfiltered legacy test runners,
+previews and Option2 remain forbidden. Constructors/default factories/imports /
+discovery/teardown are to be audited, not trusted from names/negative filters.
+No old key/journal inspection, recovery, cleanup or ID reuse. Retired/preview IDs
+are listed only as deny history in the implementation spec, never executed.
+
+[skip ci] on documentation commits is intentional: normal feature push/PR would
+otherwise activate existing Windows full-test/publish jobs. CI configuration stays
+unchanged. No workflow dispatch/rerun; after publication inspect runs and stop if
+execution is triggered. Final remote SHA/PR/no-run observations reported in delivery
+evidence after publication. No runtime PASS counts are manufactured for W1-PREP.
+
+6. CURRENT RESULT / REQUEST
+Documentation preparation complete; actual platform and servicing mapping blocked
+pending owner-only metadata inspection and target selection. Review the single
+PowerShell metadata block in W1_PREP_APPROVAL_GATES.md and share sanitized output
+if willing. It is not executed in Codex and opens no crypto provider/key/store.
+Provider DLL metadata/installed runtimes do not prove actual provider behavior or
+selected W1 runtime; those remain distinct unknowns until properly established.
+
+Then separately review Gate I implementation-only request, Gate B build/dependency/
+discovery request and Gate E one-shot native execution request. None granted now.
+No W1 execution, associated server identity, Android native proof, durable storage,
+LAN, merge or release. STOP FOR OWNER REVIEW.
