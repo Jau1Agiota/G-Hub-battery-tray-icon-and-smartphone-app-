@@ -27,5 +27,6 @@
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalProtocol.cs" Link="EphemeralCapability/Option2JournalProtocol.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2JournalSecurity.cs" Link="EphemeralCapability/Option2JournalSecurity.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Safety.cs" Link="EphemeralCapability/Option2Safety.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Ownership.cs" Link="EphemeralCapability/Option2Ownership.cs" />
   </ItemGroup>
 </Project>

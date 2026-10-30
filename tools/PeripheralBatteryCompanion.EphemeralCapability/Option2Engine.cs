@@ -8,6 +8,7 @@ internal static class Option2Engine
     {
         if (permit is null || !permit.Consume()) return new(Outcome.NotRun, MemoryOutcome.NotAllocated, O2Cleanup.NoKeyCreationAttempted, [new(O2Phase.Consent, Outcome.NotRun)]);
         var plan = permit.Plan;
+        var ownership = new Option2Ownership();
         var evidence = new List<O2Evidence> { new(O2Phase.Consent, Outcome.Pass) };
         var outcome = Outcome.Inconclusive; // No unconditional policy-enforcement success exists.
         var cleanup = O2Cleanup.NoKeyCreationAttempted;
@@ -15,17 +16,17 @@ internal static class Option2Engine
         var phase = O2Phase.Owner;
         IResource? provider = null; IO2Key? created = null, reopened = null; IO2Journal? journal = null;
         byte[]? binding = null, output = null;
-        bool creationAttempt = false, bound = false, journalUnsafe = false, identityUnsafe = false, originalReleaseFailed = false, fillAttempted = false, fillReturned = false, deferredRejectionRecord = false;
+        bool creationAttempt = false, bound = false, journalUnsafe = false, fillAttempted = false, fillReturned = false, deferredRejectionRecord = false;
         void Pass(string category = "None") => evidence.Add(new(phase, Outcome.Pass, category));
         void Check(bool valid) { if (!valid) throw new InvalidOperationException(); }
         void Record(O2Stage stage, byte[]? publicBinding = null)
         {
-            try { journal!.Append(stage, publicBinding); } catch { journalUnsafe = true; throw; }
+            try { journal!.Append(stage, publicBinding); } catch { journalUnsafe = true; ownership.MarkUncertain(); throw; }
         }
         void VerifyJournal()
         {
             try { if (!journal!.Verify(plan, binding!)) { journalUnsafe = true; throw new InvalidOperationException(); } }
-            catch { journalUnsafe = true; throw; }
+            catch { journalUnsafe = true; ownership.MarkUncertain(); throw; }
         }
         void ExactIdentity(IO2Key key)
         {
@@ -34,7 +35,7 @@ internal static class Option2Engine
                 Check(calls.ReadText(key, MetadataProperty.KeyName) == plan.KeyName);
                 Check(calls.ReadDword(key, MetadataProperty.KeyType) == 0);
                 Check(calls.PublicSpki(key).AsSpan().SequenceEqual(binding));
-            } catch { identityUnsafe = true; throw; }
+            } catch { ownership.MarkUncertain(); throw; }
         }
         void CloseKey(ref IO2Key? key, O2Phase releasePhase)
         {
@@ -55,20 +56,23 @@ internal static class Option2Engine
             phase = O2Phase.Provider; provider = calls.OpenProvider(O2Plan.Provider, 0); Pass();
             phase = O2Phase.Preflight; Check(!calls.ExactKeyExists(provider, plan.KeyName, 0)); Pass("FreshExactNameOnlyNoEnumeration");
             phase = O2Phase.Journal; journal = journals.CreateFresh(plan); Record(O2Stage.Planned); Pass();
-            phase = O2Phase.Create; creationAttempt = true; cleanup = O2Cleanup.OrphanUnconfirmed;
-            created = calls.Create(provider, O2Plan.Algorithm, plan.KeyName, 0, 0); Record(O2Stage.Created); Pass();
+            phase = O2Phase.Create; ownership.BeginCreate(); creationAttempt = true; cleanup = O2Cleanup.OrphanUnconfirmed;
+            created = calls.Create(provider, O2Plan.Algorithm, plan.KeyName, 0, 0); ownership.Created(created.State); Record(O2Stage.Created); Pass();
             phase = O2Phase.SetExportPolicy; calls.SetDword(created, MetadataProperty.KeyExportPolicy, 0, 0); Pass("Requested0SetReturnedSuccessNotReadback");
             phase = O2Phase.SetSigningUsage; calls.SetDword(created, MetadataProperty.KeyUsage, 2, 0); Pass();
             phase = O2Phase.SetUiPolicy; calls.SetUiPolicy(created, 1, 0, 0); Pass("PersistedUi1Flags0NotNoDialogGuarantee");
-            phase = O2Phase.Configure; Pass("GenerationSettingsCompleteNotReadback");
-            phase = O2Phase.Finalize; calls.FinalizeKey(created, 0); Record(O2Stage.Finalized); Pass();
-            phase = O2Phase.Binding; binding = calls.PublicSpki(created); Check(O2Binding.Valid(binding));
-            Record(O2Stage.Bound, binding); bound = true; VerifyJournal(); ExactIdentity(created); Pass("PublicBindingDurablyRecorded");
+            phase = O2Phase.Configure; ownership.Configured(); Pass("GenerationSettingsCompleteNotReadback");
+            phase = O2Phase.Finalize; ownership.BeginFinalize(); calls.FinalizeKey(created, 0); ownership.Finalized(); Record(O2Stage.Finalized); Pass();
+            phase = O2Phase.Binding; ownership.BeginBinding(); binding = calls.PublicSpki(created); Check(O2Binding.Valid(binding));
+            Record(O2Stage.Bound, binding); bound = true; ownership.BindingFlushed();
+            VerifyJournal(); ExactIdentity(created); ownership.BindingVerified(); Pass("DurableBindingAndIndependentLiveIdentityVerified");
             phase = O2Phase.CloseCreated;
+            ownership.BeginCreationRelease();
             var initial = created; CloseKey(ref created, O2Phase.ReleaseCreated);
-            originalReleaseFailed = initial.ReleaseSucceeded != true; Check(!originalReleaseFailed); Pass();
-            phase = O2Phase.Reopen; reopened = calls.Reopen(provider, plan.KeyName, 0, 0); Record(O2Stage.Reopened); Pass();
-            phase = O2Phase.Identity; ExactIdentity(reopened); Pass();
+            ownership.CreationReleased(initial.ReleaseSucceeded == true); Pass();
+            phase = O2Phase.Reopen; ownership.BeginReopen(); reopened = calls.Reopen(provider, plan.KeyName, 0, 0);
+            ownership.Reopened(reopened.State); Record(O2Stage.Reopened); Pass();
+            phase = O2Phase.Identity; ExactIdentity(reopened); ownership.ReopenedVerified(); Pass();
             phase = O2Phase.Metadata;
             Check(calls.ReadText(reopened, MetadataProperty.KeyAlgorithmName) == O2Plan.Algorithm);
             Check(calls.ReadText(reopened, MetadataProperty.KeyAlgorithmGroup) == "ECDSA");
@@ -99,6 +103,7 @@ internal static class Option2Engine
             outcome = Outcome.Fail; evidence.Add(new(phase, Outcome.Fail, returned == CapabilityEngine.BlobSize && CapabilityEngine.ValidStructure(output)
                 ? "PrivateExportReturnedNonexportabilityClaimFailed" : "UnexpectedOutputOrMalformedLength"));
         } catch (Exception error) {
+            ownership.OperationFailed();
             int? code = error is NativeFailure native ? native.Code : error is AcquisitionFailure partial ? partial.Code : error is MetadataReadFailure read ? read.Code : null;
             bool rejection = phase is O2Phase.Sizing or O2Phase.Fill && code is unchecked((int)0x80090029) or unchecked((int)0x8009000A) or unchecked((int)0x8009000B) or unchecked((int)0x80090010);
             bool inconclusive = rejection || code is unchecked((int)0x80090029) or unchecked((int)0x80090022);
@@ -138,19 +143,20 @@ internal static class Option2Engine
                     var live = reopened ?? created;
                     if (creationAttempt) {
                         cleanup = O2Cleanup.Unconfirmed;
-                        Check(bound && !journalUnsafe && !identityUnsafe && !originalReleaseFailed && binding is not null && live is not null && live.State == O2HandleState.Owned);
+                        Check(bound && !journalUnsafe && binding is not null && live is not null && ownership.CleanupEligible(live.State));
                         phase = O2Phase.CleanupValidate; VerifyJournal(); ExactIdentity(live!); evidence.Add(new(phase, Outcome.Pass));
-                        Record(O2Stage.DeleteAttempted);
+                        ownership.BeginDelete(live!.State); Record(O2Stage.DeleteAttempted);
                         phase = O2Phase.Delete;
                         var deleted = calls.Delete(live!, 0);
                         if (deleted.Code != 0 || deleted.State != O2HandleState.ConsumedByDelete || live!.State != O2HandleState.ConsumedByDelete)
                             evidence.Add(new(phase, Outcome.Fail, "DeleteFailureOrOwnershipUnconfirmedNoRetry", deleted.Code));
-                        Check(deleted.Code == 0 && deleted.State == O2HandleState.ConsumedByDelete && live!.State == O2HandleState.ConsumedByDelete);
+                        ownership.Deleted(deleted, live!.State);
                         evidence.Add(new(phase, Outcome.Pass, "ExactOwnedDeleteAndHandleConsumption", 0));
                         phase = O2Phase.CleanupRecord; Record(O2Stage.Deleted); Record(O2Stage.Completed);
                         cleanup = O2Cleanup.ExactDeleteAndJournalConfirmed; evidence.Add(new(phase, Outcome.Pass));
                     }
                 } catch {
+                    ownership.MarkUncertain();
                     outcome = Outcome.Fail;
                     cleanup = bound ? O2Cleanup.Unconfirmed : O2Cleanup.OrphanUnconfirmed;
                     evidence.Add(new(phase is O2Phase.Delete or O2Phase.CleanupRecord ? phase : O2Phase.CleanupValidate, Outcome.Fail, "OrphanOrCleanupUnconfirmedNoRecovery"));
@@ -172,6 +178,6 @@ internal static class Option2Engine
                 }
             }
         }
-        return new(outcome, memory, cleanup, evidence);
+        return new(outcome, memory, cleanup, evidence, ownership.State);
     }
 }

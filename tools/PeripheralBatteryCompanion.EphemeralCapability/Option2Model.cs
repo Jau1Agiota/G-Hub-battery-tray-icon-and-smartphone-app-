@@ -8,7 +8,7 @@ internal enum O2Stage { Planned, Created, Finalized, Bound, Reopened, Validated,
 internal enum O2HandleState { Owned, Released, ConsumedByDelete, OwnershipUnknown }
 internal enum O2Cleanup { NoKeyCreationAttempted, OrphanUnconfirmed, Unconfirmed, ExactDeleteAndJournalConfirmed }
 internal sealed record O2Evidence(O2Phase Phase, Outcome Outcome, string Category = "None", int? HResult = null, MetadataProperty? Property = null);
-internal sealed record O2Result(Outcome Result, MemoryOutcome Memory, O2Cleanup Cleanup, IReadOnlyList<O2Evidence> Evidence)
+internal sealed record O2Result(Outcome Result, MemoryOutcome Memory, O2Cleanup Cleanup, IReadOnlyList<O2Evidence> Evidence, O2OwnershipState Ownership = O2OwnershipState.NotStarted)
 {
     internal const string Contract = "PersistedKeyEvidence/Option2-v1";
     internal string PolicyProof => "NO-GO";
@@ -30,7 +30,8 @@ internal sealed class O2Permit
     internal const string Confirmation = "APPROVE-ISOLATED-PERSISTED-OPTION2";
     internal const string UiAcknowledgement = "ACKNOWLEDGE-FLAGS0-UI-AND-ORPHAN-RISK";
     internal static bool ValidId(string? id) => Consent.ValidId(id) &&
-        !string.Equals(id, "6df3c74dc1804991a04730bd39aa519d", StringComparison.OrdinalIgnoreCase);
+        !string.Equals(id, "6df3c74dc1804991a04730bd39aa519d", StringComparison.OrdinalIgnoreCase) &&
+        !string.Equals(id, "ff28360e68f249439294475e8da21614", StringComparison.OrdinalIgnoreCase); // preview-only; never execution approval
     internal static O2Permit? Create(string? contract, string? id, string? confirmation, string? ui) =>
         contract == O2Result.Contract && ValidId(id) && confirmation == Confirmation && ui == UiAcknowledgement ? new(id!) : null;
     internal static O2Permit? Parse(string[] args) => args.Length == 5 && args[0] == "--reviewed-option2"
@@ -88,6 +89,6 @@ internal static class O2Presentation
             if (entries.Length == 0) yield return $"phase={phase}; status=NotRun";
             foreach (var entry in entries) yield return $"phase={phase}; status={entry.Outcome}; category={entry.Category}; property={MetadataProperties.Label(entry.Property)}; HRESULT={(entry.HResult is int code ? $"0x{code:X8}" : "none")}";
         }
-        yield return $"memory={result.Memory}; cleanup={result.Cleanup}; rejection is not policy causality; provider UI possible; STOP for owner review; production/policy=NO-GO";
+        yield return $"memory={result.Memory}; cleanup={result.Cleanup}; ownership-proof-state={result.Ownership}; rejection is not policy causality; provider UI possible; STOP for owner review; production/policy=NO-GO";
     }
 }

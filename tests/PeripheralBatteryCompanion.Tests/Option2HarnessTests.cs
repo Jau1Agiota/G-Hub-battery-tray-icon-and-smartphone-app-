@@ -11,6 +11,42 @@ public sealed class Option2HarnessTests
     private static O2Permit Permit() => O2Permit.Create(O2Result.Contract, Id, O2Permit.Confirmation, O2Permit.UiAcknowledgement)!;
     private static O2Result Run(World world, Func<int, byte[]>? allocate = null) => Option2Engine.Run(Permit(), world, world, allocate);
 
+    [Theory]
+    [InlineData("create")] [InlineData("set-KeyExportPolicy")] [InlineData("set-KeyUsage")]
+    [InlineData("ui-set")] [InlineData("finalize")] [InlineData("public-spki")]
+    public void ErrorAfterPossibleNativeSideEffectPreservesOrphanWithoutRecovery(string edge)
+    {
+        var world = new World { ThrowAt = edge, CreateSideEffectFirst = true };
+        var result = Run(world);
+        Assert.True(world.PersistentKey);
+        Assert.Equal(O2OwnershipState.Unknown, result.Ownership);
+        Assert.Equal(O2Cleanup.OrphanUnconfirmed, result.Cleanup);
+        Assert.Equal(0, world.DeleteCount);
+        Assert.DoesNotContain("reopen", world.Log);
+    }
+
+    [Theory]
+    [InlineData(1)] [InlineData(2)] [InlineData(3)]
+    public void UnusableCreatedHandleCannotBecomeBindingProof(int state)
+    {
+        var world = new World(); world.Original.State = (O2HandleState)state;
+        var result = Run(world);
+        Assert.Equal(O2OwnershipState.Unknown, result.Ownership);
+        Assert.Equal(0, world.DeleteCount);
+        Assert.DoesNotContain("finalize", world.Log);
+        Assert.DoesNotContain("reopen", world.Log);
+    }
+
+    [Fact]
+    public void FlushedBindingWithoutIndependentVerificationNeverAuthorizesCleanup()
+    {
+        var world = new World { InvalidJournalVerify = 1 };
+        var result = Run(world);
+        Assert.Equal(O2Stage.Bound, world.Journal.Stage);
+        Assert.Equal(O2OwnershipState.Unknown, result.Ownership);
+        Assert.Equal(0, world.DeleteCount); Assert.DoesNotContain("reopen", world.Log);
+    }
+
     [Fact]
     public void ExactOrderedTargetFlowReadsActualZeroProvesPossessionAndConsumesDeleteHandle()
     {
@@ -371,6 +407,7 @@ public sealed class Option2HarnessTests
         internal string? ProviderName, Algorithm, CreatedName, ThrowAt, FailedRelease, PartialAt;
         internal int CreateLegacy, CreateFlags, FinalizeFlags, DeleteCount, BadBindingRead, SpkiReads, WrongMetadata = -1, Size = 104, Filled = 104, InvalidJournalVerify;
         internal int? SizeCode = unchecked((int)0x80090029), FillCode;
+        internal bool CreateSideEffectFirst;
         internal bool Owner = true, ExistingKey, JournalCreationFailure, PersistentKey, MalformedUi, GoodSignature = true, WritePartial = true, InterruptAfterFlush;
         internal O2Stage? InterruptedStage;
         internal int DeleteMode;
@@ -386,7 +423,7 @@ public sealed class Option2HarnessTests
         public bool ExactKeyExists(IResource provider, string name, int flags) { Assert.Same(Provider, provider); Assert.Equal(new O2Plan(Id).KeyName, name); Assert.Equal(0, flags); Step("preflight"); return ExistingKey; }
         public IO2Journal CreateFresh(O2Plan plan) { Step("journal-create"); if (JournalCreationFailure) throw new InvalidOperationException(); Assert.Equal(Id, plan.Operation); return Journal; }
         public IO2Key Create(IResource provider, string algorithm, string name, int legacy, int flags)
-        { Assert.Same(Provider, provider); Algorithm = algorithm; CreatedName = name; CreateLegacy = legacy; CreateFlags = flags; Step("create"); PersistentKey = true; if (PartialAt == "create") { Original.Dispose(); throw new AcquisitionFailure(unchecked((int)0x80090029), Phase.ReleaseKey, Original.ReleaseSucceeded == true, Original.ReleaseHResult); } return Original; }
+        { Assert.Same(Provider, provider); Algorithm = algorithm; CreatedName = name; CreateLegacy = legacy; CreateFlags = flags; if (CreateSideEffectFirst) PersistentKey = true; Step("create"); PersistentKey = true; if (PartialAt == "create") { Original.Dispose(); throw new AcquisitionFailure(unchecked((int)0x80090029), Phase.ReleaseKey, Original.ReleaseSucceeded == true, Original.ReleaseHResult); } return Original; }
         public void SetDword(IO2Key key, MetadataProperty property, uint value, int flags) { Assert.Same(Original, key); Sets.Add((property, value, flags)); Step("set-" + property); }
         public void SetUiPolicy(IO2Key key, uint version, uint flags, int callFlags) { Assert.Same(Original, key); UiSet = (version, flags, callFlags); Step("ui-set"); }
         public void FinalizeKey(IO2Key key, int flags) { Assert.Same(Original, key); FinalizeFlags = flags; Step("finalize"); }
