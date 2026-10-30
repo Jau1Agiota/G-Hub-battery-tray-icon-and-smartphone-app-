@@ -15,5 +15,7 @@
   <ItemGroup>
     <Compile Include="../../tools/PeripheralBatteryCompanion.SecurityFixture/FixtureConsent.cs" Link="SecurityFixture/FixtureConsent.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.SecurityFixture/FixtureDiagnostics.cs" Link="SecurityFixture/FixtureDiagnostics.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/CapabilityModel.cs" Link="EphemeralCapability/CapabilityModel.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/CapabilityEngine.cs" Link="EphemeralCapability/CapabilityEngine.cs" />
   </ItemGroup>
 </Project>
