@@ -1,0 +1,207 @@
+W1 GATE P BLOCKER RESOLUTION — STATIC RESEARCH ONLY
+2026-10-30
+NATIVE NOT RUN / TESTS NOT RUN / LAN NOT RUN / PRODUCTION SECURITY NOT PROVEN.
+
+DECISION: REVISE before requesting Gate I.
+P1 repository-revision discrepancy RESOLVED by official VMR manifest.
+P2 presence-aware public API design SPECIFIED, with allocation limits disclosed.
+P3 deterministic host design SPECIFIED; selected/loaded runtime NOT OBSERVED.
+P4 owner decision sheet READY; implementation-boundary decisions still OPEN.
+No harness, project, executable defaults, native probes or commands created.
+
+1. SCOPE AND BASELINES
+Owner brief authorizes four NEW docs, public HTTPS/text/archive research, two new
+branches/pushes/draft PRs only. Existing reports remain historical evidence; these
+new findings supersede their unresolved questions without rewriting them.
+Verified Windows PR19 open/draft/unmerged:
+9a913fd4bfb2d4a5449ea466adb7f6af489e57c1.
+Verified Android PR8 open/draft/unmerged:
+d49b97e27de1288c053d771ac50ba981669d3a9a.
+Both base feature/w1-prep-isolated-implementation-spec; local HEADs matched,
+working trees clean, requested output names absent. Created new branches at those
+exact commits:feature/w1-gate-p-blocker-resolution.
+New draft PR target in both:feature/w1-gate-p-runtime-source-reconciliation.
+
+Owner-reported Windows11 Home26200.9711/x64 OS+x64 AMD64 PowerShell, interactive,
+non-elevated/profile-loaded; installed SDK10.0.402/runtime10.0.13; DLL present
+10.0.26100.1. These remain owner reports, not fresh cloud probes. SDK/runtime are
+available but NOT SELECTED/LOCKED/testhost-observed. Software KSP registration,
+actual loaded context and behavior remain UNVERIFIED. No identity/path data kept.
+
+Accepted FOR PREPARATION: one unnamed nonexportable P-256 key, one PUBLIC-ONLY
+signed leaf, ACL NOT ESTABLISHED under TEST-ONLY exception. Not reopened here.
+Production NonExportable AND CurrentUserAclRestricted remains unchanged.
+Public leaf is NOT an associated usable TLS server identity.
+
+Evidence grades:
+DOCUMENTED = official Microsoft contract/build manifest or repository documentation.
+STATIC INFERENCE = direct file/metadata observation and source reasoning.
+ACTUAL RUNTIME EVIDENCE = NONE produced in this stage; owner inventory is not W1 proof.
+All future native effects/loaded modules/cleanup/nonexportability remain UNPROVEN.
+
+2. P1 — BOUNDED PROVENANCE RESEARCH RESULT
+Previous archive observation preserved: official dotnet-runtime10.0.13-win-x64 ZIP,
+SHA512 matched Microsoft release metadata:
+2b98792ce86adc50899764ad2e4d21bd25cfda5432eeb0b4dfe7944f3ea049f9e0570a8f4aee92314d97cdb5f8b7be1363d501fc5012e680371e607af648ef40
+Its shared/Microsoft.NETCore.App/10.0.13/.version contains:
+4099f83977f4d29604a9aeb971fb0a7bc1d5f699 then10.0.13.
+The ZIP is retained outside Git; no binaries extracted, loaded, installed or run.
+Prior failed runtime-repo lookup422/compare404 remain valid observations, but the
+assumption that the embedded commit must belong to dotnet/runtime was incomplete.
+
+R1 https://api.github.com/repos/dotnet/dotnet/commits/4099f83977f4d29604a9aeb971fb0a7bc1d5f699
+Resolves publicly in dotnet/dotnet (VMR), not dotnet/runtime.
+R2 https://api.github.com/repos/dotnet/dotnet/git/ref/tags/v10.0.13
+Official VMR v10.0.13 tag resolves directly to that SAME commit.
+R3 https://github.com/dotnet/dotnet/blob/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/source-manifest.json#L81-L86
+Manifest runtime entry: path runtime; remoteUri https://github.com/dotnet/runtime;
+commitSha6aa72daa24f66c01c3d7b6a32519e9d21396deec; barId333141.
+Manifest SHA25633851205223d10e88b6b91bfa33d0f5564ac5df90ad1f0b236be6f3819e33e46.
+R4 https://github.com/dotnet/dotnet/blob/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/README.md#L1-L12
+Defines Virtual Monolithic Repository, mirrored constituent source under src/.
+README lines188-198 discuss released-source original repository/commit identity.
+SHA2564b8d00fb9e6c34afbde2bf03eb3fec5ff8848c99490315553c991f56c4702116.
+R5 https://github.com/dotnet/dotnet/blob/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/docs/VMR-Design-And-Operation.md#L70-L78
+Describes source-manifest as original source/path/version inventory at that commit.
+SHA256c497e3b5848cae98f95c39eb15543b61858638102b26346412bd4ef254dd5edd.
+R6 https://api.github.com/repos/dotnet/runtime/git/ref/tags/v10.0.13
+Runtime tag commit6aa72daa24f66c01c3d7b6a32519e9d21396deec matches R3 exactly.
+
+Conclusion DOCUMENTED+STATIC INFERENCE: the embedded revision names the official
+VMR release commit; its official manifest identifies the runtime source revision.
+This resolves the previously unexplained repository-revision discrepancy. It is
+NOT a claim that two unrelated commits are equivalent or that checksums reproduce
+compiler output. Specific private build jobs/signing chain/SourceLink for all
+shipped assemblies were NOT independently verified; no private access used.
+VMR release API /releases/tags/v10.0.13 returned404 (a tag exists without a retrieved
+release record). No release attachment or symbol result fabricated. Bounded pass
+stopped after public tag/manifest plus bytewise source correspondence closed the
+specific question; no symbol/PE tooling or binary code loading was needed.
+Runtime eng/versioning.targets text inspected; it concerns generated version data,
+not independent evidence of which host the owner loads. No build executed.
+
+3. SOURCE CORRESPONDENCE AND LIMITS
+Fetched all87 prior reviewed files directly from immutable VMR path:
+https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/runtime/<runtime-path>
+Compared bytes against immutable runtime commit6aa72daa... sources.87/87 identical,
+zero failed downloads. Prior B(v10.0.0) versus T comparison remains85/87 unchanged;
+this stage does not rewrite that result as87 unchanged across runtime releases.
+Seven additional files fetched at BOTH build VMR and runtime commits also match:
+- src/libraries/System.Security.Cryptography/src/Microsoft/Win32/SafeHandles/NCryptSafeHandles.cs
+- src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/CngPropertyOptions.cs
+- src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/ECCng.ImportExport.cs
+- src/libraries/Common/src/System/Security/Cryptography/KeyPropertyName.cs
+- src/libraries/Common/src/System/Security/Cryptography/Asn1/GeneralNameAsn.xml.cs
+- src/libraries/Common/src/System/Security/Cryptography/ECCng.ImportExport.cs
+- src/libraries/Common/src/System/Security/Cryptography/ECCng.ImportExport.NamedCurve.cs
+94/94 selected VMR/runtime source files match; this is a bounded source comparison,
+not a complete OS/provider/transitive/reproducible-build audit.
+
+NCryptSafeHandles.cs20-29,209-296: SafeHandle duplication shares a holder/reference,
+not native private-key generation.311-342: duplicate/parent release decrements refs;
+owner release calls NCryptFreeObject, returns success bool with Debug.Assert.
+Application Dispose does not expose an independently reliable release receipt.
+Actual release/nonpersistence remains UNPROVEN; CleanupUnconfirmed cannot be hidden.
+GeneralNameAsn.xml.cs IPAddress encoding uses context-specific7; source correspondence
+supports earlier type7 inference, not an actual certificate/IP identity observation.
+CngPropertyOptions.cs15-17 confirms None0, CustomProperty0x40000000 and Persist
+0x80000000; readback uses None or CLR CustomProperty, never Persist to read policy.
+
+Prior public-leaf creation, forbidden plaintext-export factory and unnamed
+CopyWithPrivateKey export/import inferences are now tied to the identified VMR
+source snapshot for the reviewed paths. They remain STATIC INFERENCE, not provider
+behavior. No source change weakens production ACL/NonExportable requirements.
+
+4. P2 — LIMITED METADATA DESIGN AND REQUIRED LIMIT DISCLOSURE
+See W1_GATE_P_METADATA_AND_HOST_GATES.md for exact identifiers, flags, lengths,
+error classifications and pure negative cases. Missing Export Policy cannot map
+to None. Missing Key Type cannot map to current-user. Missing/error CLR marker
+cannot become proof of persistence/nonpersistence. No private export/ACL probe.
+CngKey.GetProperty preserves missing via CryptographicException NTE_NOT_FOUND;
+null/zero-length result remains malformed for required DWORD/marker. HasProperty
+alone cannot establish stable content; no native retries or fallback reads proposed.
+
+Important STATIC INFERENCE: public GetProperty internally size-queries, allocates
+provider-reported byte count, fetches/resizes; CngProperty/GetValue clone buffers.
+A caller cap AFTER GetValue validates result length, not a preallocation cap or
+hard bound on total managed/native memory. Public-API-only design cannot promise
+that hard cap. Owner must choose the disclosed observation-only resource model or
+request revised design BEFORE Gate I. No PInvoke workaround/quiet safety downgrade.
+Microsoft's Export Policy property description refers to persisted keys; successful
+unnamed-key policy observation is not guaranteed by that wording and remains a
+future provider observation, not assumed support.
+
+5. P3 — HOST DESIGN AND EVIDENCE STATUS
+Nested SDK global.json10.0.402/disable/no prerelease, fixed isolated CWD, explicit
+reviewed x64 host, net10.0-windows framework-dependent, runtimeconfig framework
+Microsoft.NETCore.App10.0.13/rollForward Disable proposed. No production imports or
+app runtime10.0.14 changes. No project/config/runsettings/lockfiles created.
+
+R7 https://github.com/microsoft/vstest/blob/490850ae3fdc1b470e3804ceab4f6a41cf89ae51/src/Microsoft.TestPlatform.TestHostProvider/Hosting/DotnetTestHostManager.cs
+Official v17.14.1 annotated tag aac759c81686923b9243a7f9137222f39a66ccae resolves
+to commit490850ae3fdc1b470e3804ceab4f6a41cf89ae51.
+Lines198-200: TargetPlatform/DotnetHostPath from run configuration.
+243-268: uses source assembly runtimeconfig/deps if present.
+279-339: Windows can select testhost.exe from output/package unless custom host set.
+348-425: fallback to runner's host/deps/runtimeconfig if files absent.
+435-479: architecture/path resolution;442-445 explicit custom host bypasses search.
+486-493: --roll-forward Major only for target framework below3.0, not net10.0.
+509-528: environment forwarding/apphost-root overrides require review.
+Source inspected via official tag; immutable commit now pinned. Package/binary
+correspondence and resolved adapter graph are STILL UNKNOWN pending Gate B.
+
+Design rejects missing project runtimeconfig, fallback host/runner deps, unknown
+adapter/architecture, environment override or unexpected child config; do not
+silently accept VSTest's fallback because target framework appears correct.
+Actual x64 host/CoreCLR/crypto assemblies/hash/module context NOT OBSERVED.
+No discovery, host launch or test ran. A version list cannot close that gap.
+
+6. P4 AND DECISION
+W1_GATE_P_OWNER_DECISIONS.md separates before-I design choices from before-E
+concrete IP/subject/serial/time/output/consent values. No real address/serial/permit
+or executable native command generated. Accepted public-leaf/ACL direction retained.
+
+REVISE narrowly: owner must select target pinning, accept or reject the public-API
+allocation/timeout limits, and agree the limited outcome/cleanup evidence model
+before an implementation-only request. If accepted, those choices plus the exact
+isolated source allowlist can form a separate Gate I request. No Gate I/B/E approval
+is inferred from this report; no need to reapprove the already accepted direction.
+If hard preallocation/timeout/native release proof is mandatory for W1, this
+public-API-only single-process design remains NO-GO until separately revised.
+
+Fallback provenance criterion (ONLY if later exact selected-binary mapping fails):
+owner may review acceptance of official checksum/VMR manifest/selected-file review
+as SOURCE-PROVENANCE evidence for code-only Gate I, with a hard B/E block until
+selected host/assembly identity is reconciled. This proposal is not accepted here
+and cannot authorize native execution or replace a required binary proof.
+
+7. SAFETY / PUBLICATION EVIDENCE
+New docs only: Windows three named in the brief; Android implications one.
+Earlier reports/decisions/source/tests/solutions/config/CI/assets/recovery exports
+and unrelated/untracked files preserved. No native operation IDs generated or old
+keys/journals inspected/adopted/cleaned. D3.3A11 certificate-generation+two secret
+sample incident remains explicit; no legacy unfiltered test.ps1 or negative-only
+filter, Option2, preview, native default fixture or automatic next stage.
+Text research tooling only; downloaded code/binaries not executed or installed.
+Documentation commits use [skip ci]; exact changed-file allowlists, whitespace,
+remote SHAs/draft/base and Actions absence verified separately after publication.
+No workflow dispatch/rerun, merge, release, phone/emulator or application traffic.
+
+NATIVE NOT RUN / TESTS NOT RUN / LAN NOT RUN / PRODUCTION SECURITY NOT PROVEN.
+STOP FOR OWNER REVIEW. NO AUTOMATIC IMPLEMENTATION OR EXECUTION.
+
+APPENDIX: EXTRA VMR/RUNTIME MATCHED FILE SHA256 (both copies identical)
+src/libraries/System.Security.Cryptography/src/Microsoft/Win32/SafeHandles/NCryptSafeHandles.cs
+4ad3c8e29fba41bd19082b7f03fda27b7c3e8c70a80e41a8390501048b02c62f
+src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/CngPropertyOptions.cs
+16fc45098fbf9cfd6fc35a0f463225deacdfeb8c7597d801d98fa9462a30ffa5
+src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/ECCng.ImportExport.cs
+0087a3e84dc3fb4ab3e3715061281b3d7661aa4f394f1b3cf781400920953ad4
+src/libraries/Common/src/System/Security/Cryptography/KeyPropertyName.cs
+7f912411e80f22db730ce6fcab23acc2247e966341fdd8aff4779719198f7f33
+src/libraries/Common/src/System/Security/Cryptography/Asn1/GeneralNameAsn.xml.cs
+cf225e24854e861c91df2bab86c34d28f020c203a5e9914388ebc96212e98ddb
+src/libraries/Common/src/System/Security/Cryptography/ECCng.ImportExport.cs
+b5d1c077eab3f0e3bc57227ebd25e043321b8c7766f175e2ecb690a5be28b27f
+src/libraries/Common/src/System/Security/Cryptography/ECCng.ImportExport.NamedCurve.cs
+59b681bcce43faeb1b7151c9e806b9cb680cd8def8ec34a0180bd7ac447e1512
