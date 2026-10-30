@@ -29,4 +29,5 @@
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Safety.cs" Link="EphemeralCapability/Option2Safety.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/Option2Ownership.cs" Link="EphemeralCapability/Option2Ownership.cs" />
   </ItemGroup>
+<ItemGroup><None Include="../../docs/contracts/**/*" Link="Contracts/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

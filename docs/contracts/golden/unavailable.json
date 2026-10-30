@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "synthetic": true,
+  "serverInstanceId": "00000000-0000-4000-8000-000000000001",
+  "revision": 0,
+  "capturedAt": null,
+  "devices": [
+    {
+      "id": "g915",
+      "current": {
+        "batteryPercent": null,
+        "precision": "UNKNOWN",
+        "source": {
+          "kind": "UNKNOWN",
+          "socSupport": "UNKNOWN",
+          "ownership": "UNKNOWN"
+        },
+        "readAt": null,
+        "observedAt": null
+      },
+      "availability": "UNAVAILABLE",
+      "freshness": "UNKNOWN",
+      "deviceConnection": "UNKNOWN",
+      "unavailableReason": "SOURCE_UNAVAILABLE",
+      "lastKnown": null
+    },
+    {
+      "id": "g305",
+      "current": {
+        "batteryPercent": null,
+        "precision": "UNKNOWN",
+        "source": {
+          "kind": "UNKNOWN",
+          "socSupport": "UNKNOWN",
+          "ownership": "UNKNOWN"
+        },
+        "readAt": null,
+        "observedAt": null
+      },
+      "availability": "UNAVAILABLE",
+      "freshness": "UNKNOWN",
+      "deviceConnection": "UNKNOWN",
+      "unavailableReason": "SOURCE_UNAVAILABLE",
+      "lastKnown": null
+    },
+    {
+      "id": "hyperx",
+      "current": {
+        "batteryPercent": null,
+        "precision": "UNKNOWN",
+        "source": {
+          "kind": "UNKNOWN",
+          "socSupport": "UNKNOWN",
+          "ownership": "UNKNOWN"
+        },
+        "readAt": null,
+        "observedAt": null
+      },
+      "availability": "UNAVAILABLE",
+      "freshness": "UNKNOWN",
+      "deviceConnection": "UNKNOWN",
+      "unavailableReason": "SOURCE_UNAVAILABLE",
+      "lastKnown": null
+    }
+  ]
+}
