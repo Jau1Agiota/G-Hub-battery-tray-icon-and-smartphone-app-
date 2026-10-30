@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.G305GHubInspector", "src\PeripheralBatteryCompanion.G305GHubInspector\PeripheralBatteryCompanion.G305GHubInspector.csproj", "{F978F7F8-BB40-40E4-88CF-E9D06A7A411C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{07C2787E-EAC7-C090-1BA3-A61EC2A24D84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeripheralBatteryCompanion.SecurityFixture", "tools\PeripheralBatteryCompanion.SecurityFixture\PeripheralBatteryCompanion.SecurityFixture.csproj", "{6A204F9E-C552-46B6-A1DB-D7C6181F656C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +129,14 @@ Global
 		{F978F7F8-BB40-40E4-88CF-E9D06A7A411C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F978F7F8-BB40-40E4-88CF-E9D06A7A411C}.Release|x64.ActiveCfg = Release|Any CPU
 		{F978F7F8-BB40-40E4-88CF-E9D06A7A411C}.Release|x64.Build.0 = Release|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Debug|x64.Build.0 = Debug|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Release|x64.ActiveCfg = Release|Any CPU
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -141,5 +153,6 @@ Global
 		{1EBF33D3-47F0-470E-AABC-C45DCBD26044} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{9EEB8644-F9EE-4F05-AFC0-C1765B8C3145} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F978F7F8-BB40-40E4-88CF-E9D06A7A411C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{6A204F9E-C552-46B6-A1DB-D7C6181F656C} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 EndGlobal

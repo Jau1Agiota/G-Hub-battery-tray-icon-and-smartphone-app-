@@ -11,4 +11,8 @@
 </ItemGroup>
 <ItemGroup>
   <ProjectReference Include="..\..\src\PeripheralBatteryCompanion.G305GHubInspector\PeripheralBatteryCompanion.G305GHubInspector.csproj" />
-</ItemGroup></Project>
+</ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../tools/PeripheralBatteryCompanion.SecurityFixture/FixtureConsent.cs" Link="SecurityFixture/FixtureConsent.cs" />
+  </ItemGroup>
+</Project>
