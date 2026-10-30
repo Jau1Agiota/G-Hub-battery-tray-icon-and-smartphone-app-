@@ -1,0 +1,301 @@
+PERIPHERAL BATTERY COMPANION — W1-PREP
+ISOLATED OFFLINE LIFECYCLE IMPLEMENTATION SPECIFICATION
+DOCUMENTATION ONLY. NO RUNNABLE HARNESS OR PROJECT CREATED.
+NATIVE NOT RUN; TESTS NOT RUN; LAN NOT RUN; PRODUCTION SECURITY NOT PROVEN.
+
+1. OWNER DECISION AND PRESENT AUTHORITY
+
+Accepted FOR PREPARATION: one unnamed nonexportable P-256 key, one PUBLIC-ONLY
+leaf signed by that key, ACL evidence explicitly NOT ESTABLISHED under a narrowly
+scoped TEST-ONLY exception. Do not ask to accept that design direction again.
+This is NOT permission to implement native operations, create a test project,
+build, discover/run tests, invoke scripts, sign or load a certificate, open CNG,
+use DPAPI/Keystore, install a phone app, listen/connect or activate production.
+Future implementation permission and future execution permission are distinct.
+
+Production LanApprovalSession still requires NonExportable AND
+CurrentUserAclRestricted. No fake true flags, inherited consent, alternate evidence
+enum, production fixture or policy migration may turn the test-only exception into
+production approval. A public leaf with HasPrivateKey=false is not an associated
+TLS server certificate. Native export denial, ACL protection, server identity,
+chain trust, Android validation, anti-rollback/revocation and TLS remain unproven.
+
+Verified S0 bases before branching:
+Windows 3c374e6f595f62c0cb011888bf764ba01b9cba98, draft PR17, unmerged.
+Android a9c933d01af446ec06fb802fbb9d7f4c3799b2d5, draft PR6, unmerged.
+Both S0 PRs target feature/d3-3b-native-proof-design; local/remote heads matched.
+New branch in each repository: feature/w1-prep-isolated-implementation-spec.
+New draft PRs target feature/s0-static-windows-api-policy-review, never main.
+Only the four requested NEW documentation files are permitted; previous reports,
+source/tests/project files/solution/CI/runtime configuration stay unchanged.
+
+2. PLATFORM FACT SHEET — HONESTLY UNKNOWN
+
+Current owner Windows edition/build/UBR/architecture: UNKNOWN.
+Current installed SDK/runtime servicing inventories: UNKNOWN.
+Exact SDK and runtime selected for a future W1/test host: UNKNOWN / NOT SELECTED.
+Ordinary user, elevation, interactive/session/profile-loaded state: UNKNOWN.
+Microsoft Software KSP availability/registration/loaded implementation/context:
+UNKNOWN; no provider is opened or enumerated here.
+Software-KSP DLL file version on owner machine: UNKNOWN.
+Future canonical IP, UTC validity/clock confidence/public serial and exact budgets:
+NOT SELECTED. No target address, permit, operation ID or W1 artifact generated.
+
+Known repository fact only: global.json requests SDK10.0.402 with latestPatch.
+Historical owner SDK10.0.402 and prior Linux SDK10.0.403 results are not fresh owner
+platform evidence. SDK version is not a runtime or CNG provider version. The single
+OWNER-ONLY read-only PowerShell block is in W1_PREP_APPROVAL_GATES.md; it is not
+executed in Codex. It reports metadata, not provider health or native proof.
+Installed runtime lists are not evidence of the runtime actually loaded by VSTest.
+Multiple hosts/architectures and roll-forward must be resolved explicitly.
+
+STOP gate: no exact-runtime reconciliation, runnable implementation or native
+approval can proceed while required facts remain unknown. Preparation of these
+reviewable documents is complete despite those deliberate blockers.
+
+3. SERVICING SOURCE RECONCILIATION LEDGER
+
+Evidence levels retained from S0:
+D = documented Microsoft API contract; I = static implementation inference;
+U = actual behavior not established, including servicing compatibility.
+
+S0 source anchor: official dotnet/runtime v10.0.0, resolved commit
+60629d14374c56f1cb51819049ad1fa529307f8d. Exact URLs/reference IDs are recorded in
+S0_STATIC_WINDOWS_API_POLICY_REVIEW.txt; no earlier record is rewritten.
+
+Path | S0 inference | Actual owner-runtime mapping
+CngKey.Create.cs | provider open -> NCryptCreatePersistedKey with NULL name -> set policies -> finalize0 | UNKNOWN; reconcile before implementation approval
+CngKeyCreationParameters.cs | software provider default; explicit values still required | UNKNOWN
+ECDsa.Create.Windows.cs / CngAlgorithmCore.cs | implicit factory requests AllowPlaintextExport | UNKNOWN patch; factory remains forbidden regardless
+ECDsaCng.cs / CngAlgorithmCore.Duplicate | existing-key constructor duplicates a handle/reference | UNKNOWN
+CertificateRequest.cs | generator/Create overload signs and loads public DER, no private association | UNKNOWN
+ECDsaX509SignatureGenerator.cs | ExportParameters(false) for public point; SignData with existing key | UNKNOWN
+ECDsaCertificateExtensions.cs / CertificatePal.Windows.PrivateKey.cs / CertificateHelpers.Windows.cs | CreateSelfSigned/CopyWithPrivateKey can reach private export/import for unnamed ECDSA | UNKNOWN patch; excluded
+CngKey.ExportPolicy / provider metadata / SafeHandle release path | request/readback/disposal are not causal policy or native-release proof | UNKNOWN
+
+No changed servicing path can be asserted until the owner supplies facts. A
+reconciliation reviewer must identify the actual runtime package/build/commit,
+trace each path and helper/interop flag against that source, record unchanged or
+changed behavior with line references, and reject hidden creation, private export,
+import, named reopen, UI fallback or persistence. Matching API signatures alone
+is insufficient. Do not use a native experiment to discover what could have been
+statically audited first. Runtime-specific provider behavior still remains U after
+static source agreement. No new native API workaround is authorized by this spec.
+
+4. FUTURE PROJECT BOUNDARY — SPECIFICATION ONLY
+
+Proposed path (DOES NOT EXIST):
+tests/PeripheralBatteryCompanion.W1Offline.Tests/PeripheralBatteryCompanion.W1Offline.Tests.csproj
+Not in PeripheralBatteryCompanion.sln, no production registration/startup, no CI
+entry, no ProjectReference to any existing app, Core, helper, inspector, old tests,
+SecurityFixture, EphemeralCapability, Option2 or Android project. No copied/linked
+legacy fixture code. No executable native default constructor or native service DI.
+
+Proposed target: net10.0-windows, x64 only IF owner architecture matches/approves;
+otherwise stop and revise, do not emulate/fall back. IsTestProject=true,
+IsPackable=false, no WinForms/ASP.NET/package/publish/release integration.
+Direct dependency PROPOSAL, not a resolved/restored manifest:
+Microsoft.NET.Test.Sdk17.14.1;
+xunit2.9.3;
+xunit.runner.visualstudio3.1.5 with private assets.
+These match existing repository versions but do not inherit its test graph.
+No crypto/HTTP/credential-store/native-harness package is proposed.
+
+Exact transitive dependency graph, package hashes, generated NuGet props/targets,
+SDK import versions, testhost/runtimeconfig and source/binary hashes: UNKNOWN /
+NOT GENERATED. No restore/build was performed. They must be materialized only in
+a separately approved build stage and then independently reviewed before execution.
+Do not claim an existing legacy packages.lock.json resolves this nonexistent project.
+
+Proposed build-import boundary for future review: explicit Microsoft.NET.Sdk
+Sdk.props/Sdk.targets imports with ImportDirectoryBuildProps=false and
+ImportDirectoryBuildTargets=false set BEFORE Sdk.props, rather than assuming a
+normal SDK-style project is isolated. Ancestor global.json, Directory.Packages.props,
+NuGet.Config, SDK auto-imports and package build/buildTransitive/analyzer/generator
+assets must also be inventoried and explicitly pinned or excluded. This mechanism
+is a proposal, not a tested project. Do not edit ancestor files to isolate it.
+Any needed local build manifest/settings files belong only to the newly approved
+future project and its exact implementation file allowlist, not this prep delta.
+
+Implementation file roles (not created now): project + reviewed dependency/runtime
+manifest; one test-method class; pure gate/plan data; one internal native routine
+reachable only from the approved method after gate acceptance; redacted result /
+ownership ledger. No general provider abstraction with a live default, no tool
+Program/main route, no discovery callback that instantiates that routine.
+
+Proposed exact future Gate I file allowlist, all under that isolated directory:
+PeripheralBatteryCompanion.W1Offline.Tests.csproj;
+W1OfflineLifecycleTests.cs; W1PreflightPlan.cs; W1NativeLifecycle.cs; W1Evidence.cs;
+AssemblyInfo.cs (nonparallel metadata only); xunit.runner.json;
+global.json (owner-selected exact SDK); NuGet.Config (reviewed restore sources).
+packages.lock.json and resolved build manifests are generated/reviewed only under
+Gate B, not prefilled or inherited from legacy projects. Additional files require
+explicit review; no .ps1/native executable/CI or solution changes. These are
+SPECIFICATION NAMES ONLY; no directory/file/project is created by W1-PREP.
+Future SDK-selection commands must have their working directory fixed to that
+isolated directory: passing its project path while remaining at repository root
+does NOT guarantee its nested global.json controls SDK selection. Runtimeconfig /
+testhost architecture and runtime roll-forward need separate exact pinning too.
+
+5. TEST-HOST / DISCOVERY AND ONE-SHOT GATE
+
+Exact future native case allowlist (name only, no actual test):
+PeripheralBatteryCompanion.W1Offline.Tests.W1OfflineLifecycleTests.SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore
+No class/namespace wildcard, theory expansion, MemberData, ClassData, shared/class/
+collection fixtures, module initializer, assembly native setup, BeforeAfterTest
+crypto, certificate static fields, constructor/teardown creation, background thread,
+parallel case, retry adapter or auto-certificate factory. Static fields may contain
+only constants/pure immutable values; even native policy objects are created after
+the gate, not during discovery. Discovery/adapter construction can execute code
+before a filter; isolation, resolved adapter audit and exact selector are all needed.
+
+Future preflight order INSIDE that single method, before provider open:
+verify explicit local owner approval for exact source/binary/runtime and API/resource
+sheet; check supported Windows/context; match selected runtime/provider assumptions;
+validate exact canonical IP, UTC bounds/clock confidence, public serial and budgets;
+verify no unresolved fact/approval field; atomically consume one process-local
+invocation; then enter the internal native routine. Do not get a provider handle,
+hash a freshly created key, sign, parse a native certificate or enumerate keys to
+validate consent. No actual permit/token/operation ID exists in this stage.
+Owner approval mechanism/input is itself a future design review item, never a
+synthetic validated=true flag accepted from remote data or inherited environment.
+One-use process state is not global replay protection: another process requires
+another owner decision, not a retry. Invalid gate returns NOT RUN before any native
+provider call. Zero/multiple matching cases or unexpected assembly loading stops.
+
+6. EXACT PROPOSED NATIVE KEY / PUBLIC-LEAF CHAIN
+
+No call in this section is implemented or executed. Accepted preparation direction:
+CngKey.Create(CngAlgorithm.ECDsaP256, keyName:null, explicit parameters):
+Provider = CngProvider.MicrosoftSoftwareKeyStorageProvider;
+KeyCreationOptions = CngKeyCreationOptions.None (0);
+ExportPolicy = CngExportPolicies.None (0), not unspecified/default/archiving;
+KeyUsage = CngKeyUsages.Signing;
+ParentWindowHandle = IntPtr.Zero; UIPolicy=null; custom Parameters empty.
+No machine/VBS/overwrite flag, name (including generated name), key regeneration,
+additional key, provider fallback, policy repair, UI policy or automatic retry.
+Explicitly use ECDsaCng(existingKey), NEVER ECDsa.Create(curve), parameterless
+ECDsaCng generation, GenerateKey or KeySize changes. UI not requested does not prove
+no UI; unexpected UI at ANY phase stops. Do not press an approval dialog to continue.
+
+Then CertificateRequest with existing signer and SHA256; exact type7 IP SAN via
+SubjectAlternativeNameBuilder.AddIpAddress, serverAuth EKU1.3.6.1.5.5.7.3.1,
+DigitalSignature key usage, non-CA basic constraints/no path length. Criticality
+proposal: SAN/EKU noncritical; KU/basic critical; owner must approve exact values.
+X509SignatureGenerator.CreateForECDsa(existingSigner) and explicit
+CertificateRequest.Create(issuerName,generator,notBefore,notAfter,serialNumber)
+overload returning a PUBLIC leaf. Subject=issuer for this test, descriptive CN only,
+not an identity fallback. Exact synthetic subject, one canonical private IPv4 OR
+ULA, UTC validity and bounded positive public serial remain unset until approved.
+
+Expected HasPrivateKey=false. Inspect approved public metadata, SPKI and extensions;
+SHA256 pin is of DER SubjectPublicKeyInfo, not a certificate fingerprint. Any
+generator ExportParameters must be false/public only. Signature/public DER loading
+inside Create are real native operations needing future execution approval.
+Do NOT add a second explicit DER load or GetECDsaPrivateKey merely to test absence.
+No CreateSelfSigned, CopyWithPrivateKey/internal helper, private ExportParameters,
+PFX/PKCS12, native private-export probe, import/association, X509Chain.Build,
+certificate store, AIA/CRL/OCSP access, DPAPI, TLS or network/socket.
+
+Legacy DNS-oriented LanApprovalSession/PublicServerCertificateInspector policy
+stays separate. A future production candidate requires exact canonical literal IP
+SAN plus independent SPKI AND real platform chain/hostname/anchor checks. No DNS/
+CN/wildcard fallback, silent TOFU, migration or AuthenticatedTlsPeer issuance here.
+
+7. RESOURCE / OWNERSHIP / DISPOSAL LEDGER
+
+Resource | Proposed owner | Release order / evidence limit
+One unnamed private P-256 key + provider/key references | returned original CngKey in native method | last; Dispose returned is managed evidence only
+One duplicate key reference | ECDsaCng(existingKey) | after all signer/public work, before original; not an extra generated key
+One public leaf context | result of generator/Create | first after inspection; no private association/store entry
+Request/generator references | native method, keep signer alive through Create | not IDisposable key owners, no extra disposal/delete
+Public SPKI/DER/signature/ASN.1/hash buffers and public helper objects | method bounded temporaries | release references/dispose owned helpers; not private scalar copies or secrets
+Redacted result/evidence | external approved runner/results location | bounded allowed fields only; NOT an ownership/recovery journal
+
+Core budget: one underlying private key, one original+one duplicate owner, one
+public leaf. Zero named keys, store entries, imported/private keys, extra negative
+certificate/key, credentials, old artifacts, journals, listeners or clients.
+Transient public native allocations must be enumerated from exact servicing code;
+their precise counts/byte bounds cannot be honestly fixed before reconciliation.
+Proposal for owner review: public leaf/DER/SPKI aggregate <=64KiB, public serial
+1..20 bytes, sanitized result <=8KiB; no raw DER/SPKI/key/handle/user path in shared
+output. These numbers are proposals, NOT approved default limits. No native timeout
+or UI-cancellation guarantee is invented; watchdog/kill would need separate scope.
+
+Disposal is deterministic for independently owned returned references: leaf, signer
+duplicate, original key/provider. Each attempted once even after partial failure;
+do not dispose aliases as separate owners or throw away an uncertain result.
+No native reference returned after a failed factory => record acquisition uncertainty,
+not success based on its internal catch. Dispose/IsClosed does not prove native
+free success, OS nonpersistence, no internal copy or leak absence. Preserve
+CleanupUnconfirmed and STOP if required evidence is unavailable; no new PInvoke,
+key deletion, reopen, prefix scan, adoption, ACL repair or automatic rerun.
+Abrupt process death bypasses finally and remains unobserved cleanup; deliberate
+crash/process-kill subcases are not included in this one-shot proposal.
+
+8. OBSERVATIONS, NEGATIVE CASES AND RESULT CLASSIFICATION
+
+If later approved: record requested versus observed provider/group/size/scope/
+ephemeral/key-name/export-policy/usage. Unavailable properties or mismatches stop,
+never map failure to0 or invent evidence. None request+readback is NOT actual
+native export denial or causal policy proof; no private-export probe is authorized.
+ACL evidence always NOT ESTABLISHED, including on an otherwise consistent result.
+Public leaf fields/SPKI matching and HasPrivateKey=false are a limited objective,
+not proof of an associated server identity or future TLS/Android enforcement.
+
+Pure invalid-consent/IP/time/budget preflight cases belong to separately approved
+fake tests, not automatic additions to the single native case. Wrong EXPECTED
+public pin/IP may be compared against the SAME leaf if explicitly approved, without
+new native fixtures. Missing-EKU, expired/wrong native certs, separate keys, export
+denial, crash/restart, chain trust and TLS tests remain NOT RUN / OUT OF SCOPE.
+
+Any provider UI, named state/store change, private-export path, extra key/import,
+unexpected assembly/test, protection mismatch, loss of clock confidence, ambiguous
+ownership or uncertain disposal => STOP for owner review. Do not inspect old state
+to explain a new error. Log phase and exception type/HRESULT only, no raw exception
+text/stack/environment dumps, paths, identities, raw handles or key data. Prevent
+framework adapter failures from leaking those values too; review TRX/test output.
+Retain PASS only for specific observed public/metadata checks, distinguish NOT RUN,
+FAIL, EXCLUDED and INCONCLUSIVE. No blanket success token or production security PASS.
+
+9. APPROVAL GATES / INCIDENT PREVENTION
+
+See W1_PREP_APPROVAL_GATES.md: platform intake is separate from Gate I implementation,
+Gate B build/dependency/discovery review and Gate E exactly-one native execution.
+Current approval covers NONE of I/B/E. Hashes/commands/results paths cannot be
+preapproved before a project/binary exists; placeholders are not permission.
+After implementation, independent review must identify exact source commit,
+project/dependency manifests, resolved SDK/runtime/imports, native routine and test
+binary hashes BEFORE issuing a specific future Gate E request. Native construction
+must remain unreachable during all unapproved phases.
+
+D3.3A incident remains explicit:11 legacy certificate-generation cases plus two
+real-secret sample cases ran out of scope. Never repeat an unfiltered legacy
+dotnet test, test.ps1, fixture preview, A/B/Option2 Program or broad CI. Test names
+and the old negative13 filter do not prove purity. Inspect actual constructors,
+factories/discovery/teardown/imported targets. UNKNOWN is unsafe. Do not change
+old tests/CI or suppress evidence to claim compliance. Documentation commits use
+[skip ci]; inspect remote workflows and STOP if unexpected execution starts.
+
+Do not touch old keys/journals or reuse retired IDs:
+3c4a7c190ef34f2e90625276aa9cbfdb;3bb5de0629d640569843367dd3407fc8;
+6df3c74dc1804991a04730bd39aa519d. Blocked preview:ff28360e68f249439294475e8da21614.
+These are deny-list history only, never test inputs/permits. No fresh ID generated.
+
+10. CURRENT RECOMMENDATION / NEXT OWNER INPUT
+
+Preparation documents are reviewable; implementation/execution remain BLOCKED.
+Next owner action: run ONLY the documented read-only platform inspection separately
+and provide sanitized output, then select exact target SDK/runtime/context for
+static servicing reconciliation. This does not request or authorize native W1.
+After reconciliation, submit Gate I implementation request for exact source files;
+Gate E native execution request must wait for separately reviewed built bits.
+No need to reapprove the accepted design direction or test-only ACL exception.
+
+Canonical references: S0_STATIC_WINDOWS_API_POLICY_REVIEW.txt and its R1-R18;
+D3_3B_NATIVE_PROOF_DESIGN_REPORT.txt for threat model/test inventory;
+W1_PREP_APPROVAL_GATES.md for the owner-only inspection and future gate records;
+W1_PREP_STATIC_EVIDENCE.txt for actual static checks and known/unknown facts.
+
+NATIVE NOT RUN; TESTS NOT RUN; LAN NOT RUN; PRODUCTION SECURITY NOT PROVEN.
+STOP FOR OWNER REVIEW. NO MERGE, RELEASE OR AUTOMATIC NEXT STAGE.
