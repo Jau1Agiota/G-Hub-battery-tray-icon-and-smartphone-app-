@@ -19,5 +19,8 @@
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/CapabilityEngine.cs" Link="EphemeralCapability/CapabilityEngine.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/InteropContracts.cs" Link="EphemeralCapability/InteropContracts.cs" />
     <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/MetadataDiagnostics.cs" Link="EphemeralCapability/MetadataDiagnostics.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBModel.cs" Link="EphemeralCapability/ContractBModel.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBEngine.cs" Link="EphemeralCapability/ContractBEngine.cs" />
+    <Compile Include="../../tools/PeripheralBatteryCompanion.EphemeralCapability/ContractBNativeFlow.cs" Link="EphemeralCapability/ContractBNativeFlow.cs" />
   </ItemGroup>
 </Project>

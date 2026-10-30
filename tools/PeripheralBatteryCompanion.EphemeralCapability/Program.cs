@@ -4,6 +4,18 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        // Contract B is explicitly selected and always returns here; errors never fall back to A.
+        if (args is ["--preview-contract-b"]) {
+            Console.WriteLine(BPresentation.Preview(Guid.NewGuid().ToString("N")));
+            return 0;
+        }
+        if (args.Length > 0 && args[0] == "--reviewed-contract-b") {
+            var permit = BPermit.FromArguments(args);
+            if (permit is null || !OperatingSystem.IsWindows()) { Console.WriteLine(BPresentation.Stop); return 2; }
+            var resultB = ContractBEngine.Run(permit, WindowsContractBApi.Create());
+            foreach (string line in BPresentation.Format(resultB)) Console.WriteLine(line);
+            return resultB.Capability == Outcome.Pass ? 0 : 1;
+        }
         // Preview has no identity/store/provider access and writes only stdout. Not invoked in this stage.
         if (args is ["--preview"]) {
             Console.WriteLine(Consent.Preview(Guid.NewGuid().ToString("N")));
