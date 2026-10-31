@@ -23,7 +23,6 @@ internal sealed class GateEPermit
     };
 
     private const string PermitPath = @"D:\Projects\GateE.permit";
-    private const string NonceLedgerPath = @"D:\Projects\GateE.used_nonces";
 
     private readonly byte[] _authorizedDigest;
 
@@ -185,25 +184,11 @@ internal sealed class GateEPermit
         if (!ecdsa.VerifyData(payload, sigBytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence))
             return false;
 
-        // Step 6: Atomic Nonce Ledger check and append
-        using (var ledgerFs = new FileStream(NonceLedgerPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-        {
-            using var reader = new StreamReader(ledgerFs, Encoding.ASCII, false, 1024, leaveOpen: true);
-            string? line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                if (string.Equals(line.Trim(), nonceHex, StringComparison.Ordinal))
-                    return false; // Replay attempt
-            }
-
-            ledgerFs.Seek(0, SeekOrigin.End);
-            byte[] nonceRecord = Encoding.ASCII.GetBytes(nonceHex + "\n");
-            ledgerFs.Write(nonceRecord, 0, nonceRecord.Length);
-            ledgerFs.Flush(true);
-        }
-
-        permit = new GateEPermit(actualDigest);
-        return true;
+        // Step 6: Fail closed until a trusted nonce-ledger protocol is approved.
+        // Existing paths, ACLs, ancestor reparse points, rollback resistance,
+        // and atomic reservation are not yet established.
+        // Do not open, create, read, truncate, or append to the ledger.
+        return false;
     }
 }
 
