@@ -1,0 +1,4 @@
+docs/contracts/** text eol=lf
+
+docs/contracts/d3-3a/** binary
+docs/contracts/rejected/** binary
