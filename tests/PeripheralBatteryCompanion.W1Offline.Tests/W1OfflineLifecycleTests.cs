@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,7 +8,7 @@ namespace PeripheralBatteryCompanion.W1Offline.Tests;
 
 public sealed class W1OfflineLifecycleTests
 {
-    [Fact]
+    [Fact(Skip = "GATE E BLOCKED: explicit owner approval and isolated execution required.")]
     [Trait("Category", "GateE_Native_Protected")]
     [Trait("ExecutionMode", "ManualHardwareHold")]
     public void SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore()
