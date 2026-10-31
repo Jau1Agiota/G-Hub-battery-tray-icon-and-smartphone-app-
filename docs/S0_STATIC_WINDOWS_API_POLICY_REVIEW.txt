@@ -1,0 +1,466 @@
+PERIPHERAL BATTERY COMPANION — S0 STATIC WINDOWS API / POLICY REVIEW
+SPECIFICATION ONLY. W1 IS NOT IMPLEMENTED OR AUTHORIZED.
+NATIVE NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+
+1. SCOPE, BASELINES AND EVIDENCE LEVELS
+
+Windows D3.3B reviewed/local/remote head:
+a6fa1fb35fc3b28d517844e1d0afc3ef7867ee08 (draft PR16, unmerged).
+Android D3.3B reviewed/local/remote head:
+cba7f15fbb0ee2dbb3e3a06d26b16038a905bb5e (draft PR5, unmerged).
+Both baseline PRs target feature/d3-3a-inert-tls-transport. Remote checks matched
+before creating feature/s0-static-windows-api-policy-review in each repository.
+Initial working trees clean. D3.1/D3.2/D3.3A/D3.3B records remain unchanged.
+
+Only documentation changes, static source/runner/project inspection, authoritative
+Microsoft documentation and version-pinned upstream source reads were performed.
+Research HTTPS/GitHub operations are not application TLS/loopback/LAN proof.
+No runtime/version probe, build, test, test discovery, script or native API ran.
+No operation ID, W1 test fixture, key, certificate or cryptographic output was
+generated. Downloaded upstream text is research material, not application code or
+W1 artifacts; none is compiled or copied into the repositories as implementation.
+
+[D] Documented: public Microsoft API contract; does not prove runtime compliance.
+[I] Inferred: static trace of official dotnet/runtime tag v10.0.0 source; applies
+    to that implementation snapshot, not every .NET10 servicing release.
+[U] Unproven: actual selected Windows/.NET/provider behavior or unresolved policy.
+The official v10.0.0 tag was resolved read-only to commit
+60629d14374c56f1cb51819049ad1fa529307f8d. Use that commit to reproduce the
+implementation inferences; the tag is not a claim about the owner's runtime.
+Repository global.json selects SDK10.0.402 with latestPatch roll-forward. That is
+NOT the Windows runtime version or provider build. Owner must supply/pin actual
+Windows build, architecture, SDK AND runtime servicing version before a W1 request;
+the source trace must then be reconciled with that exact runtime. No such fact was
+invented from the Linux toolchain or historical test reports.
+
+2. DECISION SUMMARY / BLOCKERS
+
+A. Retain a NONEXPORTABLE test-only candidate: explicit CngKey.Create with null
+name, Microsoft Software KSP, ExportPolicy=None, Signing usage and reviewed flags.
+No DPAPI/PFX/exportable substitution. [D] Null name is documented ephemeral;
+None is documented not exportable. [U] Request/metadata is not behavioral proof.
+
+B. Reject ECDsa.Create(nistP256) as the selected W1 factory. [I] In v10.0.0 Windows
+it wraps ECDsaCng(curve); CngAlgorithmCore.GetOrGenerateKey explicitly requests
+AllowPlaintextExport. The public ECDsa factory contract provides no nonexportability
+guarantee. Ephemeral does not mean nonexportable. Do not silently repair that key's
+policy after creation, retry with another provider or reuse it as the candidate.
+
+C. Exclude CreateSelfSigned / public CopyWithPrivateKey from the proposed no-export
+path. [I] CreateSelfSigned calls CopyWithPrivateKey. Windows ECDSA association first
+tries a persisted-key association; its helper returns null for empty KeyName, then
+the public path calls ExportParameters(true), imports a clone and associates that
+clone. A nonexportable unnamed key would encounter an implicit export attempt.
+This is forbidden even if the attempt fails. It can also violate the one-key budget
+if export succeeds. No test may use failure of this path as an export probe.
+
+D. Proposed W1 REVISION: separately owned unnamed nonexportable key plus a PUBLIC
+test leaf signed with it using CertificateRequest.Create(issuerName, generator,
+notBefore,notAfter,serialNumber). [D] This overload returns a certificate without
+HasPrivateKey. [I] Its inspected path signs and loads public DER, without calling
+CopyWithPrivateKey. The generator exports PUBLIC parameters only. This tests key /
+public-leaf lifecycle, NOT a usable associated TLS server identity. It changes the
+earlier W1 association objective and requires explicit owner agreement, not silent
+substitution. No new native association API or internal/reflection workaround is
+proposed for automatic implementation.
+
+E. ACL blocker: [D] NCRYPT_SECURITY_DESCR_PROPERTY applies only to persistent keys.
+Current-user scope (no MACHINE flag) is not proof of an owner-restricted key DACL.
+No documented equivalent owner-DACL evidence for this unnamed key was established.
+Propose only a TEST-ONLY exception: label ACL evidence NOT ESTABLISHED and never
+invoke/satisfy LanApprovalSession. The production NonExportable AND
+CurrentUserAclRestricted requirements remain unchanged. Owner must approve/reject
+this explicit exception before any W1 request can be executable.
+
+Recommendation: REVISE before submitting the original associated-certificate W1
+approval request. A revised public-leaf-only request can be drafted after the owner
+accepts that scope and the test-only ACL-evidence exception, and supplies the exact
+runtime for source reconciliation. NO-GO to execution now. S0 is not proof that
+production nonexportability, ACL protection, native cleanup or TLS works.
+
+3. EXACT TEST-ONLY KEY CANDIDATE (PROPOSED, NOT EXECUTED)
+
+Signature: CngKey.Create(CngAlgorithm algorithm, string? keyName,
+CngKeyCreationParameters? creationParameters), Windows-supported .NET API [R1].
+Select CngAlgorithm.ECDsaP256; keyName=null, never an empty/generated/name-prefixed
+string. Explicit parameters, despite some defaults matching [R2,R9]:
+Provider=CngProvider.MicrosoftSoftwareKeyStorageProvider;
+KeyCreationOptions=CngKeyCreationOptions.None (0);
+ExportPolicy=CngExportPolicies.None (0), NOT null/default/AllowExport/archiving;
+KeyUsage=CngKeyUsages.Signing;
+ParentWindowHandle=IntPtr.Zero; UIPolicy=null; custom Parameters collection empty.
+No MachineKey, OverwriteExistingKey, VBS/per-boot, provider fallback or extra flags.
+UIPolicy=null does not promise silence; it avoids requesting additional UI policy.
+Any unexpected prompt, including during sign or metadata access, is an abort.
+
+[I] R9 calls provider.OpenStorageProvider -> NCryptCreatePersistedKey(algorithm,
+keyName:null, legacySpec0, creationOptions0) -> InitializeKeyProperties ->
+NCryptFinalizeKey(flags0). Despite the function NAME, [D] R3 explicitly states a
+NULL key name creates an ephemeral key that is not persisted. Absence of MACHINE
+flag means current-user scope. No named creation or disk/container is authorized.
+[I] ExportPolicy and usage are set before finalize. Usage/custom property setters
+may carry CngPropertyOptions.Persist: that property modifier must not be confused
+with assigning a key name or X509 PersistKeySet. The null-name contract remains
+the basis; provider/property acceptance and side effects on the selected version
+remain [U]. A failure before return has no independently observed usable key and
+must stop; internal cleanup is not independently confirmed by catching an exception.
+
+Permitted future observations, only if separately approved: provider, algorithm /
+group, size256, KeyName null, IsEphemeral, IsMachineKey false, ExportPolicy None,
+KeyUsage Signing. They are returned metadata, not proof of no persistent side
+effects or an actual denied private export. Readback unavailable/mismatching =>
+STOP/INCONCLUSIVE, not fallback or defaulting to0. R5 describes the native export
+property in a persisted-key context, so uniform ephemeral readback support is NOT
+assumed. No private Export/ExportParameters(true)/PKCS8/PFX/NCryptExportKey-private
+probe, no archival permission and no causal policy-enforcement claim.
+
+ECDsa.Create(ECCurve.NamedCurves.nistP256) comparison:
+[I] R10 -> ECDsaWrapper(new ECDsaCng(curve)); ECDsaCng.GenerateKey/GetOrGenerateKey
+uses default software provider parameters but AllowPlaintextExport [R11]. It still
+uses null-name creation, so its lifetime can be ephemeral while its export policy
+violates W1. Parameterless ECDsaCng and GenerateKey/KeySize changes can also reach
+that generation path. Do not call them on the candidate or introduce a generic
+factory that can regenerate it. The selected wrapper must be ECDsaCng(existingKey).
+[D/I] Its public constructor duplicates a key handle/reference [R6,R12], not a
+contract to export private bytes. No production key-ACL guarantee follows.
+
+4. CERTIFICATE IDENTITY AND PROOF-ONLY BOUNDARY
+
+Retain the D3 production candidate: canonical exact private IPv4 or IPv6 ULA,
+type7 IP SAN and independent SHA256 SPKI pin. This does not approve an address,
+interface, port, certificate duration or serving it. No network binding in W1.
+Existing LanApprovalSession.ValidEndpoint expects a DNS TlsDnsName, and its key
+protection gate requires NonExportable AND CurrentUserAclRestricted. Existing
+PublicServerCertificateInspector.ValidExpectation is DNS-oriented, does not build
+a trusted chain and is not a production IP-SAN TLS adapter. Neither is repurposed.
+
+Future proof-only validator must live with the isolated W1 fixture, accept public
+certificate material plus explicit expected literal/UTC bounds/pin, and never
+construct ServerIdentityEvidence with invented ACL/trust facts or an
+AuthenticatedTlsPeer. It reports field consistency only. A later production
+migration requires new reviewed typed IP/name semantics, real chain/anchor and
+native key evidence, cross-platform tests, owner consent and no silent DNS/CN alias.
+
+Proposed construction after separate approval:
+- CertificateRequest(X500DistinguishedName subjectName, ECDsa existingSigner,
+  HashAlgorithmName.SHA256). A synthetic subject is descriptive, never identity.
+- SubjectAlternativeNameBuilder.AddIpAddress(IPAddress) then Build: type7 SAN
+  encodes the address bytes (IPv4 four / IPv6 sixteen) rather than dNSName text
+  [R7]. Canonical-input validation must precede constructing this object. Exactly
+  one approved IP SAN, no DNS SAN/wildcard/CN fallback/scoped or mapped address.
+- X509EnhancedKeyUsageExtension with serverAuth OID1.3.6.1.5.5.7.3.1;
+  X509KeyUsageExtension(DigitalSignature,...); X509BasicConstraintsExtension with
+  certificateAuthority=false, no path-length constraint. No CA signing capability.
+  Review criticality explicitly (candidate: SAN/EKU noncritical, KU/basic critical),
+  no duplicate extension OIDs; constructor/extension work may call public-key/native
+  encoding paths and belongs inside the future approved method, not discovery.
+- X509SignatureGenerator.CreateForECDsa(existingSigner), then
+  CertificateRequest.Create(X500DistinguishedName issuerName,
+  X509SignatureGenerator generator, DateTimeOffset notBefore, DateTimeOffset notAfter,
+  ReadOnlySpan<byte> serialNumber) [R8,R13,R15]. Subject=issuer yields a self-issued
+  public leaf whose signature uses the same key; that is NOT CreateSelfSigned.
+  Owner selects a bounded positive PUBLIC serial and exact UTC validity; none is
+  generated in S0. Private key generation necessarily uses platform entropy later;
+  no extra pairing/token/operation-ID entropy source is part of W1.
+
+Expected leaf.HasPrivateKey=false. Public SPKI from the signer/certificate must
+match, pin is SHA256 of DER SubjectPublicKeyInfo, NOT certificate fingerprint.
+Read actual extension OIDs/ASN.1 IP values; compare expected endpoint bytes and
+canonical form. UTC notBefore <= observed trusted now < notAfter, increasing
+window; uncertain clock aborts. Optional local public-signature verification is
+another native operation and must be explicitly included in the future approval,
+not smuggled into a supposedly pure validator. No X509Chain.Build, OS store trust,
+AIA/CRL/OCSP access or trust installation in W1. Offline self-issued field/signature
+consistency does NOT establish anchor trust, chain validation, revocation or TLS
+hostname enforcement. Missing-EKU/expired/wrong-certificate native fixtures need
+separate scope; they do not appear magically in the one-leaf positive experiment.
+
+5. API CALL GRAPH / SIDE-EFFECT AND OWNERSHIP LEDGER
+
+Every call below is a FUTURE specification. Supported target is Windows/.NET10,
+subject to exact servicing-version review. No such API was instantiated in S0.
+
+K0: CngKeyCreationParameters() and property assignments.
+R2 default provider is Software KSP; no actual key until Create. Managed policy
+objects only; reject null/implicit policy before native calls. Empty custom list.
+Owner: fixture. No native private-key disposal yet.
+
+K1: CngKey.Create(ECDsaP256,null,parameters).
+Provider open and native NCrypt create/set/finalize [R9]. One unnamed key and
+provider/key handles; [D] null name nonpersistent, [U] exact provider behavior.
+No-machine flag user scope, not ACL proof. UI possible, error after side effects
+ambiguous. Returned CngKey owns references; source catch disposes partial handles
+but no per-call native release receipt reaches the caller. No deletion/retry.
+
+K2: new ECDsaCng(CngKey key).
+R12 validates group and uses CngAlgorithmCore.Duplicate -> CngKey.Open(handle,
+EphemeralKey). Owns a duplicate reference; no new generated private key should be
+needed. Keep original and signer until all sign/public operations finish. Public
+constructor contract allows caller to dispose original independently, but the
+proposed ledger retains it last for clarity. Never GenerateKey/change KeySize.
+
+K3: CertificateRequest constructor, SAN/EKU/KU/basic extensions, signature generator.
+R15 BuildPublicKey uses ExportParameters(false): public export only. Native
+public-key encoding/provider metadata may allocate resources. Generator/request
+retain signer reference; neither is an owner permitted to delete/recreate key.
+No request/fixture constructor, static initializer or discovery data source may
+perform this work before the method's owner gate.
+
+K4 (EXCLUDED): CreateSelfSigned(DateTimeOffset,DateTimeOffset).
+R13 allocates random serial, calls Create, then CopyWithPrivateKey. It therefore
+includes native signing/public-cert load AND the K5 private-association hazard.
+Not allowed under nonexportable/no-export W1, even as a negative test.
+
+K5 (EXCLUDED): ECDsaCertificateExtensions.CopyWithPrivateKey(X509Certificate2,ECDsa).
+R14 checks public key using public ExportParameters(false), then calls Windows PAL.
+R16 CopyWithPersistedCngKey returns null if KeyName empty [R17]; fallback calls
+ExportParameters(true), new ECDsaCng, ImportParameters and CopyWithEphemeralKey.
+This is NOT a safe handle-only association of this unnamed nonexportable candidate.
+Named association may avoid export in this version but is explicitly forbidden.
+Internal CopyWithEphemeralKey uses CERT_NCRYPT_KEY_HANDLE_PROP_ID and ownership
+transfer; it is NOT a public escape hatch or permission for reflection/new PInvoke.
+
+K6 (PROPOSED REVISION): Create(issuerName,generator,notBefore,notAfter,serialSpan).
+R13 performs DER encoding, generator.SignData -> ECDsa.SignData using existing key,
+then X509CertificateLoader.LoadCertificate of encoded public DER; no K5 call in
+the inspected path. R8 documents HasPrivateKey=false. One public cert context;
+bounded public DER/signature buffers and public-parameter operations, no private
+export/import. Use exactly this overload, not issuer-certificate overloads, which
+may retrieve private keys from another certificate.
+
+K7: X509Certificate2 public inspection/RawData and explicit
+X509CertificateLoader.LoadCertificate(byte[] rawData), if separately budgeted.
+Loading even public DER allocates native cert context; no store mutation by this
+call alone. K6 already loads a context, so a second explicit load is unnecessary
+and excluded from the minimal resource budget. No obsolete PFX constructor or
+LoadPkcs12; EphemeralKeySet is not a magic protection flag for unrelated creation.
+
+K8: GetECDsaPrivateKey(X509Certificate2).
+R16/R17 can acquire/duplicate a handle, use provider metadata and reopen a named
+key for persisted associations; provider/UI access may result. Returned ECDsa
+must be disposed by its owner. For proposed public leaf it is expected absent;
+do not call it in minimal W1 just to exercise a native getter. HasPrivateKey=false
+is enough for its public-leaf objective; absence does not prove candidate cleanup.
+
+K9: cleanup: dispose public leaf first, then ECDsaCng duplicate, then original
+CngKey/provider references; release all optional public inspection wrappers too.
+CertificateRequest/signature generator are not IDisposable owners of the key.
+Never dispose an alias twice or use a disposed reference. [D] NCryptFreeObject
+releases an object [R18]; .NET SafeHandle disposal is the wrapper mechanism.
+Dispose returning/IsClosed is managed lifetime evidence, not an observed native
+free-success receipt, no-leak proof or proof of no persistent side effects.
+If the approval requires independently observed native release success, standard
+public BCL disposal alone may be insufficient: report CleanupUnconfirmed/STOP;
+do not add native instrumentation without another review/approval.
+
+Normal exit: follow K9 even after partial failures, only for owned live references.
+Abrupt termination: finally may not run; OS process-handle teardown is not an
+application-observed cleanup result. No deliberate kill/crash subtest is included
+in the minimal single shot. Any later crash test needs a new approval. Named or
+store state survives ordinary handle release and is never speculatively cleaned.
+On an exception, record only phase, exception category/HRESULT if available,
+requested-versus-observed policy and ownership certainty; no private data/user
+paths/raw handles. Unknown disposal/persistence => INCONCLUSIVE/STOP, preserve
+evidence under its approved report policy, no retry, reopen, enumeration or adoption.
+
+6. SAFE INVENTORY / DISCOVERY / PROJECT DEFAULTS
+
+Inherited complete conservative inventory remains in D3.3B section8; no old tests
+or scripts are changed. These are paths most likely to be accidentally selected:
+
+Existing portable test project PeripheralBatteryCompanion.Tests targets net10.0,
+uses TestSdk17.14.1/xunit2.9.3/runner3.1.5 and references Core, inspectors, HyperX
+POC/helper plus linked security/Option2 source. The project name does not imply
+purity. PublicServerCertificateInspectorTests' Certificate helper creates an
+ECDsa key, CreateSelfSigned and LoadCertificate for11 cases. Two
+TransportSecurityPrerequisiteTests call Ephemeral256BitSecret.Create ->
+RandomNumberGenerator.GetBytes (one constructs a synthetic bearer test header).
+Provider/G305/WindowsStabilization tests create/write/delete temp SQLite state.
+Other dependency/default-factory paths are UNKNOWN/UNSAFE unless audited individually.
+
+Windows.Tests targets net10.0-windows with WinForms/x64 and references Windows app.
+ReadOnlySecurityInspectionTests inspect actual CurrentUser cert/NIC metadata;
+ReadOnlyFixtureKeyInspectionTests perform native missing-key opens;
+HelperProcessTests use real child/job process control despite simulated HID;
+PopupLayoutTests touch UI/runtime dependencies. All excluded from W1 selection.
+
+Solution also builds actual SecurityFixture and EphemeralCapability executables;
+compilation is not execution, but no solution-level build/test is permitted now.
+Their Program routes can create keys/certs, export, journal and delete; preview
+routes also execute code/emit IDs or commands. No reuse for W1. No old resource
+inspection or cleanup is permitted. All retired/blocked IDs remain prohibited;
+this report generates no new one.
+
+test.ps1 builds/restores the solution and executes both projects unfiltered, writes
+logs and optionally clipboard. NOT a W1 runner. Test-A22C4ReadOnly.ps1 performs
+real OS inspection. Invoke-A22C5Fixture.ps1 performs mutation. Show-A22C5FixtureScope
+generates a preview ID/command. Test-D33ACodeOnly.ps1 has a NEGATIVE13-case filter,
+not an independent W1 allowlist, and builds/restores. All are excluded, not run.
+Test-VerificationRunner creates file shims and processes; Publish-Windows publishes/
+packages and calls artifact script. Asset verification writes composites. None run.
+
+Project/default target review: Directory.Build.props enables nullable/implicit
+usings, warnings-as-errors, deterministic build and lock files. No root
+Directory.Build.targets was present. Windows application .csproj has Build /
+AfterTargets=Publish helper-copy/publish targets (including nested MSBuild); a
+reference/build can perform packaging work without running the tray. The future
+W1 project must not reference it or join the existing solution/default runners.
+SDK/NuGet imported targets, test adapters and generators are still UNKNOWN until
+audited at exact resolved versions; a no-hit source search is not proof of no hooks.
+
+Discovery review: no W1 project/class exists now. Searches for module initializers/
+class/collection fixture attributes in inspected test paths did not establish a
+safe standalone entrypoint. Constructors, static fields, theory MemberData,
+BeforeAfterTest, assembly hooks and native default factories must ALL be reviewed
+in the future new project and dependencies. Even --list-tests is forbidden now.
+The11+2 incident demonstrates why method-name/exclusion filtering is insufficient.
+
+CI .github/workflows/build.yml reacts to push feature/** and pull_request. Normal
+windows job runs runner contracts, unfiltered test.ps1 and packaging; d33a-code-only
+condition applies only to the exact D3.3A branch, NOT S0. This stage's documentation
+commits use [skip ci] for push/PR suppression; no CI file edits or manual dispatch.
+No Android workflow was present in inspected checkout; remote automation is still
+inspected after publication, not assumed absent. A pending check is not PASS.
+
+7. FUTURE STRICT ALLOWLIST (DOCUMENTATION, NOT EXISTING CODE)
+
+Proposed isolated project, NOT created/approved for implementation:
+tests/PeripheralBatteryCompanion.W1Offline.Tests/PeripheralBatteryCompanion.W1Offline.Tests.csproj
+Single proposed native test fully qualified name:
+PeripheralBatteryCompanion.W1Offline.Tests.W1OfflineLifecycleTests.SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore
+Proposed pure preflight test names (not automatically included with native case):
+PeripheralBatteryCompanion.W1Offline.Tests.W1OfflineGateTests.MissingOwnerConsent_StopsBeforeProviderOpen
+PeripheralBatteryCompanion.W1Offline.Tests.W1OfflineGateTests.InvalidCanonicalIp_StopsBeforeProviderOpen
+All names are proposals, absent from the repositories; zero tests are discovered
+or executed here. No production/project references, linked legacy fixture source,
+native module initialization, environment auto-enable, automatic certificate data,
+shared crypto fixtures, class-wide selectors or parallel cases allowed.
+
+Proposed command syntax ONLY AFTER exact code/adapter/build review and separate
+owner implementation AND execution approvals, using already-reviewed built bits:
+dotnet test tests/PeripheralBatteryCompanion.W1Offline.Tests/PeripheralBatteryCompanion.W1Offline.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.W1OfflineLifecycleTests.SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore" --logger "trx;LogFileName=w1-offline.trx" --results-directory "<owner-approved-results-directory>"
+THIS COMMAND IS NOT EXECUTABLE AUTHORIZATION AND WAS NOT RUN. Placeholder path is
+not chosen/created in S0. No actual operation ID, consent token or permit supplied.
+Restore/build/discovery/native execution each need reviewed scope; --no-build/
+--no-restore do not eliminate test-host/adapter/discovery side effects. Do not run
+the command against existing legacy projects or use a solution glob.
+
+Independent reviewer must verify exact project sources/build manifest, resolved
+target/runtime/adapter versions, no ProjectReference to legacy assemblies, no
+discovery/setup crypto, exact FQN and expected case count ONE, nonparallel runner,
+no shared fixture/teardown creation or retries. Do not load legacy test assemblies
+at all. A filter is defense in depth, not the sole execution boundary. Future
+reviewed runner must fail on zero/multiple matches, wrong binary/SHA, missing local
+owner approval, missing allowed API/resource list, already-consumed invocation or
+unknown state BEFORE provider open. No global replay-proof claim from a process-
+local one-use flag; a new process requires fresh owner approval, not automatic retry.
+
+8. ONE-SHOT REVISED W1 PROTOCOL / EVIDENCE
+
+Owner choices required before even submitting an executable request:
+1) Accept/reject revised PUBLIC-leaf-only scope and no private association/TLS claim.
+2) Accept/reject narrowly scoped ACL-evidence exception for unnamed test key only;
+   NonExportable request remains None; production gate remains unchanged.
+3) Exact Windows edition/build/architecture, SDK/runtime patch and mapped source,
+   software KSP version/context, ordinary user with known loaded profile; no admin,
+   machine key, service/impersonation context or hardware provider fallback.
+4) Exact parameters in section3, allowed public metadata/export/hashing/signing/
+   certificate-load operations, reviewed wrapper/disposal paths. No private export.
+5) One canonical test IP (private IPv4 OR ULA, no bind/interface/port), precise UTC
+   certificate window/clock confidence, synthetic subject, public serial,
+   extension criticality, output/resource budgets and evidence location.
+6) Permitted observations, exact abort/cleanup rules and whether managed release
+   evidence suffices for limited conclusion. Native-release instrumentation is a
+   separate proposal, not an implied addition. No broad disk/key/store snapshots.
+
+Suggested resource budget FOR REVIEW: one underlying ephemeral P-256 private key,
+one original CngKey owner plus one ECDsaCng duplicate, one public certificate from
+Create; bounded public signature/SPKI/ASN.1 buffers and implementation-reviewed
+temporary public native objects. Zero named keys, OS store entries, PFX/private
+blobs, protected credentials, journals, listeners, clients or device operations.
+No extra negative key/cert or second explicit DER load. Exact temporary-object /
+byte limits must be fixed against the chosen implementation, not assumed approved.
+
+Proposed sequence (never automatic):
+P0 independent static review and exact owner scope verified; initialize no crypto
+in setup/discovery. Invalid consent/IP/time/limits => stop before K1.
+P1 consume one approved invocation, acquire one key through K1. Error/UI/unknown
+ownership => abort and only release independently owned live references.
+P2 read approved metadata. Any unavailable/mismatching export/protection/lifetime
+field => stop, record request versus readback; do not infer a default.
+P3 wrap existing key (K2), prepare exact extensions/public generator (K3), sign ONE
+public leaf using K6. Check HasPrivateKey=false, actual public SPKI/SAN/EKU/KU/
+constraints and UTC bounds. No CreateSelfSigned/CopyWithPrivateKey/private getter.
+P4 evaluate wrong EXPECTED pin/IP against the same public leaf (comparison only,
+no second fixture) if explicitly included. Unsupported/missing/expired native
+certificate cases remain NOT RUN, not invented positive/negative evidence.
+P5 deterministic disposal K9, record managed versus native certainty, redact output
+and STOP for owner review. No retry, second process, parallel run, provider/key
+replacement, delete, recovery or adoption. Abrupt-kill experiment excluded.
+
+Possible limited positive result: requested None plus observed metadata consistent,
+public-leaf identity fields match, public SPKI corresponds and managed owned
+wrappers closed without observed exception. Not a PASS for production security,
+nonexportability enforcement, owner ACL, chain trust, TLS or universal absence of
+orphan/provider-internal copies. Private export behavior remains NOT TESTED.
+Negative preconditions must fail before provider open; wrong public expectations
+must reject without credential transmission (none exists). Actual provider error/
+UI/named-resource/store change, export path reached, extra key, uncertain protection
+or disposal, unexpected test selection or native import => STOP and owner review.
+
+No speculative cleanup: never enumerate/delete by prefix/name, create persistent
+state to inspect it, inspect old resources, change ACLs, reopen/adopt a candidate,
+or rerun. Current-user scope is not CurrentUserAclRestricted. If ownership or
+native release cannot be established, retain INCONCLUSIVE/CleanupUnconfirmed,
+keep production OFF and request review of observed facts. No operations on any
+retired/preview ID; no new operation ID or W1 artifact was produced in S0.
+
+9. RESEARCH SOURCES AND AUDIT ANCHORS
+
+Microsoft Learn pages and official source below were fetched as TEXT during S0,
+not merely suggested links. .NET API pages selected view=net-10.0; upstream runtime
+source pinned to v10.0.0. These are not exact owner-runtime compatibility proof.
+Reference IDs distinguish public contracts [D] from implementation inference [I].
+Fetched Learn metadata also identifies CngKey.xml revision
+811380060dbb079b5055078147534ffde66a1cca, CngExportPolicies.xml revision
+2549e8f628ee5466d49fbc3f0e4628b243e8c706 and the Win32 key-property document
+revision a10c8acebac4eca9579e8e1992c87dfac258e9ff; these are documentary anchors,
+not executed provider evidence. Research text was inspected without running it.
+
+R1 [D] CngKey.Create: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cngkey.create?view=net-10.0
+R2 [I] creation defaults: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/CngKeyCreationParameters.cs
+R3 [D] NCryptCreatePersistedKey null-name/current-user contract: https://learn.microsoft.com/en-us/windows/win32/api/ncrypt/nf-ncrypt-ncryptcreatepersistedkey
+R4 [D] CngExportPolicies.None: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cngexportpolicies?view=net-10.0
+R5 [D] security descriptor/export property restrictions: https://learn.microsoft.com/en-us/windows/win32/seccng/key-storage-property-identifiers
+R6 [D] ECDsaCng constructors: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.ecdsacng.-ctor?view=net-10.0
+R7 [D] AddIpAddress: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.subjectalternativenamebuilder.addipaddress?view=net-10.0
+R8 [D] public-leaf Create overload: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.create?view=net-10.0
+R9 [I] create/set/finalize: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/CngKey.Create.cs#L34
+R10 [I] factory: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/ECDsa.Create.Windows.cs
+R11 [I] exportable default: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/CngAlgorithmCore.cs#L79
+R12 [I] duplicate lifetime: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/ECDsaCng.cs#L42
+R13 [I] self-signed versus public Create paths: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/X509Certificates/CertificateRequest.cs#L679
+R14 [I] public CopyWithPrivateKey entry: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/X509Certificates/ECDsaCertificateExtensions.cs
+R15 [I] public-export/sign generator: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/X509Certificates/ECDsaX509SignatureGenerator.cs
+R16 [I] private export/import fallback: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/X509Certificates/CertificatePal.Windows.PrivateKey.cs#L145
+R17 [I] empty-name guard and internal handle association: https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/Common/src/System/Security/Cryptography/X509Certificates/CertificateHelpers.Windows.cs#L254
+R18 [D] free-object contract: https://learn.microsoft.com/en-us/windows/win32/api/ncrypt/nf-ncrypt-ncryptfreeobject
+Additional fetched contracts: CngKey.ExportPolicy, CngUIPolicy, X509KeyStorageFlags,
+CertificateRequest.CreateSelfSigned (Microsoft Learn net-10.0). These do not license
+private export or key association merely because an API exists.
+
+Static checks only: exact local/remote baselines and draft state; source/callee/
+project/workflow text inspection; authoritative text retrieval; doc-only diff and
+whitespace checks. No scripts/builds/tests/discovery/probes or native W1 evidence.
+Previous reports/incident records untouched; documentation commits carry [skip ci]
+and draft PRs target D3.3B. No merge/release/activation. See the execution-gate
+checklist and Android implications note for cross-repository handoff.
+
+SINGLE RECOMMENDED NEXT OWNER DECISION:
+Accept or reject revising W1 to an unnamed None-policy key plus PUBLIC leaf only,
+with test-only ACL evidence explicitly NOT ESTABLISHED. If accepted, next prepare
+a source-reconciled, exact-platform approval request; that decision is NOT consent
+to implement or run it. Original private-associated W1 remains blocked.
+
+NATIVE NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+STOP FOR OWNER REVIEW.

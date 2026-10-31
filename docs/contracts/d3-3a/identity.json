@@ -1,0 +1,1918 @@
+[
+  {
+    "name": "valid",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "wrong-san-192.168.1.3",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.3",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-pin-bbbbbbbbbbbb",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-anchor-aaaaaaaaaaaa",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-path-False",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": false,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-eku-False",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": false,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-notAfter-10",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 10,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-notBefore-11",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 11,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-host-192.168.1.3",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.3",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-port-41001",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41001,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-kind-DNS",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "DNS",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-pin-AAAAAAAAAAAA",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-pin-aaaaaaaaaaaa",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-anchor-xyz",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "xyz",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-chain-[]",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": []
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-chain-['cccccccccc",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-chain-['not-a-dige",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "not-a-digest"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-10.0.0.1",
+    "expected": {
+      "host": "10.0.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "10.0.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "10.0.0.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-172.16.0.1",
+    "expected": {
+      "host": "172.16.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "172.16.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "172.16.0.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-172.31.255.255",
+    "expected": {
+      "host": "172.31.255.255",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "172.31.255.255",
+      "port": 41000,
+      "kind": "IP",
+      "san": "172.31.255.255",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-172.32.0.1",
+    "expected": {
+      "host": "172.32.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "172.32.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "172.32.0.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-192.168.0.1",
+    "expected": {
+      "host": "192.168.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.0.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-127.0.0.1",
+    "expected": {
+      "host": "127.0.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "127.0.0.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "127.0.0.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-8.8.8.8",
+    "expected": {
+      "host": "8.8.8.8",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "8.8.8.8",
+      "port": 41000,
+      "kind": "IP",
+      "san": "8.8.8.8",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-192.168.001.2",
+    "expected": {
+      "host": "192.168.001.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.001.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.001.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-0x0a000001",
+    "expected": {
+      "host": "0x0a000001",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "0x0a000001",
+      "port": 41000,
+      "kind": "IP",
+      "san": "0x0a000001",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-10.1",
+    "expected": {
+      "host": "10.1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "10.1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "10.1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-fd00::1",
+    "expected": {
+      "host": "fd00::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-fc00::",
+    "expected": {
+      "host": "fc00::",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fc00::",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fc00::",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-fd00:1:2:3:4:5:6:7",
+    "expected": {
+      "host": "fd00:1:2:3:4:5:6:7",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00:1:2:3:4:5:6:7",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00:1:2:3:4:5:6:7",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-fd00:0:0:1::1",
+    "expected": {
+      "host": "fd00:0:0:1::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00:0:0:1::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00:0:0:1::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      true
+    ]
+  },
+  {
+    "name": "literal-fd00:0000::1",
+    "expected": {
+      "host": "fd00:0000::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00:0000::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00:0000::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-FD00::1",
+    "expected": {
+      "host": "FD00::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "FD00::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "FD00::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-fd00:::1",
+    "expected": {
+      "host": "fd00:::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00:::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00:::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-[fd00::1]",
+    "expected": {
+      "host": "[fd00::1]",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "[fd00::1]",
+      "port": 41000,
+      "kind": "IP",
+      "san": "[fd00::1]",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-fd00::1%1",
+    "expected": {
+      "host": "fd00::1%1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fd00::1%1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fd00::1%1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-::ffff:192.168.1.2",
+    "expected": {
+      "host": "::ffff:192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "::ffff:192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "::ffff:192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-fe80::1",
+    "expected": {
+      "host": "fe80::1",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "fe80::1",
+      "port": 41000,
+      "kind": "IP",
+      "san": "fe80::1",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-host.local",
+    "expected": {
+      "host": "host.local",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "host.local",
+      "port": 41000,
+      "kind": "IP",
+      "san": "host.local",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "literal-*.local",
+    "expected": {
+      "host": "*.local",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "*.local",
+      "port": 41000,
+      "kind": "IP",
+      "san": "*.local",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "wrong-san-type",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "DNS",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false
+    ],
+    "accept": [
+      false
+    ]
+  },
+  {
+    "name": "clock-utc",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 9,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 12,
+        "tick": 12,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false,
+      false,
+      false
+    ],
+    "accept": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "clock-tick",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 9,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 12,
+        "tick": 12,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false,
+      false,
+      false
+    ],
+    "accept": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "clock-certain",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": false
+      },
+      {
+        "boot": "boot-a",
+        "utc": 12,
+        "tick": 12,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false,
+      false,
+      false
+    ],
+    "accept": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "clock-boot",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-b",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 12,
+        "tick": 12,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false,
+      false,
+      false
+    ],
+    "accept": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "revoked-trust",
+    "expected": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "seen": {
+      "host": "192.168.1.2",
+      "port": 41000,
+      "kind": "IP",
+      "san": "192.168.1.2",
+      "anchor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notBefore": 0,
+      "notAfter": 100,
+      "path": true,
+      "eku": true,
+      "chain": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "times": [
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      },
+      {
+        "boot": "boot-a",
+        "utc": 10,
+        "tick": 10,
+        "certain": true
+      }
+    ],
+    "revoked": [
+      false,
+      true,
+      false
+    ],
+    "accept": [
+      true,
+      false,
+      false
+    ]
+  }
+]

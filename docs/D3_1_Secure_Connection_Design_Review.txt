@@ -1,0 +1,293 @@
+PERIPHERAL BATTERY COMPANION — D3.1 SECURE CONNECTION DESIGN REVIEW
+Status: PROPOSED. Code-free review; owner approval required for subsequent stages.
+No implementation, build, tests, provisioning, listener, firewall change, commit,
+push, merge or release performed. Repositories and recovery exports unchanged.
+
+EVIDENCE AND BOUNDARIES
+Read-only observations: Windows HEAD 928e110827f02c28d4bb8fdd2fa21d483f53ed7b;
+Android HEAD 29871c38ae5c69f8182d7d5f125910a9e3ed291c. Both working trees clean.
+Reviewed Android BatterySnapshot.kt and Windows A2.2B snapshot and A2.2C2 security
+prerequisite documentation. This is not a complete source/security audit.
+
+Brief-supplied evidence: Windows 936 tests passed, zero failures; initial tray/
+display/responsiveness checks; Android installed on Xiaomi 17t with dashboard,
+navigation/reopen checks. These are owner reports, not checks executed here.
+Reported battery percentages have no independently verified reference accuracy.
+Android still uses demo data. No secure synchronization is claimed implemented.
+
+Trust boundaries:
+1. Local owner UI authorizes exposure/pairing, never remote JSON.
+2. Existing monitor caches publish coherent immutable read-only snapshots.
+3. Untrusted LAN crosses bounded HTTPS parsing and authentication gates.
+4. Local camera/screen exchange bootstraps Android's exact PC trust.
+5. OS user-protected storage holds credentials; ordinary preferences never do.
+6. Independent repositories share a versioned protocol, not runtime implementation.
+No network route may invoke refresh, HID, provisioning, filesystem or remote control.
+
+THREAT MODEL
+Same-LAN attacker can scan, spoof DNS/ARP, redirect, inject, record or drop traffic.
+TLS without authenticated bootstrap does not prevent initial interception.
+Rogue phone gets no data or enrollment outside explicit local approval.
+Rogue PC cannot substitute a different SAN/certificate/SPKI or induce trust-on-first-
+network-use. Replay needs one-use pairing, bounded sessions and publication checks.
+Stolen bearer tokens remain usable until expiry/revocation; nonces do not make
+a bearer credential sender-bound. Protect, scope, expire and revoke them.
+Stolen QR may race during the window; local PC confirmation reduces mistaken
+enrollment but cannot cure fully compromised bootstrap plus fooled user.
+Accidental exposure requires exact interface/Private profile/port and default OFF.
+Downgrade to HTTP, trust-all, hostname bypass, weaker protocol or pin reset is denied.
+Credential loss disables service and requires explicit re-pair, not silent recovery.
+DoS is bounded by admission, time/size limits and no unauthenticated expensive work;
+availability cannot be guaranteed against hostile Wi-Fi/network peers.
+
+Assume patched supported OS/runtime, uncompromised owner accounts and authentic
+local screen/camera exchange. Same-user malware, administrator/root compromise,
+stolen unlocked devices, supply-chain compromise, traffic analysis, router
+availability and physical battery accuracy are non-goals. OS storage protection
+is not proof against a compromised live process.
+
+ADR 1 — IDENTITY WITHOUT NAMED PERSISTENT KEY PROVISIONING
+Proposed preferred option: supported .NET ephemeral certificate/key creation,
+deliberately exportable in process, with DPAPI CurrentUser-protected private-key
+envelope on disk. Load using explicit supported ephemeral import semantics
+(for example applicable X509CertificateLoader + EphemeralKeySet), never
+PersistKeySet or implicit named-key defaults. This is a candidate requiring
+API/platform review, not a verified native recipe. No nonexportability, hardware
+protection or complete managed-memory erasure claim.
+
+Before ANY native provisioning, establish exact supported APIs/flags, provider
+lifetime, certificate usage and TLS interoperability; demonstrate import/create
+does not require persistent named provider objects. Review documented semantics
+plus separately authorized isolated Windows validation. Observing no key afterward
+alone is not universal proof. Any ambiguous side effect => NO-GO; no best-effort
+native cleanup, recovery or adoption.
+
+Envelope: local owner-only nonreparse directory, explicit ACL validation,
+create-new protected temporary file, durable flush and atomic replacement under
+single-owner local provisioning lock. Only protected bytes reach disk.
+Unknown ACL/path is rejected, not automatically repaired. Crash may leave a
+protected file orphan; no recovery/adoption by name alone. Missing/corrupt envelope
+or DPAPI loss after account/machine migration disables listener and forces
+owner-approved fresh identity/re-pairing. No plaintext PFX/password file; any
+container password is not the storage security boundary.
+
+Alternatives:
+- Session-only ephemeral identity: avoids persistent envelope but requires pairing
+each restart; safe usability fallback if separately approved.
+- Owner-selected pre-existing certificate: no app provisioning, but exact SAN,
+SPKI, validity, EKU/private-key access/lifetime must be reviewed; no broad discovery,
+adoption or permission repair of unrelated keys.
+- OS-managed persisted/nonexportable CNG key: potential isolation benefits, but
+ownership/atomicity unresolved; excluded from D3.
+- Public/custom CA enrollment: broader trust/distribution burden, unnecessary here.
+B1 export success proves neither persisted policy nor nonexportability.
+Option2 remains native NO-GO; retired and preview IDs must not run, be reused,
+inspected, adopted or cleaned. No dependency on that harness.
+
+ADR 2 — TLS IDENTITY
+HTTPS only; minimum TLS1.2, prefer TLS1.3; no TLS0-RTT, HTTP fallback or redirects.
+Dedicated per-PC Android client, no system-wide trust modification.
+QR transfers exact leaf certificate as narrowly scoped trust anchor, SHA256 SPKI
+pin, exact endpoint/SAN and protocol version. Validate X.509 path to that anchor,
+validity, constraints/server-auth usage AND normal exact endpoint hostname/SAN
+verification AND SPKI hash. No trust-all manager, pin-only chain bypass or CN-only
+fallback. If narrow-anchor integration cannot work without bypasses, STOP.
+
+Inherit existing conservative prerequisites: assigned RFC1918 IPv4 or IPv6 ULA,
+explicit unprivileged port1024..65535, exact deliberate interface, Private profile.
+No default port is approved here; no wildcard/public/link-local/scoped/mapped
+address. IP endpoints require an exact IP SAN, not DNS-string comparison.
+DNS support would require separately approved exact DNS SAN, no wildcard.
+Changed address/SAN needs owner review/reprovisioning, never weakened validation.
+Propose leaf90-day lifetime, warn14 days before expiry; values require approval.
+Bad clock/expiry blocks connection. A system-trusted wrong pin is rejected.
+
+PAIRING SEQUENCE — FIRST USE
+1. PC owner explicitly approves interface/address/port and exposure warning.
+Listener remains OFF until identity, storage and profile gates pass. App never
+changes firewall rules; any dedicated manual rule requires separate approval.
+2. Owner opens proposed120-second pairing window. Generate CSPRNG256-bit one-use
+secret and opaque session only then. Display local QR with endpoint, certificate,
+SAN, pin, version, session, expiry and secret. No URL query secret, logs, clipboard
+or telemetry. Short numeric code alone is not an acceptable secret.
+3. Phone scans real PC screen, bounds/parses locally and asks user confirmation.
+Validate anchored TLS + SAN + pin BEFORE sending any secret.
+4. POST secret in protected body, phone random nonce and bounded untrusted label.
+PC verifies secret hash, monotonic expiry and admission limits; atomically locks
+session to first valid attempt/flow. Concurrent/repeated submissions denied.
+5. PC and phone show same transcript-bound comparison code, derived using a
+domain-separated hash of session/endpoint/pin/phone nonce/server nonce.
+Propose eight decimal digits and one attempt/session; exact encoding needs D3.3
+review. Comparison code is an aid, not a replacement for high-entropy QR secret.
+Owner confirms matching code on the phone being held. No unattended approval.
+6. After approval, atomically persist per-device credential ID, token hash verifier,
+snapshot.read scope, expiry/revocation; issue random256-bit bearer token via the
+same verified TLS flow. Proposed maximum lifetime30 days; no refresh token.
+Phone encrypts token under Android Keystore AES-GCM key, unique nonce/tag and
+authenticated PC/pin/credential metadata; ciphertext in private storage.
+7. Consume secret, close window. Clear owned buffers where supported; managed/OS
+copy erasure is not guaranteed. Lost response/crash => no automatic reissuance or
+secret recovery; show possible orphan enrollment for local revocation and start
+a new explicitly approved window.
+
+Active-LAN resistance: authentic screen QR supplies identity and secret before
+network use. Attacker substitution fails certificate/SAN/pin validation; relaying
+genuine TLS reveals no token. QR theft/phishing remains residual risk.
+Numeric-only pairing would need separately vetted PAKE/library review; do not
+invent a custom challenge-response protocol.
+
+RECONNECT
+Load approved trust/endpoint and unseal token; perform identical TLS validation,
+then Authorization: Bearer, never query token. Server checks scope, verifier,
+expiry and revocation on every request. No snapshot in unauthorized response.
+CONNECTED requires authenticated valid nonsynthetic snapshot, not TLS alone.
+Disconnect => offline/stale with separate last-known data, no invented observation.
+Monotonic active-session budgets supplement UTC expiry; startup clock rollback
+must deny uncertain validity. Persistent trusted-time strategy remains unresolved;
+no absolute trustworthy-clock claim.
+
+ROTATION
+Owner initiates new identity meeting the same lifecycle gates while old identity
+is valid. Prefer explicit fresh QR + confirmation per new certificate/pin.
+No silent learning after mismatch; new SAN also requires bootstrap review.
+Any dual-pin/anchor overlap must be exact, visible and bounded by explicit approval.
+Expired/compromised old identity requires local re-pair; no network-only recovery.
+Retire old credentials, close connections and remove app-owned protected envelopes
+only under separately reviewed file lifecycle policy; never old CNG evidence.
+
+REVOCATION
+PC local owner revokes selected opaque credential; durable record before success,
+invalidate sessions and recheck auth before response commit. Failed durable
+revocation => stop listener, deny all. No remote admin/revoke route.
+Phone Forget deletes local token/trust; PC revocation separately required for
+possible leakage. Lost phone => local PC revoke. Credential store loss/reset =>
+listener OFF, invalidate all pairings, explicit fresh bootstrap, no silent trust.
+
+NETWORK AND RESOURCE POLICY
+Default OFF; fresh local owner consent every process restart. Persisted desired ON
+does not restore approval. Existing monitoring consent/startup/cadence unaffected.
+No discovery, UPnP, broadcast, public routing or cloud relay.
+Recheck profile/interface/address, identity and storage on events and admission;
+failed/unknown observation latches OFF, closes listener and cancels requests.
+Recheck before data delivery; event detection races/latency remain a residual risk.
+
+Proposed review budgets:4 parallel handshakes,8 active requests,16KiB headers,
+8KiB pairing body,64KiB snapshot, JSON depth16,5-second handshake/header and
+10-second request deadline; bounded queues. Pairing: one pending approval,
+five failures/window globally then close; per-source plus global admission.
+Snapshot: one outstanding request/credential, max one per5 seconds; propose
+foreground30-second polling, bounded backoff, pause background. Not implemented
+or performance-verified. No browser/CORS access or remote admin commands.
+Auth before serialization, no-store response, no automatic redirects. Constrain
+client proxy routing so credentials never migrate to a different origin.
+Logs omit tokens, QR, headers/body, paths, raw reports and device identifiers.
+
+Disable/shutdown: stop accepts, cancel/drain bounded work, close connections,
+dispose ephemeral resources and clear owned buffers; unconfirmed close is safety
+stop, not success. Never change monitor schedule or clean experiment journals.
+
+EXPLICIT CROSS-REPOSITORY CONTRACT
+Keep Windows docs/contracts v1 schema/example unchanged pending explicit version
+review. D3.2 freezes schema digest and matching synthetic golden vectors in both
+repos; no Windows runtime source/dependencies copied to Android.
+GET /v1/snapshot read-only; POST /v1/pair only during approved pairing.
+No refresh/provider-control/HID/admin/filesystem routes or remote commands.
+Exact version negotiation; incompatible versions fail, no silent downgrade.
+
+Fixed canonical G915/G305/HyperX IDs/order. Integer percent0..100 or null;
+zero valid, null unknown. Preserve source, precision/confidence, freshness,
+availability/reasons and separate lastKnown. HyperX stays estimate/ambiguous.
+Snapshot capturedAt is cache publication, not device observation. Gateway receipt
+is readAt, not observedAt. Missing times remain null; HTTPS proves no battery
+accuracy. Do not export paths/runtime device identifiers/raw status/native reports.
+Payload bound64KiB/depth16; unknown enums fail conservatively.
+
+Existing serverInstanceId/revision represent publication session/increasing version,
+not permanent authenticated PC identity. Reject regressions within session;
+duplicate revision never refreshes measurement age. Session change only through
+current authenticated uncached response, resets freshness unknown; old payload
+cannot reset revision. TLS record anti-replay plus disabled0-RTT/no caching does
+not make a stolen bearer token safe. Disconnect/revoke invalidates session trust.
+
+Android domain is simpler than Windows DTO: a reviewed adapter must retain
+receipt/lastKnown/confidence semantics, never blindly deserialize and discard them.
+If UI cannot represent evidence, show unknown/stale. Demo remains explicit DEMO,
+no synthetic timestamps and no automatic demo fallback after connection failure.
+Live route rejects synthetic data. Use local monotonic elapsed time for connection
+age; server UTC is provenance, not trusted cross-device elapsed time.
+Clock disagreement/future times => unknown freshness.
+D3.4 reviews stale thresholds against actual provider cadence/evidence, not repeating
+percentages or successful polling. No fabricated live connections or timestamps.
+
+TEST PLAN — NOT EXECUTED
+Portable first: consent/state gates, size/time budgets, SAN/pin/version policy,
+expiry/clock rollback, one-use pairing races, mismatches/rate limiting, lost response,
+atomic revoke failure, schema golden vectors, null vs0, unavailable/unknown/stale,
+source/timestamp provenance, demo isolation and revision/session behavior.
+Fakes prove logic, not OS/native enforcement.
+
+Windows integration after separate approval: actual ephemeral import/create/
+disposal and TLS usage; documented no-named-persistence semantics plus authorized
+scoped observations; DPAPI/ACL/crash consistency, exact binding/profile changes,
+shutdown and revoke/restart. Never Option2 or older fixtures as shortcuts.
+
+Android emulator: real platform TLS wrong SAN/pin/anchor, expired certificate,
+invalid server usage, pin change, expired/revoked credential, Keystore loss/restore,
+redirect/disconnect/timeout, malformed/oversize data, unavailable peripheral,
+clock change, demo/live UI. Fakes alone cannot prove TLS enforcement.
+
+Then owner-approved two-device LAN: explicit PC/phone/network/port/interface,
+observed firewall policy, genuine QR+confirmation, reconnect/restart, rotation,
+revoke, Wi-Fi changes, PC offline/unavailable peripheral and controlled wrong-pin
+negative service. Never send real credentials to hostile test endpoint.
+Record platform versions, commands, counts and NOT RUN distinctions; battery
+reference accuracy is a separate physical check.
+
+ROLLOUT / ACCEPTANCE / ROLLBACK / NO-GO
+D3.1 design: acceptance owner reviews threats/decisions/gates. Rollback revise or
+discard report; no runtime change. NO-GO pending decisions below.
+
+D3.2 transport foundations: separate repo branches/PRs, freeze contract vectors,
+pure lifecycle/admission/validation and fake storage/transport. Native TLS adapter
+isolated/default disabled, separate approval before provisioning/listening.
+Acceptance builds/portable tests and approved real-stack negative TLS checks;
+no monitor changes. Rollback isolated additions, listener OFF.
+NO-GO named-persistence ambiguity, trust-all requirement or storage uncertainty.
+
+D3.3 pairing: reviewed native storage/TLS first, QR/PC confirmation, one-use atomic
+issuance, per-device storage/revocation, default OFF.
+Acceptance race/crash/expiry/revoke/restore tests and no secret leakage.
+Rollback disable listener/revoke new credentials, separately reviewed app-owned
+file cleanup only. NO-GO secret sent before identity verification, revocation
+failure still serves, or silent trust restoration.
+
+D3.4 live snapshots: cached coherent publications only, typed Android DTO adapter,
+foreground reads and honest stale/offline/demo presentation.
+Acceptance shared vectors, unknown/unavailable cases, no network-triggered
+hardware reads and monitoring regressions. Rollback disable integration, explicit
+demo/disconnected UI; preserve monitoring settings.
+NO-GO false confidence/timestamps, demo-as-live or unbounded scheduling.
+
+D3.5 physical validation: owner approves exact scope and guided test individually.
+Acceptance recorded positive/negative LAN evidence, native storage/TLS/shutdown
+verification, unresolved limits recorded. No automatic release.
+Rollback listener OFF, phone Forget plus PC revoke, separately reviewed removal
+of any dedicated manual firewall rule.
+NO-GO wrong pin accepted, unknown exposure, uncertain shutdown/revoke/storage.
+
+SEPARATE OWNER APPROVALS / OPEN BLOCKERS
+Any implementation/build/runtime integration after D3.1; exact native API/flags
+and isolated Windows validation; protected file/DPAPI/Keystore lifecycle; exact
+port/interface/SAN, certificate/token lifetime, budgets and clock policy; QR/code
+format and pairing UI; schema revisions/Android mapping/freshness; actual listeners,
+LAN exposure or manual firewall rule; emulator/native/physical testing.
+Any discovery/remote commands/cloud relay/background networking/persisted CNG
+provisioning/recovery expands scope. Merge, release/publication remain separate.
+No Git publication or PR change made for this standalone code-free review.
+
+Blocking decisions: prove supported ephemeral lifecycle without named persistence;
+demonstrate narrow-anchor/SAN/pin enforcement on both TLS stacks; review durable
+storage/revocation and clock semantics; approve bootstrap UX and mapping policy.
+Do not weaken design to bypass any blocker.
+
+STOP FOR OWNER DESIGN REVIEW. OPTION2 NATIVE EXECUTION REMAINS NO-GO.

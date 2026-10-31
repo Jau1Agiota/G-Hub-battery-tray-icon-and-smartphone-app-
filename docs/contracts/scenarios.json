@@ -1,0 +1,70 @@
+[
+  {
+    "file": "golden/demo.json",
+    "accept": true
+  },
+  {
+    "file": "golden/stale-last-known.json",
+    "accept": true
+  },
+  {
+    "file": "golden/unavailable.json",
+    "accept": true
+  },
+  {
+    "file": "golden/zero-and-unknown.json",
+    "accept": true
+  },
+  {
+    "file": "rejected/demo-time.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/duplicate-device.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/duplicate-key.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/gateway-observation.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/hyperx-confidence.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/malformed.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/missing-field.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/null-available.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/percent-range.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/quoted-percent.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/unknown-enum.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/unknown-field.json",
+    "accept": false
+  },
+  {
+    "file": "rejected/version.json",
+    "accept": false
+  }
+]

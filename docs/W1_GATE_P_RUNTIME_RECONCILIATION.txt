@@ -1,0 +1,204 @@
+W1 GATE P — .NET 10.0.13 SOURCE RECONCILIATION
+2026-10-30. DOCUMENTATION AND STATIC RESEARCH ONLY.
+NATIVE NOT RUN. TESTS NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+
+DECISION: REVISE — do not request Gate I yet.
+Exact official release archive -> public source mapping is INCONCLUSIVE.
+This is a documentation stop, not permission for an exploratory native probe.
+
+1. AUTHORITY AND PROVENANCE
+The owner-supplied Gate P brief authorizes new documents/static HTTPS research,
+new branches, pushes and draft PRs, with no implementation/build/discovery/tests.
+Accepted FOR PREPARATION remains one unnamed nonexportable P-256 key and one
+PUBLIC-ONLY signed leaf, ACL evidence NOT ESTABLISHED under a TEST-ONLY exception.
+Production NonExportable AND CurrentUserAclRestricted is unchanged. Prior reports
+and the D3.3A out-of-scope execution incident are preserved verbatim.
+
+Verified existing open/draft/unmerged PR18 Windows head:
+a02d7792538893bd4ed95c590bf09e13c2155fe0;
+PR7 Android head:a69f59411567595e13079b1660b4d9365edcf28b.
+Both bases:feature/s0-static-windows-api-policy-review.
+Both local checkouts were clean and origin URLs matched the owner repositories.
+New branch in both:feature/w1-gate-p-runtime-source-reconciliation.
+New draft PR base in both:feature/w1-prep-isolated-implementation-spec.
+No production, earlier report, tests, CI or configuration file is changed.
+
+2. OWNER PLATFORM INTAKE (OWNER-REPORTED, NOT PROBED HERE)
+Windows11 Home10.0.26200/build26200.9711; OS/process64-bit; AMD64;
+interactive/non-elevated/current profile loaded. Initial RuntimeInformation result
+UNKNOWN was resolved by the owner's Environment bitness/architecture metadata.
+Installed SDKs8.0.426/10.0.402. Microsoft.NETCore.App6.0.36,8.0.12,8.0.19,
+8.0.32,9.0.21,10.0.13; WindowsDesktop.App10.0.13 also installed.
+ncryptprov.dll present, file version10.0.26100.1(WinBuild.160101.0800).
+Provider registration, actual loaded module/context/behavior: UNKNOWN.
+Proposed SDK10.0.402/runtime10.0.13: NOT SELECTED/LOCKED; testhost NOT OBSERVED.
+Inventory and DLL file metadata establish neither runtime loading nor KSP policy.
+No usernames, SIDs, hostnames, user installation paths or credentials recorded.
+
+3. SOURCE-TO-BINARY MAPPING — BLOCKER P1
+R1 https://api.github.com/repos/dotnet/runtime/git/ref/tags/v10.0.13
+Official tag resolves directly to commit:
+6aa72daa24f66c01c3d7b6a32519e9d21396deec (SOURCE ANCHOR T).
+S0 v10.0.0 anchor B:60629d14374c56f1cb51819049ad1fa529307f8d.
+R2 https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json
+Release entry10.0.13, dated2026-10-13, pairs SDK10.0.402 with runtime10.0.13.
+R3 https://github.com/dotnet/core/blob/main/release-notes/10.0/10.0.13/10.0.13.md
+Notes independently list SDK10.0.402/10.0.113. These mutable metadata documents
+are supporting release evidence, not proof of any selected owner binary.
+R4 https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-win-x64.zip
+Downloaded as inert ZIP only; no installation/extraction/loading of binaries.
+SHA512 matched R2 exactly:
+2b98792ce86adc50899764ad2e4d21bd25cfda5432eeb0b4dfe7944f3ea049f9e0570a8f4aee92314d97cdb5f8b7be1363d501fc5012e680371e607af648ef40
+Read ONLY ZIP entry shared/Microsoft.NETCore.App/10.0.13/.version as text:
+4099f83977f4d29604a9aeb971fb0a7bc1d5f699
+10.0.13
+This embedded build revision differs from T.
+R5 https://api.github.com/repos/dotnet/runtime/commits/4099f83977f4d29604a9aeb971fb0a7bc1d5f699
+Returned HTTP422 No commit found for SHA. Comparison endpoint against T returned
+HTTP404. No retry, private repository access or alternate execution route used.
+R6 https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/productVersion.txt
+Returns10.0.13 only; it does not reconcile the different revisions.
+
+Confidence: HIGH in the observed public tag, metadata and archive checksum;
+INCONCLUSIVE in exact archive-to-public-source mapping; UNKNOWN for owner-selected
+binary/testhost. Do not assume the embedded revision is interchangeable with T,
+or infer its repository, source history or security patch equivalence. An official
+build manifest/SourceLink/source archive resolving this discrepancy is required.
+A checksum match authenticates consistency with metadata, not reproducible-build
+proof or identity with the owner's installed files. No signature/PE execution done.
+STOP at Gate P. The comparison below is T versus B ONLY, not a completed exact
+owner-runtime call-graph audit. No full-transitive completeness claim is made.
+
+4. TAG COMPARISON — STATIC OBSERVATIONS, NOT NATIVE EVIDENCE
+Labels: DOCUMENTED=Microsoft contract; STATIC INFERENCE=reviewed source;
+UNPROVEN=actual platform/complete selected-binary reconciliation.
+UNCHANGED/CHANGED below refer only to B versus T. Selected-binary status for
+EVERY row remains UNKNOWN until P1 is resolved. File+line references use T.
+URL rule: https://github.com/dotnet/runtime/blob/<T>/<path>#L<start>-L<end>
+P=src/libraries/System.Security.Cryptography/src/System/Security/Cryptography/
+C=src/libraries/Common/src/
+Full compared paths/digests are in W1_GATE_P_STATIC_EVIDENCE.txt.
+
+A. Explicit key creation — STATIC INFERENCE / UNCHANGED
+P CngKey.Create.cs35-76: explicit provider open; NCryptCreatePersistedKey(provider,
+algorithm,NULL,legacyKeySpec0,creation flags0); initialize; NCryptFinalizeKey0;
+mark CLR ephemeral; on exception dispose returned key and provider handles.
+P CngKeyCreationParameters.cs15-66: default SoftwareKSP/empty parameters; explicit
+None export, Signing, flags0, parent0, null UIPolicy still required by proposal.
+C System/Security/Cryptography/CngHelpers.cs20-51 opens provider flags0; sets
+ExportPolicy using CngPropertyOptions.Persist. P CngKey.Create.cs82-126 sets
+KeyUsage with Persist; skips parent/UI at zero/null; iterates custom parameters.
+Persist PROPERTY flag is not itself a named key or proof of persistence; retain
+actual property flags in the review, do not silently substitute0. Actual unnamed
+provider behavior remains UNPROVEN. NULL-name ephemeral/current-user scope is
+DOCUMENTED by Learn, not native nonpersistence/ACL proof. No silent UI flag is set;
+null UIPolicy/zero parent does not guarantee no UI or bounded native call duration.
+C Interop/Windows/NCrypt/Interop.Keys.cs and Interop.Properties.cs match bytewise.
+
+B. Existing-key wrapper — STATIC INFERENCE / UNCHANGED
+P ECDsaCng.cs42-50 -> CngAlgorithmCore.cs27-30 -> CngKey.OpenHandle.cs20-79:
+existing-key validation, SafeHandle duplication, provider-handle property retrieval,
+ephemeral-marker reconciliation and exception cleanup; no new private-key generation
+on that intended path. It DOES acquire additional provider/key references.
+P ECDsaCng.Key.cs19-37 sets existing key/key size; GetKey87-114 reuses matching
+key, but GenerateKey/KeySize mutation could reenter generation: forbid both.
+P ECDsa.Create.Windows.cs and CngAlgorithmCore.cs47-132 factory paths explicitly
+request AllowPlaintextExport. Reject ECDsa.Create(curve), implicit/default factories,
+GenerateKey and regeneration. SafeNCrypt implementation/entire release chain is
+not fully reconciled at the unresolved build revision: UNKNOWN, not audited PASS.
+
+C. Public-leaf Create — DOCUMENTED + STATIC INFERENCE / UNCHANGED
+P X509Certificates/CertificateRequest.cs99-111: existing ECDSA -> generator -> public key.
+P X509Certificates/X509SignatureGenerator.cs CreateForECDsa and
+ECDsaX509SignatureGenerator.cs14-18,64-114: retain signer; ExportParameters(false),
+named-curve OID/public uncompressed point; SignData SHA256 DER-sequence signature.
+P X509Certificates/CertificateRequest.cs1008-1104: explicit issuer/time/serial validation; DER TBS,
+extensions with duplicate-OID rejection; generator.SignData; public DER loaded
+through X509CertificateLoader.LoadCertificate, no CopyWithPrivateKey on this path.
+P X509Certificates/X509CertificateLoader.Windows.cs13-27,176-218: blob CryptQueryObject restricted
+to CERT content, flags0, no store/message output requested, release invalid context,
+CertificatePal(deleteKeyContainer:false). Public parsing is still native execution
+and remains NOT RUN. PKCS12 methods elsewhere in this file are excluded branches.
+Serial-normalization buffer return1103 is after loading, not an overall finally:
+failure behavior/all internal temporary lifetimes require further exact-source
+review; no absolute allocation/cleanup guarantee inferred from intended success.
+HasPrivateKey=false is DOCUMENTED for this overload; actual result UNPROVEN.
+
+D. Forbidden association — STATIC INFERENCE / UNCHANGED
+P X509Certificates/CertificateRequest.cs679-710 CreateSelfSigned generates random serial, invokes
+Create, then CopyWithPrivateKey. P X509Certificates/ECDsaCertificateExtensions.cs public association
+validates public parameters and calls PAL. P X509Certificates/CertificatePal.Windows.PrivateKey.cs
+145-167 tries persisted association then ExportParameters(true), new ECDsaCng,
+ImportParameters, CopyWithEphemeralKey. C System/Security/Cryptography/
+X509Certificates/CertificateHelpers.Windows.cs254-296 returns null for empty
+KeyName. Thus unnamed fallback reaches private export/import. Failure of export
+would not authorize trying it. No named-key workaround, reflection/internal helper,
+private getter, PFX/PEM, extra import/association or custom native workaround.
+
+E. Public inspection/IP/SPKI — STATIC INFERENCE / mixed file delta
+P X509Certificates/SubjectAlternativeNameBuilder.cs43-48 encodes address bytes into GeneralName;
+canonical IP/private-v4-or-ULA and mapped/scoped/ambiguous input rejection must be
+explicit preflight rules. Type7 contract remains DOCUMENTED; generated ASN.1 encoder
+and complete extension decoder callees at selected revision remain UNKNOWN, not
+certified by a signature-only review. No DNS/CN fallback or legacy policy migration.
+P X509Certificates/PublicKey.cs190-201 exports DER SPKI via ASN.1 encoding, not certificate hash.
+Use certificate.PublicKey DER and signer-generator public DER rather than extra
+GetECDsaPublicKey wrappers/imports. Exact bounded DER equality + SHA256(SPKI),
+extension OIDs/criticalities and UTC checks need later review, no keys loaded here.
+P SHA256.cs103-112 -> HashProviderDispenser.Windows.cs one-shot implementation /
+BCrypt interop. Native hashing/resources are not permission-free just because data
+is public; full selected-revision backend/resource chain is not closed at this gate.
+X509Certificate2.cs CHANGED: EC PEM/private-key import/selection helper reworked
+(new ExtractKeyFromECPem/EncryptedECPem/ECPrivateKeyInfo and keyUsage handling,
+~1370-1500 and1999-2230). Diff does not establish a change to the intended public
+inspection path; all PEM association remains excluded. Do not label whole file
+unchanged. CompositeMLDsaManaged.ECDsa.cs also CHANGED for composite private-key
+encoding/curve checking; not part of intended P-256 W1, excluded.
+
+F. Metadata gotcha — STATIC INFERENCE / UNCHANGED, REQUIRED REVISION P2
+P CngKey.StandardProperties.cs72-83 ExportPolicy -> CngHelpers.cs25-59
+GetPropertyAsPrimitive: NTE_NOT_FOUND returns default(int)=0. None is ALSO0.
+Therefore ExportPolicy==None alone can misclassify unavailable evidence as None.
+IsMachineKey uses same helper155-162; IsEphemeral113-149 returns false on error.
+KeyName170-179 short-circuits on CLR marker, so null alone is not independent
+proof of no OS object. These getters are not a native security receipt.
+Future design must independently distinguish property absence/length/errors. Public
+CngKey.GetProperty in CngKey.Properties.cs18-29 throws for missing, but morphs empty
+to null: proposed bounded exact-size readback needs review, not implemented here.
+Do not add PInvoke or an export probe. Missing/malformed remains UNKNOWN/STOP.
+This is newly identified static evidence in an unchanged path, not a servicing fix.
+
+G. ACL/disposal — DOCUMENTED + STATIC INFERENCE / UNCHANGED or UNKNOWN
+Learn Key Storage Property Identifiers restricts Security Descr to persisted keys.
+NULL name/current-user scope != owner DACL proof. ACL NOT ESTABLISHED always;
+production NonExportable AND CurrentUserAclRestricted is unchanged.
+P CngKey.cs26-29 disposes provider then key within that object. ECDsaCng.cs71-74 /
+CngAlgorithmCore.cs38-44,146-150 release owned duplicate. Proposed external order:
+leaf -> signer -> original CngKey, not manual disposal of internal aliases.
+P X509Certificates/CertificatePal.Windows.cs474-482 disposes certificate context. C Microsoft/Win32/
+SafeHandles/SafeCertContextHandle.cs35-48 calls CertFreeCertificateContext (or parent
+DangerousRelease), returns true without a native-release receipt. C Interop/Windows/
+NCrypt/Interop.NCryptFreeObject.cs declares release API; full SafeNCrypt wrappers
+at the unresolved build revision NOT RECONCILED. Dispose/IsClosed/returned success
+cannot prove native release, leak absence or no persistence. Failure/abrupt death
+remains CleanupUnconfirmed; no delete/reopen/enumerate/adopt/retry permitted.
+
+5. CONTRACT REFERENCES (S0 DOCUMENTED FINDINGS RETAINED)
+https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cngkey.create
+https://learn.microsoft.com/en-us/windows/win32/api/ncrypt/nf-ncrypt-ncryptcreatepersistedkey
+https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cngexportpolicies
+https://learn.microsoft.com/en-us/windows/win32/seccng/key-storage-property-identifiers
+https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.create
+https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.subjectalternativenamebuilder.addipaddress
+These contracts were established in S0; not all pages were freshly fetched here.
+Microsoft docs are contracts, not a mapping from Windows DLL metadata to behavior.
+
+6. CONCLUSION / STOP
+85 of87 selected files matched B/T byte-for-byte; two changed files are described
+above. This bounded text comparison is not a complete transitive source-to-binary
+audit. Source commit mismatch P1, fail-closed metadata design P2, deterministic host
+selection and pending owner inputs block a Gate I request. See readiness document.
+No nonexportability, ACL, KSP behavior, native cleanup, chain, TLS, Android anchoring
+or production security conclusion follows from the comparison.
+NATIVE NOT RUN. TESTS NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+STOP FOR OWNER REVIEW. NO AUTOMATIC GATE I OR GATE B/E.

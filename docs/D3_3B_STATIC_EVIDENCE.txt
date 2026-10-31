@@ -1,0 +1,43 @@
+D3.3B STATIC EVIDENCE RECORD — NO RUNTIME VERIFICATION
+
+Baseline remote/local SHA checks matched:
+Windows 60dc9da8c55a8cdbb3046849badb8881d60ea706
+Android 38351f32e5941d4adb053746521fdb73e94431ae
+Baseline PR15/PR4: open, draft, unmerged; base feature/d3-2-inert-foundations.
+Local working trees were clean before new documentation files.
+
+Existing Windows D3.3A CI read-only observation:
+- run41085182247: windows job SKIPPED; d33a-code-only SUCCESS.
+- run41085071535: windows job SKIPPED; d33a-code-only SUCCESS.
+These are historical D3.3A checks, not tests executed in D3.3B.
+Existing Android D3.3A check-runs API returned total_count0.
+No job was dispatched, rerun, built or tested by this stage.
+
+Text/metadata inspected: D3.1/D3.2/D3.3A design and implementation documents,
+transport/credential foundation types and tests, legacy certificate and secret
+helpers, older security prerequisite gate/public certificate inspector, Windows
+read-only inspection tests and helper-process fixtures, script/CI entrypoints,
+selected SQLite/temp-file fixture paths, Android build configuration and UI tests.
+Searches and partial file reads are not exhaustive transitive proofs: unreviewed
+legacy suites remain U/unsafe in the full report. No native fixture was executed.
+
+Static commands actually used: git status/branch/rev-parse/ls-remote, GitHub API
+metadata reads, cat/sed/rg source inspection, cmp report-copy comparison and
+git diff --check. Documentation file operations, feature-branch Git operations
+and publication are within scope. No builds, test discovery, runner scripts,
+native certificate/key APIs, OS stores, app sockets, emulator or phone operations.
+
+Only NEW files permitted in this delta in each repository:
+docs/D3_3B_NATIVE_PROOF_DESIGN_REPORT.txt
+docs/D3_3B_REVIEW.md
+docs/D3_3B_STATIC_EVIDENCE.txt
+No prior reports, source, tests, fixtures, CI or production configuration changed.
+Shared full report/decision matrix copied byte-for-byte into both repositories.
+Docs commit subject contains [skip ci] to suppress push/pull_request workflow runs.
+Do not remove that marker, dispatch a job or infer a skipped/pending check is PASS.
+
+Publication URLs/final documentation SHAs are reported in delivery evidence after
+commit/push. No current native or portable runtime result is manufactured here.
+
+NATIVE NOT RUN. LAN NOT RUN. PRODUCTION SECURITY NOT PROVEN.
+NEXT native-stage recommendation: REVISE / NO-GO to execution until owner decision.

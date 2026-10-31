@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PROPOSAL ONLY \u2014 battery snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "synthetic",
+    "serverInstanceId",
+    "revision",
+    "capturedAt",
+    "devices"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "serverInstanceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "capturedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "devices": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/device"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "g915"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "g305"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "hyperx"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batteryPercent",
+        "precision",
+        "source",
+        "readAt",
+        "observedAt"
+      ],
+      "properties": {
+        "batteryPercent": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "precision": {
+          "enum": [
+            "PRECISE",
+            "APPROXIMATE",
+            "ESTIMATE",
+            "UNKNOWN"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "socSupport",
+            "ownership"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "GHUB_GATEWAY",
+                "HYPERX_SUPERVISED",
+                "GHUB_STORED",
+                "UNKNOWN"
+              ]
+            },
+            "socSupport": {
+              "enum": [
+                "SUPPORTED",
+                "NOT_SUPPORTED",
+                "UNKNOWN",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "ownership": {
+              "enum": [
+                "ATTRIBUTED",
+                "AMBIGUOUS",
+                "UNKNOWN"
+              ]
+            }
+          }
+        },
+        "readAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "observedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "current",
+        "availability",
+        "freshness",
+        "deviceConnection",
+        "unavailableReason",
+        "lastKnown"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "g915",
+            "g305",
+            "hyperx"
+          ]
+        },
+        "current": {
+          "$ref": "#/$defs/reading"
+        },
+        "availability": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE",
+            "STALE",
+            "NOT_SUPPORTED"
+          ]
+        },
+        "freshness": {
+          "enum": [
+            "RECENT_READ",
+            "STALE",
+            "UNKNOWN"
+          ]
+        },
+        "deviceConnection": {
+          "enum": [
+            "ACTIVE_REPORTED",
+            "ABSENT_REPORTED",
+            "UNKNOWN"
+          ]
+        },
+        "unavailableReason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            null,
+            "NO_READING",
+            "SOURCE_UNAVAILABLE",
+            "DEVICE_ABSENT",
+            "STALE_CACHE",
+            "AMBIGUOUS_TARGET",
+            "SAFETY_STOP",
+            "MONITORING_OFF",
+            "UNSUPPORTED"
+          ]
+        },
+        "lastKnown": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reading"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "AVAILABLE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "current": {
+                "properties": {
+                  "batteryPercent": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              },
+              "unavailableReason": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "current": {
+                "properties": {
+                  "batteryPercent": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "capturedAt": {
+            "type": "null"
+          },
+          "devices": {
+            "items": {
+              "properties": {
+                "current": {
+                  "properties": {
+                    "readAt": {
+                      "type": "null"
+                    },
+                    "observedAt": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "lastKnown": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "properties": {
+                        "readAt": {
+                          "type": "null"
+                        },
+                        "observedAt": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

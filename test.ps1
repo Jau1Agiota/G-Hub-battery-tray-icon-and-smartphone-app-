@@ -151,7 +151,7 @@ try {
     $preferredSolution = Join-Path $repoRoot 'PeripheralBatteryCompanion.sln'
     $solutions = @(Get-ChildItem -LiteralPath $repoRoot -File | Where-Object { $_.Extension -in @('.sln', '.slnx') })
     $projects = @(Get-ChildItem -LiteralPath $repoRoot -Filter '*.csproj' -File -Recurse |
-        Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj|test-results)[\\/]' })
+        Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj|test-results)[\\/]' -and $_.Name -ne 'PeripheralBatteryCompanion.W1Offline.Tests.csproj' })
     if ($projects.Count -eq 0) { throw 'No C# project files found; restore the checkout before running verification.' }
     $testProjects = @($projects | Where-Object {
         [xml]$projectXml = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8

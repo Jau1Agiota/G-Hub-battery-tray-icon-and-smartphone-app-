@@ -8,10 +8,11 @@ permissions:
   contents: read
 jobs:
   windows:
+    if: ${{ github.ref_name != 'feature/d3-3a-inert-tls-transport' && github.head_ref != 'feature/d3-3a-inert-tls-transport' }}
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
       - name: Check local runner contracts
@@ -25,13 +26,15 @@ jobs:
           exit $LASTEXITCODE
         shell: pwsh
       - name: Publish Windows x64
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: ./scripts/Publish-Windows.ps1
         shell: pwsh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           name: PeripheralBatteryCompanion-win-x64
           path: artifacts/PeripheralBatteryCompanion-win-x64.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: verification-results
@@ -39,4 +42,22 @@ jobs:
             test-results/latest.log
             test-results/summary.txt
             test-results/automated/**/*.trx
+          if-no-files-found: warn
+
+  d33a-code-only:
+    if: ${{ github.ref_name == 'feature/d3-3a-inert-tls-transport' || github.head_ref == 'feature/d3-3a-inert-tls-transport' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+      - name: D3.3A scoped compile and synthetic regression
+        shell: pwsh
+        run: ./scripts/Test-D33ACodeOnly.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: d33a-code-only-results
+          path: test-results/d33a-code-only/*.trx
           if-no-files-found: warn
