@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,6 +42,16 @@ public sealed class W1OfflineLifecycleTests
         // Authorized permit acquired: execute single-shot Gate E test
         var execResult = W1NativeLifecycle.Execute(plan, permit, now);
         Assert.True(execResult.NativeEntered);
+        Assert.True(execResult.PublicLeafObserved);
+        Assert.Equal("LIMITED_OBSERVATIONS_CLEANUP_UNCONFIRMED", execResult.Outcome);
+        Assert.Null(execResult.FailurePhase);
+        Assert.Null(execResult.HResult);
+        Assert.Empty(execResult.SecondaryFailures);
+        Assert.Equal(8, execResult.Metadata.Count);
+        Assert.All(execResult.Metadata, obs => Assert.True(W1MetadataClassifier.MayContinue(obs.Field, obs.Status)));
+        Assert.Equal(3, execResult.Cleanup.Count);
+        Assert.All(execResult.Cleanup, c => { Assert.True(c.Attempted); Assert.True(c.DisposeReturned); });
+        Assert.True(execResult.ReportWriteReturned);
     }
 
     [Fact]
