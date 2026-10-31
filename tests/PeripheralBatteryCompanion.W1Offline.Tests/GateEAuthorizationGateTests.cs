@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Xunit;
 
 namespace PeripheralBatteryCompanion.W1Offline.Tests;
@@ -40,7 +40,7 @@ public sealed class GateEAuthorizationGateTests : IDisposable
     [Fact]
     public void EnsureAuthorized_Throws_WhenEnvironmentTokenMissing()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         var plan = CreateTestPlan(now.AddMinutes(-5), now.AddMinutes(5));
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", null);
@@ -53,7 +53,7 @@ public sealed class GateEAuthorizationGateTests : IDisposable
     [Fact]
     public void EnsureAuthorized_Throws_WhenPermitPayloadEmpty()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         var plan = CreateTestPlan(now.AddMinutes(-5), now.AddMinutes(5));
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", "1");
@@ -66,7 +66,7 @@ public sealed class GateEAuthorizationGateTests : IDisposable
     [Fact]
     public void EnsureAuthorized_Throws_WhenOutsideTimeWindow()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         var plan = CreateTestPlan(now.AddMinutes(10), now.AddMinutes(20));
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", "1");
@@ -79,7 +79,7 @@ public sealed class GateEAuthorizationGateTests : IDisposable
     [Fact]
     public void EnsureAuthorized_EnforcesOneShotLatch_OnSecondCall()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         var plan = CreateTestPlan(now.AddMinutes(-5), now.AddMinutes(5));
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", "1");
