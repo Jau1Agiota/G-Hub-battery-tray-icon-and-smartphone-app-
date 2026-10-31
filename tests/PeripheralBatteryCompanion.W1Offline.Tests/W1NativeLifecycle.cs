@@ -16,6 +16,7 @@ internal static class W1NativeLifecycle
     internal static W1Evidence Execute(W1PreflightPlan? plan, GateEPermit? permit, DateTimeOffset now)
     {
         GateEAuthorizationGate.RequireExplicitNativeApproval();
+        GateEAuthorizationGate.RequireVerifiedExecutionProvenance();
         var evidence = new W1Evidence();
         if (!W1PreflightPlan.TryConsume(plan, permit, now)) return evidence;
         // Environment.Version is DEFENSE IN DEPTH ONLY. Matching major/minor/build

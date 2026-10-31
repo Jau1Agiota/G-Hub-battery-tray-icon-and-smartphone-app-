@@ -19,6 +19,15 @@ internal static class GateEAuthorizationGate
         throw new GateEExecutionBlockedException("GATE E BLOCKED: native execution requires a separately reviewed and approved source revision.");
     }
 
+    // Fail closed: executable, loaded runtime, test assembly, provider, and
+    // source-revision provenance have not been independently authenticated.
+    // This hold must not be removed without a separately reviewed verifier.
+    internal static void RequireVerifiedExecutionProvenance()
+    {
+        throw new GateEExecutionBlockedException(
+            "GATE E BLOCKED: executable and runtime provenance verification is not implemented.");
+    }
+
     public static void ResetLatchForTesting()
     {
         Interlocked.Exchange(ref _latchState, 0);
