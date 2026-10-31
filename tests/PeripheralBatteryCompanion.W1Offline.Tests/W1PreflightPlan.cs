@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -58,13 +58,6 @@ internal sealed class GateEPermit
         uint cchFilePath,
         uint dwFlags);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetFileInformationByHandle(
-        SafeFileHandle hFile,
-        int FileInformationClass,
-        ref FILE_DISPOSITION_INFO lpFileInformation,
-        uint dwBufferSize);
-
     [StructLayout(LayoutKind.Sequential)]
     private struct BY_HANDLE_FILE_INFORMATION
     {
@@ -80,18 +73,10 @@ internal sealed class GateEPermit
         public uint nFileIndexLow;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct FILE_DISPOSITION_INFO
-    {
-        public bool DeleteFile;
-    }
-
     private const uint GENERIC_READ = 0x80000000;
-    private const uint DELETE = 0x00010000;
     private const uint OPEN_EXISTING = 3;
     private const uint FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000;
     private const uint FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
-    private const int FileDispositionInfo = 4;
     private const uint FILE_NAME_NORMALIZED = 0x0;
 
     internal static bool TryAcquireFromFile(W1PreflightPlan plan, DateTimeOffset now, out GateEPermit? permit)
@@ -99,10 +84,10 @@ internal sealed class GateEPermit
         permit = null;
         if (plan is null) return false;
 
-        // Step 1: Open file via CreateFileW (FILE_FLAG_OPEN_REPARSE_POINT) with DELETE | GENERIC_READ
+        // Step 1: Open permit read-only without following the final-component reparse point.
         using var handle = CreateFileW(
             PermitPath,
-            GENERIC_READ | DELETE,
+            GENERIC_READ,
             0, // FileShare.None
             IntPtr.Zero,
             OPEN_EXISTING,
@@ -122,10 +107,9 @@ internal sealed class GateEPermit
         string finalPath = sb.ToString();
         if (!string.Equals(finalPath, @"\\?\D:\Projects\GateE.permit", StringComparison.OrdinalIgnoreCase)) return false;
 
-        // Mark for deletion upon close
-        var disp = new FILE_DISPOSITION_INFO { DeleteFile = true };
-        if (!SetFileInformationByHandle(handle, FileDispositionInfo, ref disp, (uint)Marshal.SizeOf<FILE_DISPOSITION_INFO>()))
-            return false;
+        // Do not delete or mark permits for deletion during acquisition.
+        // Permit retirement requires a separately reviewed, trusted one-shot
+        // protocol. Replay protection must not depend on this file disappearing.
 
         // Step 2: Stream length check (<= 1024 bytes) and read content
         using var fs = new FileStream(handle, FileAccess.Read);
