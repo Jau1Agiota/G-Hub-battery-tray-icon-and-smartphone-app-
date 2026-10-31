@@ -31,7 +31,6 @@ public sealed class W1OfflineLifecycleTests
             ReportAcceptanceBytes: 4096,
             NewReportDestination: @"D:\Projects\W1-Gate-B\artifacts\report.txt");
 
-        // Fail-Closed Gate check: ensures execution is actively blocked unless all conjunctive gates are met
         if (!GateEPermit.TryAcquireFromFile(plan, now, out var permit) || permit is null)
         {
             var result = W1NativeLifecycle.Execute(null, null, now);
@@ -40,7 +39,6 @@ public sealed class W1OfflineLifecycleTests
             return;
         }
 
-        // Latch and environment containment validation prior to invoking native entry point
         GateEAuthorizationGate.EnsureAuthorized(plan, now, permit.ToString());
 
         var execResult = W1NativeLifecycle.Execute(plan, permit, now);

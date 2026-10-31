@@ -12,7 +12,7 @@ public sealed class GateEExecutionBlockedException : Exception
 
 public static class GateEAuthorizationGate
 {
-    private static int _latchState = 0; // 0 = unentered, 1 = entered
+    private static int _latchState = 0;
 
     public static void ResetLatchForTesting()
     {
@@ -21,7 +21,6 @@ public static class GateEAuthorizationGate
 
     public static void EnsureAuthorized(W1PreflightPlan? plan, DateTimeOffset now, string? permitPayload = null)
     {
-        // Gate 1 & 2: Secondary interactive session token check
         string? envToken = Environment.GetEnvironmentVariable("PBC_GATE_E_AUTHORIZED");
         if (string.IsNullOrWhiteSpace(envToken) || envToken != "1")
         {
@@ -29,14 +28,12 @@ public static class GateEAuthorizationGate
                 "Execution Blocked (Gate 2): Required interactive session token 'PBC_GATE_E_AUTHORIZED=1' is absent or invalid.");
         }
 
-        // Gate 4 (Early Latch Acquisition): Ensure one-shot lifetime containment
         if (Interlocked.CompareExchange(ref _latchState, 1, 0) != 0)
         {
             throw new GateEExecutionBlockedException(
                 "Execution Blocked (Gate 4): One-shot latch already tripped. Multiple native execution attempts in the same process domain are forbidden.");
         }
 
-        // Gate 3: Cryptographic Permit & Scope Binding
         if (plan is null)
         {
             throw new GateEExecutionBlockedException(
@@ -49,7 +46,6 @@ public static class GateEAuthorizationGate
                 "Execution Blocked (Gate 3): Cryptographic execution permit payload is missing.");
         }
 
-        // Validate plan digest binding and time boundaries
         byte[] expectedDigest = plan.ComputeDigest();
         if (expectedDigest.Length != 32)
         {

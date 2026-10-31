@@ -36,5 +36,4 @@
     <Compile Include="GateEAuthorizationGate.cs" />
     <Compile Include="GateEAuthorizationGateTests.cs" />
   </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

@@ -67,7 +67,7 @@ public sealed class GateEAuthorizationGateTests : IDisposable
     public void EnsureAuthorized_Throws_WhenOutsideTimeWindow()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        var plan = CreateTestPlan(now.AddMinutes(10), now.AddMinutes(20)); // Future window
+        var plan = CreateTestPlan(now.AddMinutes(10), now.AddMinutes(20));
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", "1");
 
@@ -84,10 +84,8 @@ public sealed class GateEAuthorizationGateTests : IDisposable
 
         Environment.SetEnvironmentVariable("PBC_GATE_E_AUTHORIZED", "1");
 
-        // First invocation succeeds through the gate
         GateEAuthorizationGate.EnsureAuthorized(plan, now, "valid-permit-once");
 
-        // Second invocation in same process lifecycle trips Gate 4
         var ex = Assert.Throws<GateEExecutionBlockedException>(() =>
             GateEAuthorizationGate.EnsureAuthorized(plan, now, "valid-permit-once"));
         Assert.Contains("Gate 4", ex.Message);
