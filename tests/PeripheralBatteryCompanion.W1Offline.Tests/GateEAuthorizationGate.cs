@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Threading;
 
@@ -13,6 +13,11 @@ public sealed class GateEExecutionBlockedException : Exception
 public static class GateEAuthorizationGate
 {
     private static int _latchState = 0;
+
+    internal static void RequireExplicitNativeApproval()
+    {
+        throw new GateEExecutionBlockedException("GATE E BLOCKED: native execution requires a separately reviewed and approved source revision.");
+    }
 
     public static void ResetLatchForTesting()
     {

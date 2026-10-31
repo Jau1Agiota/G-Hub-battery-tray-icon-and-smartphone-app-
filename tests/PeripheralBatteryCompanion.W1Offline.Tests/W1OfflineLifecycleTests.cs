@@ -13,6 +13,7 @@ public sealed class W1OfflineLifecycleTests
     [Trait("ExecutionMode", "ManualHardwareHold")]
     public void SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore()
     {
+        GateEAuthorizationGate.RequireExplicitNativeApproval();
         DateTimeOffset now = DateTimeOffset.UtcNow;
         var plan = new W1PreflightPlan(
             CanonicalTestIp: "192.168.1.100",
