@@ -1,0 +1,6 @@
+docs/contracts/** text eol=lf
+docs/contracts/battery-snapshot-v1.schema.json -text -eol
+docs/contracts/battery-snapshot-v1.synthetic.json -text -eol
+
+docs/contracts/d3-3a/** binary
+docs/contracts/rejected/** binary

@@ -15,14 +15,18 @@ internal static class W1NativeLifecycle
 {
     internal static W1Evidence Execute(W1PreflightPlan? plan, GateEPermit? permit, DateTimeOffset now)
     {
+        GateEAuthorizationGate.RequireExplicitNativeApproval();
+        GateEAuthorizationGate.RequireVerifiedExecutionProvenance();
         var evidence = new W1Evidence();
         if (!W1PreflightPlan.TryConsume(plan, permit, now)) return evidence;
-        // Defense in depth only, not proof of SDK selection, loaded module hashes,
-        // ordinary token/profile state or exact testhost. Later permit review must
-        // independently establish those facts before an issuer could be added.
+        // Environment.Version is DEFENSE IN DEPTH ONLY. Matching major/minor/build
+        // permits any servicing revision; it proves neither exact loaded CoreCLR
+        // nor System.Security.Cryptography, selected host, assembly binary hashes,
+        // SDK, token, KSP or provider. Host/binary provenance remains Gate B/E work.
+        Version runtime = Environment.Version;
         if (!OperatingSystem.IsWindows() || !Environment.Is64BitOperatingSystem ||
             !Environment.Is64BitProcess || RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
-            !Environment.UserInteractive || Environment.Version != new Version(10, 0, 13))
+            !Environment.UserInteractive || runtime.Major != 10 || runtime.Minor != 0 || runtime.Build != 13)
             return evidence;
         if (plan is null) return evidence;
         RunAuthorizedBody(plan, evidence);
@@ -112,15 +116,13 @@ internal static class W1NativeLifecycle
         }
         catch (ObservationStop)
         {
-            evidence.FailurePhase = evidence.Phase;
-            evidence.Outcome = "STOP_INCONCLUSIVE";
+            evidence.RecordFailure(evidence.Phase, "STOP_INCONCLUSIVE");
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
         {
-            // Never propagate raw framework exceptions into xUnit/TRX output.
-            evidence.HResult = error.HResult;
-            evidence.FailurePhase = evidence.Phase;
-            evidence.Outcome = "STOP_INCONCLUSIVE";
+            // Redact the ordinary exceptions handled here. Catastrophic failures
+            // and abrupt process death have no reporting/cleanup guarantee.
+            evidence.RecordFailure(evidence.Phase, "STOP_INCONCLUSIVE", error.HResult);
         }
         finally
         {
@@ -137,26 +139,51 @@ internal static class W1NativeLifecycle
         // Gate E must approve the exact new local path and output/privacy rules.
         // No report is written at all on the default NOT_RUN/preflight path.
         evidence.Phase = W1Phase.Report;
+        FileStream? destination = null;
+        bool flushed = false;
+        bool closed = false;
         try
         {
+            // Snapshot before file I/O: the file cannot attest its own successful
+            // write/flush/disposal. Later report errors remain in returned evidence.
             byte[] report = evidence.Render(plan.ReportAcceptanceBytes!.Value);
-            using (var destination = new FileStream(plan.NewReportDestination!, FileMode.CreateNew,
-                FileAccess.Write, FileShare.None))
-            {
-                destination.Write(report);
-                destination.Flush(flushToDisk: true);
-            }
-            evidence.ReportWriteReturned = true;
+            // Gate E report path security remains unverified: ancestor reparse
+            // points, directory ownership, ACLs, and path-to-handle binding.
+            // Do not create or write a report until a separately reviewed
+            // destination verifier is implemented and authorized.
+            RequireVerifiedReportDestination();
+            destination = new FileStream(plan.NewReportDestination!, FileMode.CreateNew,
+                FileAccess.Write, FileShare.None);
+            destination.Write(report);
+            destination.Flush(flushToDisk: true);
+            flushed = true;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
         {
-            evidence.HResult = error.HResult;
-            evidence.FailurePhase ??= W1Phase.Report;
-            evidence.Outcome = "STOP_REPORT_WRITE_UNCONFIRMED";
+            evidence.RecordFailure(W1Phase.Report, "STOP_REPORT_WRITE_UNCONFIRMED", error.HResult);
             // Preserve any partial file; do not delete, overwrite or retry.
         }
+        finally
+        {
+            // An explicit disposal attempt preserves a write/flush failure even
+            // when closing also fails; no using-generated exception can mask it.
+            if (destination is not null)
+            {
+                try { destination.Dispose(); closed = true; }
+                catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
+                {
+                    evidence.RecordFailure(W1Phase.DisposeReport, "STOP_REPORT_WRITE_UNCONFIRMED", error.HResult);
+                }
+            }
+        }
+        evidence.ReportWriteReturned = flushed && closed;
     }
 
+    private static void RequireVerifiedReportDestination()
+    {
+        throw new GateEExecutionBlockedException(
+            "GATE E BLOCKED: report destination security verification is not implemented.");
+    }
     private static void Observe(CngKey key, MetadataField field, string property, CngPropertyOptions options,
         W1PreflightPlan plan, W1Evidence evidence)
     {
@@ -233,9 +260,7 @@ internal static class W1NativeLifecycle
         try { owner.Dispose(); returned = true; }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
         {
-            evidence.HResult = error.HResult;
-            evidence.FailurePhase ??= phase;
-            evidence.Outcome = "STOP_CLEANUP_UNCONFIRMED";
+            evidence.RecordFailure(phase, "STOP_CLEANUP_UNCONFIRMED", error.HResult);
         }
         evidence.Cleanup.Add(new CleanupObservation(phase, true, returned));
     }
