@@ -10,7 +10,7 @@ public sealed class GateEExecutionBlockedException : Exception
     public GateEExecutionBlockedException(string message, Exception innerException) : base(message, innerException) { }
 }
 
-public static class GateEAuthorizationGate
+internal static class GateEAuthorizationGate
 {
     private static int _latchState = 0;
 

@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- Gate I SOURCE ONLY. Do not restore, evaluate/build, discover or run without Gate B/E.
        Disabling these imports does not prove isolation from SDK/package/user imports. -->
   <PropertyGroup>
@@ -36,4 +36,10 @@
     <Compile Include="GateEAuthorizationGate.cs" />
     <Compile Include="GateEAuthorizationGateTests.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
