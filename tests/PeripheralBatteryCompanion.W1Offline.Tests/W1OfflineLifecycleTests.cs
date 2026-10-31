@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,10 +9,11 @@ namespace PeripheralBatteryCompanion.W1Offline.Tests;
 public sealed class W1OfflineLifecycleTests
 {
     [Fact]
+    [Trait("Category", "GateE_Native_Protected")]
+    [Trait("ExecutionMode", "ManualHardwareHold")]
     public void SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        // Construct canonical plan targeting Gate E report path
         var plan = new W1PreflightPlan(
             CanonicalTestIp: "192.168.1.100",
             SyntheticSubject: "CN=GateETestRoot",
@@ -30,7 +31,7 @@ public sealed class W1OfflineLifecycleTests
             ReportAcceptanceBytes: 4096,
             NewReportDestination: @"D:\Projects\W1-Gate-B\artifacts\report.txt");
 
-        // Attempt permit acquisition; if absent or invalid, execute unpermitted baseline
+        // Fail-Closed Gate check: ensures execution is actively blocked unless all conjunctive gates are met
         if (!GateEPermit.TryAcquireFromFile(plan, now, out var permit) || permit is null)
         {
             var result = W1NativeLifecycle.Execute(null, null, now);
@@ -39,7 +40,9 @@ public sealed class W1OfflineLifecycleTests
             return;
         }
 
-        // Authorized permit acquired: execute single-shot Gate E test
+        // Latch and environment containment validation prior to invoking native entry point
+        GateEAuthorizationGate.EnsureAuthorized(plan, now, permit.ToString());
+
         var execResult = W1NativeLifecycle.Execute(plan, permit, now);
         Assert.True(execResult.NativeEntered);
         Assert.True(execResult.PublicLeafObserved);
@@ -77,7 +80,6 @@ public sealed class W1OfflineLifecycleTests
         byte[] digest = plan.ComputeDigest();
         string digestHex = Convert.ToHexString(digest);
 
-        // Assert exact match against the verified frozen test vector
         Assert.Equal("3B6546314CDEB4177804D45E1795882205A2E2FF9941C759E1F014941FC98CCA", digestHex);
     }
 }
