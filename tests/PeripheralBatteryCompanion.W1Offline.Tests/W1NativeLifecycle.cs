@@ -15,6 +15,8 @@ internal static class W1NativeLifecycle
 {
     internal static W1Evidence Execute(W1PreflightPlan? plan, GateEPermit? permit, DateTimeOffset now)
     {
+        GateEAuthorizationGate.RequireExplicitNativeApproval();
+        GateEAuthorizationGate.RequireVerifiedExecutionProvenance();
         var evidence = new W1Evidence();
         if (!W1PreflightPlan.TryConsume(plan, permit, now)) return evidence;
         // Environment.Version is DEFENSE IN DEPTH ONLY. Matching major/minor/build
@@ -145,6 +147,11 @@ internal static class W1NativeLifecycle
             // Snapshot before file I/O: the file cannot attest its own successful
             // write/flush/disposal. Later report errors remain in returned evidence.
             byte[] report = evidence.Render(plan.ReportAcceptanceBytes!.Value);
+            // Gate E report path security remains unverified: ancestor reparse
+            // points, directory ownership, ACLs, and path-to-handle binding.
+            // Do not create or write a report until a separately reviewed
+            // destination verifier is implemented and authorized.
+            RequireVerifiedReportDestination();
             destination = new FileStream(plan.NewReportDestination!, FileMode.CreateNew,
                 FileAccess.Write, FileShare.None);
             destination.Write(report);
@@ -172,6 +179,11 @@ internal static class W1NativeLifecycle
         evidence.ReportWriteReturned = flushed && closed;
     }
 
+    private static void RequireVerifiedReportDestination()
+    {
+        throw new GateEExecutionBlockedException(
+            "GATE E BLOCKED: report destination security verification is not implemented.");
+    }
     private static void Observe(CngKey key, MetadataField field, string property, CngPropertyOptions options,
         W1PreflightPlan plan, W1Evidence evidence)
     {

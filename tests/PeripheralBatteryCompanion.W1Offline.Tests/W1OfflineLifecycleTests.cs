@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,11 +8,13 @@ namespace PeripheralBatteryCompanion.W1Offline.Tests;
 
 public sealed class W1OfflineLifecycleTests
 {
-    [Fact]
+    [Fact(Skip = "GATE E BLOCKED: explicit owner approval and isolated execution required.")]
+    [Trait("Category", "GateE_Native_Protected")]
+    [Trait("ExecutionMode", "ManualHardwareHold")]
     public void SingleShot_UnnamedNonExportableP256_PublicLeaf_NoStore()
     {
+        GateEAuthorizationGate.RequireExplicitNativeApproval();
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        // Construct canonical plan targeting Gate E report path
         var plan = new W1PreflightPlan(
             CanonicalTestIp: "192.168.1.100",
             SyntheticSubject: "CN=GateETestRoot",
@@ -30,7 +32,6 @@ public sealed class W1OfflineLifecycleTests
             ReportAcceptanceBytes: 4096,
             NewReportDestination: @"D:\Projects\W1-Gate-B\artifacts\report.txt");
 
-        // Attempt permit acquisition; if absent or invalid, execute unpermitted baseline
         if (!GateEPermit.TryAcquireFromFile(plan, now, out var permit) || permit is null)
         {
             var result = W1NativeLifecycle.Execute(null, null, now);
@@ -39,9 +40,20 @@ public sealed class W1OfflineLifecycleTests
             return;
         }
 
-        // Authorized permit acquired: execute single-shot Gate E test
+        GateEAuthorizationGate.EnsureAuthorized(plan, now, permit.ToString());
+
         var execResult = W1NativeLifecycle.Execute(plan, permit, now);
         Assert.True(execResult.NativeEntered);
+        Assert.True(execResult.PublicLeafObserved);
+        Assert.Equal("LIMITED_OBSERVATIONS_CLEANUP_UNCONFIRMED", execResult.Outcome);
+        Assert.Null(execResult.FailurePhase);
+        Assert.Null(execResult.HResult);
+        Assert.Empty(execResult.SecondaryFailures);
+        Assert.Equal(8, execResult.Metadata.Count);
+        Assert.All(execResult.Metadata, obs => Assert.True(W1MetadataClassifier.MayContinue(obs.Field, obs.Status)));
+        Assert.Equal(3, execResult.Cleanup.Count);
+        Assert.All(execResult.Cleanup, c => { Assert.True(c.Attempted); Assert.True(c.DisposeReturned); });
+        Assert.True(execResult.ReportWriteReturned);
     }
 
     [Fact]
@@ -67,7 +79,6 @@ public sealed class W1OfflineLifecycleTests
         byte[] digest = plan.ComputeDigest();
         string digestHex = Convert.ToHexString(digest);
 
-        // Assert exact match against the verified frozen test vector
         Assert.Equal("3B6546314CDEB4177804D45E1795882205A2E2FF9941C759E1F014941FC98CCA", digestHex);
     }
 }
