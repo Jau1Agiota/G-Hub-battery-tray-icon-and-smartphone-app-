@@ -1,0 +1,26 @@
+{
+  "Schema": 1,
+  "RunId": "9b617169-d7c9-46bb-9a90-6695bbc26673",
+  "IdentityId": "bbefb702-e234-42c5-af73-7398515cedac",
+  "AccountSid": "REQUIRES_DISPOSABLE_VM_ACCOUNT_SID",
+  "LocalAppData": "REQUIRES_EXACT_VM_LOCALAPPDATA",
+  "Executable": "REQUIRES_PRIVATE_ARTIFACT_DIRECTORY\\GateE.NativeAcceptance.exe",
+  "ReviewedCommit": "REQUIRES_FINAL_REVIEWED_40_HEX_COMMIT",
+  "Artifacts": {
+    "GateE.NativeAcceptance.exe": "REQUIRES_SHA256",
+    "GateE.NativeAcceptance.dll": "REQUIRES_SHA256",
+    "GateE.NativeAcceptance.deps.json": "REQUIRES_SHA256",
+    "GateE.NativeAcceptance.runtimeconfig.json": "REQUIRES_SHA256",
+    "PeripheralBatteryCompanion.Core.dll": "REQUIRES_SHA256",
+    "PeripheralBatteryCompanion.HyperXHelperProtocol.dll": "REQUIRES_SHA256",
+    "Microsoft.Data.Sqlite.dll": "REQUIRES_SHA256",
+    "SQLitePCLRaw.batteries_v2.dll": "REQUIRES_SHA256",
+    "SQLitePCLRaw.core.dll": "REQUIRES_SHA256",
+    "SQLitePCLRaw.provider.e_sqlite3.dll": "REQUIRES_SHA256",
+    "runtimes/win-x64/native/e_sqlite3.dll": "REQUIRES_SHA256"
+  },
+  "NotBeforeUtc": "REQUIRES_WHOLE_UTC_SECOND",
+  "ExpiresUtc": "REQUIRES_WHOLE_UTC_SECOND",
+  "CertificateNotBeforeUtc": "REQUIRES_WHOLE_UTC_SECOND",
+  "CertificateNotAfterUtc": "REQUIRES_WHOLE_UTC_SECOND"
+}

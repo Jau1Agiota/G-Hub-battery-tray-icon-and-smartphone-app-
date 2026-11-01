@@ -138,6 +138,12 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "gatee.nativeacceptance": {
+        "type": "Project",
+        "dependencies": {
+          "PeripheralBatteryCompanion.Core": "[1.0.0, )"
+        }
+      },
       "PeripheralBatteryCompanion": {
         "type": "Project",
         "dependencies": {
