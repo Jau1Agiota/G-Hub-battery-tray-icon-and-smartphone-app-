@@ -11,8 +11,14 @@ namespace PeripheralBatteryCompanion.Windows;
 
 internal static class WindowsProtocolExecutionHold
 {
-    internal static void Demand() => throw new InvalidOperationException(
-        "GATE E BLOCKED: certificate/TLS/entropy adapters require separately reviewed native execution approval.");
+    internal static void Demand([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
+    {
+#if GATE_E_ACCEPTANCE_HARNESS
+        PeripheralBatteryCompanion.NativeAcceptance.NativeAdmission.Demand("protocol", operation);
+#else
+        throw new InvalidOperationException("GATE E BLOCKED: certificate/TLS/entropy adapters require separately reviewed native execution approval.");
+#endif
+    }
 }
 
 /// <summary>Held transport association; the stream is constructed over this exact socket, never a caller-asserted endpoint.</summary>

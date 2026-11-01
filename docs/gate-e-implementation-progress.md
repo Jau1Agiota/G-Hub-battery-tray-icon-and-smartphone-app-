@@ -564,3 +564,130 @@ lifetime proof. Reading stream properties in unexecuted source cannot validate
 those properties. No whole-file rollback, durable all-ever nonce history or
 post-transmission recall guarantee is added. Gate E remains BLOCKED; no Stage E4
 or Windows–Android connectivity is activated.
+
+## Isolated native acceptance driver source (after `a5a40ac`)
+
+Implemented `tools/GateE.NativeAcceptance/` as a separate test-only executable.
+The production application has no reference to it; an assembly-reference test
+checks this. Native source files are LINKED, not reimplemented: DPAPI transformation
+and cleanup, exact CNG custody/metadata, certificate signature/entropy, private
+directory validation and file I/O. The Core journal transaction implementation is
+used directly with an isolated storage-observation wrapper.
+
+### Admission, resources and containment
+
+The harness-only compilation symbol selects case-scoped admission in those linked
+source files. In the actual Windows project every original production guard still
+unconditionally throws. A build target rejects that symbol in production. Test-only
+partial implementations and hooks are not compiled into the application.
+
+Both driver entry and case admission independently call an unconditional
+`HarnessExecutionHold`. No runtime release exists: no environment enable flag,
+reflection/private invocation, reusable permit or approval token. Managed tests
+can exercise the process MODEL and rejection boundary without establishing a native
+scope. A filled manifest alone cannot admit any native operation.
+
+- Strict bounded manifest parsing rejects duplicate/unknown keys, arbitrary
+  executables, malformed SID/UUID/path/UTC/hash fields and expired/oversized scopes.
+  The immutable case table has 23 slots; static DPAPI reservations sum to 106,
+  under the 128 ceiling. Signature/verification budgets are <=8/16; nonce/
+  bootstrap/credential/key creation caps are 8/1/1/1. Failed admissions consume
+  budgets; no reset/refund/retry.
+- Root derives from exact live test-account LocalAppData and run UUID. Only the
+  exact named fixture key may be created; existing name refuses. Certificate data,
+  private journal roots, links, credential ciphertext and evidence have fixed names
+  and sizes. Eleven execution/dependency artifacts are hashed and pinned; extra
+  executable files are rejected. SQLite dependencies are inherited from Core;
+  no database API or real application data is used by the driver.
+- Each native case has a fresh process. The parent verifies executable, actual
+  parent/PID/start time and retains the kernel handle before releasing a private
+  stdin barrier. An unnamed active-process-limit-one, kill-on-close Job is assigned
+  BEFORE that barrier; no descendant/breakaway or shell allowance. Start/assignment
+  failure does not release protected case execution. Child also verifies its
+  parent image and private barrier. None of this native behavior was executed.
+- Thirty-second case and five-second exit deadlines, monotonic/UTC admission
+  checks, bounded stdout/stderr and exact phase notifications fence unsafe states.
+  Only the retained owned child may be terminated; no process-name/tree kill.
+  Unknown exit/ownership stops the remaining plan and suppresses cleanup.
+- Journal observation/failure seams exist ONLY in the harness wrapper. Crash
+  hooks wait after the exact native operation/flush; authorization hooks arm after
+  initialization so they do not accidentally test a different empty-state window.
+  Write/replace/flush/close injection is single-use and must actually fire before
+  the failure can count as an expected rejection. Production startup cannot pass
+  these seams or activate them through configuration.
+- Cleanup walks a bounded exact inventory, validates owner/path/link metadata,
+  never follows reparses or recursively deletes, and requires the exact key receipt.
+  No deletion begins before inventory attestation. Failure/NOT RUN/uncertainty
+  retains resources. The full injected-failure plan intentionally suppresses the
+  cleanup dispatch; a separate owner review is necessary for retained resources.
+  Compiled cleanup code is not observed native cleanup evidence.
+
+Shared DPAPI now retains an optional numeric native error code, never raw material.
+Directory descriptor rejection distinguishes unconfirmed native cleanup. The
+driver will NOT treat DPAPI/descriptor cleanup uncertainty as a successful expected
+denial. Evidence accepts only known case IDs, typed outcomes, numeric process/time/
+exit/error data and fixed error kinds; exception messages/stacks never enter it.
+Generic HRESULT and unavailable native codes are labelled rather than fabricated.
+
+Read-only directory metadata pins in test-only composition retain ancestry while
+allowing the production journal's writable directory handle. Production callers
+retain their existing default constructor behavior and mandatory directory flush.
+Fixture/evidence Flush(true) does not prove power-loss or directory durability.
+
+### Genuine verification
+
+The preceding observed full run was 1,152, followed by its test-only integration
+case. This milestone adds 31 managed harness cases. All checks used the same
+Windows x64 / SDK 10.0.402 environment; no native fixture was created.
+
+- Initial isolated driver compilation: 0 warnings/errors.
+- Focused managed/denial tests: 28 passed initially, 30 after typed evidence and
+  reference-boundary coverage, and **31 passed** after cleanup-uncertainty coverage;
+  no failed/skipped cases. These are synthetic process/storage inputs, not native
+  process, Job, ACL, crypto or restart observations.
+- Intermediate Release checkpoints 1,181 and 1,183 passed. Post-check source review
+  justified further changes for diagnostic propagation, actual injection
+  acknowledgement, cleanup uncertainty, directory sharing/pinning and dependency
+  hashing; passing earlier checkpoints was not treated as proof of those changes.
+- **Final Release: Restore PASS; Build PASS; 1,184 passed, 0 failed, 0 skipped;
+  2/2 TRX files, exit 0.** A final focused 31-case check also passed. No failing
+  build/test run occurred. Full runs contain ordinary .NET public hashes and are
+  not described as crypto-free.
+
+```powershell
+dotnet build tools/GateE.NativeAcceptance/GateE.NativeAcceptance.csproj -c Release --verbosity quiet
+dotnet test tests/PeripheralBatteryCompanion.Windows.Tests/PeripheralBatteryCompanion.Windows.Tests.csproj --no-restore -c Release --filter FullyQualifiedName~NativeAcceptanceDriverTests --logger 'trx;LogFileName=native-driver-final.trx' --results-directory test-results/gate-e-driver --verbosity quiet
+./test.ps1 -Release
+```
+
+The solution builds the driver. `test.ps1` discovers the existing two test
+projects; it never runs the executable or any protected case. Test-only project
+references/lock graph changed; no NuGet version/runtime dependency was added to
+the production application. Solution registration preserves its existing platforms.
+Local logs: `test-results/gate-e-driver/`, `automated/`, `summary.txt`, `latest.log`.
+
+The [exact execution manifest](gate-e-native-execution-manifest.md) and deliberately
+invalid JSON template specify remaining owner bindings and the precise future
+harness-only admission decision. The [consolidated proposal](gate-e-native-acceptance-proposal.md)
+now links that implementation. Native execution remains **NOT AUTHORIZED / NOT RUN**.
+
+Known native limitations are explicit: second-account DPAPI and foreign-owner ACL
+fixtures are NOT RUN without another reviewed scope; unsupported symlink creation
+is NOT RUN. The default failure plan retains resources and cannot return a blanket
+acceptance/cleanup success. Standard-account membership is an owner prerequisite;
+token-role checks alone do not prove membership under UAC. Sink-failure generation
+beyond the single native credential is not budgeted. Real OS Job/handle/exit,
+directory flush, CNG association, provider behavior and crash classification remain
+unvalidated. Whole-state rollback, power loss, TLS/Android and post-transmission
+recall limitations remain unchanged.
+
+No protected DPAPI/CNG, native key/certificate/credential generation, ACL change,
+test-process termination, native crash case, networking or Stage E4 was executed.
+No original security hold, Gate B guard or native test skip was removed. PR #33
+remains draft, with Gate E BLOCKED and UNAUTHORIZED.
+- Final sequential committed-source Gate B verifier: **15 passed, 0 failed,
+  0 skipped; discovery 8 -> 15**, session `20261101T213959026Z`. Event subscription
+  remained unavailable; CIM polling/retained handles may miss short-lived
+  descendants. No remaining testhost observed. The unrelated local verifier
+  correction was not run, changed or included; it and the four unrelated untracked
+  files matched their initial SHA-256 preservation hashes.

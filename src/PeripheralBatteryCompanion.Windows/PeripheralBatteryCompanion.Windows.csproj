@@ -42,4 +42,7 @@
       Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=false;PublishDir=$([System.IO.Path]::GetFullPath('$(PublishDir)hyperx-helper/'))" />
     <Error Condition="!Exists('$(PublishDir)hyperx-helper/PeripheralBatteryCompanion.HyperXHelper.exe')" Text="Required production HyperX helper was not published." />
   </Target>
+  <Target Name="RejectAcceptanceSymbolInProduction" BeforeTargets="CoreCompile" Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GATE_E_ACCEPTANCE_HARNESS'))">
+    <Error Text="The acceptance symbol is forbidden in the production Windows project." />
+  </Target>
 </Project>

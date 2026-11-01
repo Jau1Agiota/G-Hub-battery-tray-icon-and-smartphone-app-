@@ -7,7 +7,7 @@ using Microsoft.Win32.SafeHandles;
 namespace PeripheralBatteryCompanion.Windows;
 
 /// <summary>Held production-only directory/handle validation. No startup or test bypass exists.</summary>
-internal sealed class WindowsAuthorizationDirectory : IDisposable
+internal sealed partial class WindowsAuthorizationDirectory : IDisposable
 {
     private readonly List<SafeFileHandle> _pins = [];
     private readonly SecurityIdentifier _owner;
@@ -31,7 +31,7 @@ internal sealed class WindowsAuthorizationDirectory : IDisposable
                 (name[3] is >= '1' and <= '9' or '¹' or '²' or '³'));
     }
 
-    private WindowsAuthorizationDirectory(string path, bool requirePrivate)
+    private WindowsAuthorizationDirectory(string path, bool requirePrivate, bool sharedReadOnlyPin = false)
     {
         RequireNativeApproval();
         if (!ValidPathSyntax(path)) throw new IOException("Journal path syntax rejected.");
@@ -49,8 +49,8 @@ internal sealed class WindowsAuthorizationDirectory : IDisposable
             {
                 bool target = item == path;
                 // No delete sharing: pinned ancestors cannot be renamed during this session.
-                uint access = 0x00020080u | (target && requirePrivate ? 0x40000000u : 0u);
-                var handle = CreateFileW(item, access, 1, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero);
+                uint access = 0x00020080u | (target && requirePrivate && !sharedReadOnlyPin ? 0x40000000u : 0u);
+                var handle = CreateFileW(item, access, target && sharedReadOnlyPin ? 3u : 1u, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero);
                 if (handle.IsInvalid) { handle.Dispose(); throw new IOException("Journal ancestor open rejected."); }
                 _pins.Add(handle);
                 ValidateMetadata(handle, item, directory: true);
@@ -147,7 +147,7 @@ internal sealed class WindowsAuthorizationDirectory : IDisposable
         }
         catch (ArgumentException) { accepted = false; }
         finally { cleanupConfirmed = LocalFree(descriptor) == IntPtr.Zero; }
-        if (!accepted || !cleanupConfirmed) throw new IOException("Journal descriptor validation or cleanup unconfirmed.");
+        if (!accepted || !cleanupConfirmed) throw new NativeDirectoryValidationFailure(!cleanupConfirmed);
     }
     internal static bool OwnerOnly(RawSecurityDescriptor security, SecurityIdentifier owner, bool protectedDacl)
     {
@@ -164,8 +164,14 @@ internal sealed class WindowsAuthorizationDirectory : IDisposable
         foreach (var handle in _pins.AsEnumerable().Reverse()) handle.Dispose();
         _pins.Clear();
     }
-    private static void RequireNativeApproval() => throw new InvalidOperationException(
-        "GATE E BLOCKED: protected journal directory operations require separately approved native validation.");
+    private static void RequireNativeApproval()
+    {
+#if GATE_E_ACCEPTANCE_HARNESS
+        PeripheralBatteryCompanion.NativeAcceptance.NativeAdmission.Demand("directory");
+#else
+        throw new InvalidOperationException("GATE E BLOCKED: protected journal directory operations require separately approved native validation.");
+#endif
+    }
 
     [StructLayout(LayoutKind.Sequential)] private struct SecurityAttributes { public int Length; public IntPtr Descriptor; public int Inherit; }
     [StructLayout(LayoutKind.Sequential)] private struct FileInfo
@@ -188,4 +194,9 @@ internal sealed class WindowsAuthorizationDirectory : IDisposable
     [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool FlushFileBuffers(SafeFileHandle handle);
     [DllImport("kernel32.dll")] private static extern IntPtr LocalFree(IntPtr memory);
+}
+
+internal sealed class NativeDirectoryValidationFailure(bool cleanupUnconfirmed) : IOException("Journal descriptor validation or cleanup unconfirmed.")
+{
+    internal bool CleanupUnconfirmed { get; } = cleanupUnconfirmed;
 }

@@ -8,7 +8,7 @@ using PeripheralBatteryCompanion.Core.TransportSecurity;
 namespace PeripheralBatteryCompanion.Windows;
 
 /// <summary>Persisted CurrentUser Software-KSP foundation, held before ANY CNG call. No certificate/TLS adapter.</summary>
-internal sealed class WindowsPersistentIdentityCustody : IDisposable
+internal sealed partial class WindowsPersistentIdentityCustody : IDisposable
 {
     private readonly CngKey _key;
     private WindowsPersistentIdentityCustody(CngKey key) => _key = key;
@@ -101,8 +101,14 @@ internal sealed class WindowsPersistentIdentityCustody : IDisposable
     }
     // No private export, deletion, enumeration, issuance route or automatic certificate creation.
     public void Dispose() => _key.Dispose(); // Handle disposal is NOT named-key deletion proof.
-    private static void RequireNativeApproval() => throw new InvalidOperationException(
-        "GATE E BLOCKED: persisted identity custody requires exact owner approval, provenance and native validation.");
+    private static void RequireNativeApproval([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
+    {
+#if GATE_E_ACCEPTANCE_HARNESS
+        PeripheralBatteryCompanion.NativeAcceptance.NativeAdmission.Demand("custody", operation);
+#else
+        throw new InvalidOperationException("GATE E BLOCKED: persisted identity custody requires exact owner approval, provenance and native validation.");
+#endif
+    }
     [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
     private static extern int NCryptGetProperty(SafeNCryptKeyHandle key, string name, byte[]? output,
         int outputLength, out int resultLength, int flags);

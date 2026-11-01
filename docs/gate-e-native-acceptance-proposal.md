@@ -7,8 +7,10 @@ permit restriction or provenance check is disabled by this proposal.
 
 ## Prerequisites and isolation
 
-The native acceptance driver does **not exist yet**. There is no runnable native
-command in this revision. Before execution, separately review its source, exact
+The isolated driver source now exists in `tools/GateE.NativeAcceptance/`, but
+entry and case admission remain unconditionally BLOCKED. See the exact
+[execution manifest](gate-e-native-execution-manifest.md). No native case ran.
+Before execution, separately review its source, exact
 commit, binaries/dependencies and hashes, plus a completed resource manifest and
 the selected cases below. A later owner decision must explicitly authorize that
 revision and those operations/resources. Do not implement a token, reflection
@@ -19,6 +21,11 @@ explicit test-only admission, leaving production factories and W1 holds denying.
 Shared-helper extraction/admission changes need independent source review before
 any native run; a reimplementation or mocked driver cannot attest the backend.
 Until then all native cases below remain blocked, including signature/entropy.
+Production source is linked into the isolated executable with a compile-time test
+admission branch; normal production builds retain unconditional guards and reject
+that symbol. No production startup references the harness. Failure seams exist
+only in its storage wrapper. The full fault plan retains its uncertain evidence;
+it does not automatically invoke the compiled exact-inventory cleanup path.
 
 Use one disposable local Windows VM/snapshot, a nonadministrator test account and
 fixed NTFS volume. No real user profile/app data, certificate stores, devices or

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget><DefineConstants>$(DefineConstants);GATE_E_ACCEPTANCE_HARNESS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/PeripheralBatteryCompanion.Core/PeripheralBatteryCompanion.Core.csproj" />
+    <Compile Include="../../src/PeripheralBatteryCompanion.Windows/WindowsCurrentUserRecordProtection.cs" Link="Shared/WindowsCurrentUserRecordProtection.cs" />
+    <Compile Include="../../src/PeripheralBatteryCompanion.Windows/WindowsPersistentIdentityCustody.cs" Link="Shared/WindowsPersistentIdentityCustody.cs" />
+    <Compile Include="../../src/PeripheralBatteryCompanion.Windows/WindowsAuthorizationDirectory.cs" Link="Shared/WindowsAuthorizationDirectory.cs" />
+    <Compile Include="../../src/PeripheralBatteryCompanion.Windows/WindowsAuthorizationJournal.cs" Link="Shared/WindowsAuthorizationJournal.cs" />
+    <Compile Include="../../src/PeripheralBatteryCompanion.Windows/WindowsProtocolSecurityAdapters.cs" Link="Shared/WindowsProtocolSecurityAdapters.cs" />
+    <InternalsVisibleTo Include="PeripheralBatteryCompanion.Windows.Tests" />
+  </ItemGroup>
+</Project>
