@@ -1,0 +1,75 @@
+{
+  "Label": "baseline-discovery",
+  "MonitorPid": 21644,
+  "RunnerPid": 38176,
+  "ObservationMode": "CimPollingWithProcessHandles",
+  "TraceLimitation": "OS process event subscription unavailable. Polling may miss short-lived descendants; retained handles supply observed process start/exit times.",
+  "EventSubscriptionFailure": "Access denied ",
+  "RunnerParentPid": 21644,
+  "RunnerStartUtc": "2026-11-01T13:29:25.6117232Z",
+  "RunnerExitUtc": "2026-11-01T13:29:28.6877168Z",
+  "ExitCode": 0,
+  "Arguments": [
+    "vstest",
+    "PeripheralBatteryCompanion.GateB.Tests.dll",
+    "/TestCaseFilter:FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.MissingPlanAndPayload_Deny|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.ExpiredPlan_Denies|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.RepeatedDenial_TripsLatch|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.NativeApprovalAndProvenanceHolds_Deny|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.PermitOperations_AreInert_ForValidInvalidAndMissingPlans|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory|FullyQualifiedName=PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.SerializeCanonical_MatchesLiteralFifteenFieldBytes_WithoutHashing",
+    "/Logger:console;verbosity=detailed",
+    "/Platform:x64",
+    "/ListTests",
+    "/Diag:<REPO>\\test-results\\e3-3-gate-b\\20261101T132922366Z\\baseline-discovery.vstest.log"
+  ],
+  "Events": [
+    {
+      "Event": "start",
+      "Pid": 38176,
+      "ParentPid": 21644,
+      "Name": "dotnet.exe",
+      "StartUtc": "2026-11-01T13:29:25.6117232Z",
+      "EventUtc": "2026-11-01T13:29:25.9158643Z",
+      "Role": "runner"
+    },
+    {
+      "Event": "start",
+      "Pid": 17040,
+      "ParentPid": 38176,
+      "Name": "dotnet.exe",
+      "StartUtc": "2026-11-01T13:29:26.3008611Z",
+      "EventUtc": "2026-11-01T13:29:26.4736785Z",
+      "Role": "runner"
+    },
+    {
+      "Event": "start",
+      "Pid": 42568,
+      "ParentPid": 17040,
+      "Name": "testhost.exe",
+      "StartUtc": "2026-11-01T13:29:27.1154789Z",
+      "EventUtc": "2026-11-01T13:29:27.2758931Z",
+      "Role": "testhost"
+    },
+    {
+      "Event": "stop",
+      "Pid": 42568,
+      "Name": "retained-process-handle",
+      "EventUtc": "2026-11-01T13:29:28.5929576Z",
+      "ExitUtc": "2026-11-01T13:29:28.5317671Z",
+      "ExitStatus": 0
+    },
+    {
+      "Event": "stop",
+      "Pid": 38176,
+      "Name": "retained-process-handle",
+      "EventUtc": "2026-11-01T13:29:28.7652134Z",
+      "ExitUtc": "2026-11-01T13:29:28.6877168Z",
+      "ExitStatus": 0
+    },
+    {
+      "Event": "stop",
+      "Pid": 17040,
+      "Name": "retained-process-handle",
+      "EventUtc": "2026-11-01T13:29:28.7656649Z",
+      "ExitUtc": "2026-11-01T13:29:28.6421934Z",
+      "ExitStatus": 0
+    }
+  ],
+  "RemainingTesthosts": []
+}
