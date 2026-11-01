@@ -1,0 +1,77 @@
+[
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: null)",
+    "outcome": "Passed",
+    "duration": "00:00:00.0029708"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.NativeApprovalAndProvenanceHolds_Deny",
+    "outcome": "Passed",
+    "duration": "00:00:00.0007847"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: \"\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0002941"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: \"future\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0006405"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: \"artifacts\\\\report.txt\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0000632"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.MissingPlanAndPayload_Deny",
+    "outcome": "Passed",
+    "duration": "00:00:00.0001710"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.RepeatedDenial_TripsLatch",
+    "outcome": "Passed",
+    "duration": "00:00:00.0003761"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: \"\\\\artifacts\\\\report.txt\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0000443"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: \"report.txt\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0001104"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.PermitOperations_AreInert_ForValidInvalidAndMissingPlans",
+    "outcome": "Passed",
+    "duration": "00:00:00.0054242"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: \"valid\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0004892"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.SerializeCanonical_MatchesLiteralFifteenFieldBytes_WithoutHashing",
+    "outcome": "Passed",
+    "duration": "00:00:00.0006436"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: \"D:report.txt\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0000486"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.ExpiredPlan_Denies",
+    "outcome": "Passed",
+    "duration": "00:00:00.0078153"
+  },
+  {
+    "testName": "PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: \"malformed\")",
+    "outcome": "Passed",
+    "duration": "00:00:00.0001990"
+  }
+]

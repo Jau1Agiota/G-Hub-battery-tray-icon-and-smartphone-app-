@@ -1,7 +1,10 @@
 # E3.3 — W1Offline test-runner isolation hardening
 
-**Status: SOURCE PATCH PREPARED; runtime behavior NOT VERIFIED.**
-**Gate B: NOT AUTHORIZED. Gate E: BLOCKED.**
+**Current status: scoped Gate B evidence recorded; independent owner acceptance pending.**
+**Gate B execution was authorized only for the scoped verification below. Gate E: BLOCKED and UNAUTHORIZED.**
+
+Earlier source-only and verification records below retain their original scope;
+the final dated verification-gap closure section is the current evidence snapshot.
 
 ## Scope
 
@@ -183,3 +186,156 @@ The earlier source-only proposal named an allowlist of guard/preflight classes a
 **Gate B technical evidence: substantially complete for the checks performed, with documented limitations.** Exact runner JSON file-open/config precedence was not independently traced; exact testhost lifetime was not measured beyond the completed-run observation. The earlier allowlist deviation remains disclosed. Formal **independent reviewer approval is pending**: GitHub reported zero submitted reviews and zero approvals. Do not mark formal Gate B acceptance complete or merge PR #30 until the required independent review and any outstanding evidence criteria are resolved.
 
 **Gate E remains BLOCKED.** No protected native lifecycle test was executed or authorized. No Gate E transition, protected-test unskip, or native operation is authorized by this review.
+
+## Gate B verification-gap closure (2026-11-01, owner acceptance pending)
+
+The existing checkout was fetched and fast-forwarded from `8af4c4e` to exactly
+`8b31236d808f81abd1b8a1fb9c455ade5dc59f82`. Only the expected documentation commit
+was added. Implementation is on `codex/e3-3-gate-b-evidence`, based on that revision.
+All four pre-existing untracked files were left untouched. The older 22-pass
+negative-filter result remains historical evidence, includes the platform-backed
+SHA-256 digest test, and is not represented as crypto-free or as this new allowlist.
+
+### Execution boundary and explicit allowlist
+
+`tests/PeripheralBatteryCompanion.W1Offline.Tests/GateB/PeripheralBatteryCompanion.W1Offline.Tests.csproj`
+builds a separate `PeripheralBatteryCompanion.GateB.Tests.dll`, preserving framework,
+runtime, architecture and package versions. Its five explicit source items are the
+existing assembly attribute, actual authorization guard, actual preflight plan,
+existing byte-only preflight tests, and new token-free denial tests. It has no
+reference to the original test project. Neither `W1NativeLifecycle.cs`,
+`W1OfflineLifecycleTests.cs`, nor the token-mutating guard test class is compiled.
+Thus protected native lifecycle and frozen digest tests are absent from discovery,
+not merely excluded by a negative filter. `ComputeDigest` remains in the linked
+plan source but is never called by this harness. Ordinary SDK/adapter tooling is
+not claimed to be crypto-free or OS-sandboxed.
+
+The eight-method equality allowlist is exported in
+[allowlist.txt](evidence/e3-3-gate-b/allowlist.txt). It selects 15 cases: seven
+token-free denial/hold cases and eight existing preflight cases. The script checks
+TRX method identity, per-method row counts, all-pass outcomes and the exact total.
+It refuses a pre-existing nonempty `PBC_GATE_E_AUTHORIZED` value without logging or
+changing it. No token/environment mutation is performed. Six legacy-token-writing
+cases from the prior 21-case proposal are intentionally not run; equivalent
+non-token denial cases in this dedicated harness do not prove token mutation or
+restoration behavior. Original tests, native Skip, guard implementations and
+provenance/report holds are unchanged.
+
+The dedicated project deliberately retains the `PeripheralBatteryCompanion.W1Offline.Tests.csproj`
+basename so both it and the original project remain excluded by the existing
+`test.ps1` discovery rule. Lightweight Windows CI calls that same script. Neither
+general runner nor CI was changed to execute this sensitive harness automatically.
+
+### Reproduction and measured results
+
+From the repository root in PowerShell 7, the commands used were equivalent to:
+
+```powershell
+Push-Location tests/PeripheralBatteryCompanion.W1Offline.Tests/GateB
+# Inherits the parent's pinned SDK configuration: 10.0.402, rollForward disabled.
+dotnet --info
+$assets = Get-Content ../obj/project.assets.json -Raw | ConvertFrom-Json
+$packageCache = @($assets.packageFolders.PSObject.Properties.Name)[0]
+dotnet restore ./PeripheralBatteryCompanion.W1Offline.Tests.csproj --source $packageCache --ignore-failed-sources --verbosity minimal
+dotnet build ./PeripheralBatteryCompanion.W1Offline.Tests.csproj --no-restore --configuration Debug --verbosity minimal -p:UseSharedCompilation=false
+Pop-Location
+./tests/PeripheralBatteryCompanion.W1Offline.Tests/GateB/verify.ps1
+```
+
+Stop after any failed command; no automatic retry, protected test or authorization
+token is allowed. The cache path is resolved locally and never committed. Restore
+used that sole filesystem source and cached packages, not a remote feed. SDK
+10.0.402/MSBuild 18.9.15, Windows 10.0.26200 x64, runtime 10.0.13, VSTest 18.7.0 and
+xUnit adapter 3.1.5 were observed. Restore succeeded; Debug build succeeded with
+zero warnings/errors. The successful final verifier session was
+`20261101T132922366Z`: **15 passed, 0 failed, 0 skipped**. No full application suite
+or native/manual device checks were run. Final script parser and diff checks passed.
+The dedicated/original assets files list the same 13 package identities and matching
+content-hash strings; [dependency-closure.json](evidence/e3-3-gate-b/dependency-closure.json)
+records that comparison. This is assets consistency, not fresh package or runtime
+attestation. The prior official-download comparisons remain historical evidence.
+
+The script's exact fixed `dotnet vstest` arguments are retained in each process
+record. It runs baseline discovery, JSON-probe discovery, then one allowlisted
+execution using the unchanged baseline JSON. Diagnostic logging is enabled on the
+copied probe JSON only; no original config or build output is edited. Raw VSTest,
+testhost diagnostics and TRX remain under `test-results/e3-3-gate-b/<session>/`.
+Sanitized console/process/case evidence is checked in under
+[docs/evidence/e3-3-gate-b](evidence/e3-3-gate-b/README.md); it omits machine/user
+identity and raw command lines. Review raw local diagnostics before sharing.
+
+### JSON consumption observed independently of the assembly attribute
+
+Two isolated output copies each contained 86 files. Byte comparisons found every
+baseline file identical to build output and only `xunit.runner.json` different in
+the probe. The assembly binaries and therefore their assembly-level settings were
+identical. Source JSON uses `preEnumerateTheories=false` and diagnostics off; the
+probe sets pre-enumeration and diagnostics true, keeping parallelization flags.
+
+Observed baseline discovery: **8 method-level cases**, without theory data rows.
+Observed probe discovery: **15 enumerated cases**, including all three plan rows
+and six destination rows; additional diagnostic details appeared. This controlled
+JSON-only behavior change demonstrates runner JSON consumption independently of
+the unchanged assembly attribute. It matches the documented
+[xUnit configuration semantics](https://xunit.net/docs/config-xunit-runner-json).
+It is behavioral evidence, not an OS file-open trace. It does not separately prove
+every JSON key, parallelism-key precedence over the attribute, or parallel
+execution safety. No runsettings override was used.
+
+### Process lifetime observations and limitations
+
+PowerShell monitor PID **21644** launched separate CLI/VSTest/testhost processes.
+It did not load the test DLL. CIM supplied process IDs and parent IDs; retained
+OS process handles supplied start/exit timestamps and successful termination.
+OS event subscriptions were unavailable (`Access denied` for baseline/execution,
+`Call cancelled` for the final probe), so the
+successful verifier explicitly reports `CimPollingWithProcessHandles`. The
+`EventUtc` field is polling observation time; `StartUtc`/`ExitUtc` are OS process
+times, not inferred from a final snapshot. All timestamps below are UTC.
+
+| Invocation | CLI PID | Testhost PID | Host parent PID | Host start | Host exit | Exit | Remaining hosts |
+|---|---:|---:|---:|---|---|---:|---:|
+| Baseline discovery | 38176 | 42568 | 17040 | 13:29:27.1154789 | 13:29:28.5317671 | 0 | 0 |
+| Probe discovery | 32836 | 22864 | 176 | 13:29:30.9083086 | 13:29:32.0012134 | 0 | 0 |
+| Allowlisted execution | 34180 | 21972 | 28568 | 13:29:34.0786806 | 13:29:35.3222757 | 0 | 0 |
+
+Process JSON includes the observed intermediate VSTest parent chain. Each observed
+testhost had a retained handle confirming exit, a stop record and no remaining
+testhosts in the final system snapshot. Fresh hosts across invocations are observed;
+separate processes per test case are not claimed. This is lifecycle observation,
+not a Windows security sandbox or containment guarantee. Polling can miss
+short-lived descendants and cannot establish complete process-creation history.
+No privilege elevation, broad termination or test DLL load in the monitor occurred.
+
+### Failed observations retained
+
+Five earlier verifier attempts failed before the allowlisted execution stage:
+event access denied before runner launch; two attempts lost exit metadata because
+a process handle was not retained; one misclassified a testhost with an empty
+command line; one hit a runner-exit observation race. These were verifier failures,
+not passing checks or test failures. Local directories `20261101T132431567Z`,
+`20261101T132510544Z`, `20261101T132533686Z`, `20261101T132556113Z`, and
+`20261101T132625593Z` remain. They executed no test bodies. The monitor was corrected
+to retain process handles, classify `testhost.exe` by name, and wait for an explicit
+exit observation. Session `20261101T132637651Z` first passed 15 tests; final session
+above repeated the focused harness after adding byte-copy and per-method count
+checks. These are distinct successful runs, not 30 unique passing tests.
+
+### PR acceptance checklist and disposition
+
+- [x] Positive, exact-method allowlist executed: 15 passed, none failed/skipped.
+- [x] Protected native/digest/token-writing tests absent from the dedicated assembly.
+- [x] JSON-specific behavior demonstrated with identical assembly binaries.
+- [x] Testhost identities, parents, OS start/exit times and final absence recorded.
+- [x] Historical 22-pass result retained with its SHA-256 scope deviation.
+- [ ] OS process-start/stop event trace and direct JSON file-open trace unavailable.
+- [ ] Individual parallelism-key precedence and full toolchain trust not established.
+- [ ] Evidence is from a dedicated assembly, not a rerun of the original assembly.
+- [ ] Independent reviewer/owner acceptance pending; no automatic Gate B acceptance.
+
+Recommendation: the scoped behavioral JSON and observed testhost-lifetime gaps now
+have reproducible evidence. Submit for owner acceptance with the tracing,
+precedence and dedicated-assembly limitations above; do not claim broader security
+isolation. GitHub reported PR #30 as `draft=false` during this task despite its body
+saying it stayed draft. This task did not change that readiness state or merge it.
+No Gate E authorization, native execution or production connectivity follows.
