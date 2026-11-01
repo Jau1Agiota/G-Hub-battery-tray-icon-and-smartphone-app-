@@ -29,12 +29,16 @@
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="W1OfflineLifecycleTests.cs" />
     <Compile Include="W1PreflightPlan.cs" />
     <Compile Include="W1NativeLifecycle.cs" />
     <Compile Include="W1Evidence.cs" />
     <Compile Include="GateEAuthorizationGate.cs" />
     <Compile Include="GateEAuthorizationGateTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
