@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography;
 using System.Threading;
 
 namespace PeripheralBatteryCompanion.W1Offline.Tests;
@@ -35,42 +34,22 @@ internal static class GateEAuthorizationGate
 
     public static void EnsureAuthorized(W1PreflightPlan? plan, DateTimeOffset now, string? permitPayload = null)
     {
-        string? envToken = Environment.GetEnvironmentVariable("PBC_GATE_E_AUTHORIZED");
-        if (string.IsNullOrWhiteSpace(envToken) || envToken != "1")
-        {
-            throw new GateEExecutionBlockedException(
-                "Execution Blocked (Gate 2): Required interactive session token 'PBC_GATE_E_AUTHORIZED=1' is absent or invalid.");
-        }
+        // The environment-variable token and an opaque non-empty string are not
+        // authenticated consent, exact-operation authorization, or replay protection.
+        // GateEPermit.TryAcquireFromFile currently fails closed because no trusted,
+        // atomic, rollback-resistant nonce-consumption mechanism has been approved
+        // and implemented. Keep this API fail-closed until that mechanism exists.
+        _ = plan;
+        _ = now;
+        _ = permitPayload;
 
         if (Interlocked.CompareExchange(ref _latchState, 1, 0) != 0)
         {
             throw new GateEExecutionBlockedException(
-                "Execution Blocked (Gate 4): One-shot latch already tripped. Multiple native execution attempts in the same process domain are forbidden.");
+                "GATE E BLOCKED: process-local one-shot latch has already been tripped.");
         }
 
-        if (plan is null)
-        {
-            throw new GateEExecutionBlockedException(
-                "Execution Blocked (Gate 3): Preflight execution plan cannot be null.");
-        }
-
-        if (string.IsNullOrWhiteSpace(permitPayload))
-        {
-            throw new GateEExecutionBlockedException(
-                "Execution Blocked (Gate 3): Cryptographic execution permit payload is missing.");
-        }
-
-        byte[] expectedDigest = plan.ComputeDigest();
-        if (expectedDigest.Length != 32)
-        {
-            throw new GateEExecutionBlockedException(
-                "Execution Blocked (Gate 3): Canonical plan digest length mismatch.");
-        }
-
-        if (now < plan.NotBeforeUtc || now > plan.NotAfterUtc)
-        {
-            throw new GateEExecutionBlockedException(
-                $"Execution Blocked (Gate 3): Permit evaluated outside valid UTC window. Evaluation time: {now:O}, Window: [{plan.NotBeforeUtc:O} - {plan.NotAfterUtc:O}].");
-        }
+        throw new GateEExecutionBlockedException(
+            "GATE E BLOCKED: authenticated permit validation and trusted atomic one-time nonce consumption are not implemented. Environment variables and opaque permit strings cannot authorize execution.");
     }
 }
