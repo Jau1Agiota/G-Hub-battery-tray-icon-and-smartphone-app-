@@ -17,7 +17,7 @@ public interface IAuthorizationJournal
 }
 
 /// <summary>Non-listening lifecycle implementation, unwired from production. It does not authenticate TLS or bearer input.</summary>
-public sealed class EnrollmentAuthorization
+public sealed class EnrollmentAuthorization : IDisposable
 {
     private readonly object _gate = new();
     private readonly EnrollmentIdentity _identity;
@@ -27,7 +27,7 @@ public sealed class EnrollmentAuthorization
     private DateTimeOffset _lastUtc;
     private long _lastTick;
     private AuthorizationRecord? _record;
-    private bool _recovery, _exposure;
+    private bool _recovery, _exposure, _disposed;
     private int _revocationRequested;
     private long _fence;
     private Guid? _window;
@@ -45,22 +45,22 @@ public sealed class EnrollmentAuthorization
         {
             _lastUtc = _clock.GetUtcNow(); _lastTick = _clock.GetTimestamp();
             _frequency = _clock.TimestampFrequency;
-            if (_lastUtc.Offset != TimeSpan.Zero || _frequency <= 0) { _recovery = true; return; }
+            if (_lastUtc.Offset != TimeSpan.Zero || _frequency <= 0) { _ = Fail(); return; }
             var loaded = journal.Read();
             if (loaded is null || (loaded.Outcome == AuthorizationLoadOutcome.VerifiedEmpty && loaded.Record is not null) ||
                 (loaded.Outcome != AuthorizationLoadOutcome.VerifiedEmpty && loaded.Outcome != AuthorizationLoadOutcome.VerifiedRecord))
-            { _recovery = true; return; }
+            { _ = Fail(); return; }
             if (loaded.Outcome == AuthorizationLoadOutcome.VerifiedRecord)
             {
                 if (loaded.Record is null || !identity.Matches(loaded.Record.Identity) || loaded.Record.IssuedAt > _lastUtc)
-                { _recovery = true; return; }
+                { _ = Fail(); return; }
                 _record = loaded.Record;
                 _credentialTick = _lastTick; _credentialBudget = _record.ExpiresAt - _lastUtc;
             }
             // No restored record enables session exposure. Check for clock changes during Read.
             _ = CheckClock(out _);
         }
-        catch (Exception error) when (Ordinary(error)) { _recovery = true; }
+        catch (Exception error) when (Ordinary(error)) { _ = Fail(); }
     }
 
     public bool RecoveryRequired { get { lock (_gate) return _recovery; } }
@@ -196,7 +196,7 @@ public sealed class EnrollmentAuthorization
     private bool CheckClock(out DateTimeOffset now)
     {
         now = default;
-        if (_recovery) return false;
+        if (_recovery || _disposed) return false;
         try
         {
             now = _clock.GetUtcNow(); long tick = _clock.GetTimestamp();
@@ -226,7 +226,29 @@ public sealed class EnrollmentAuthorization
     }
 
     private void CloseWindow() { _window = null; _claim = null; }
-    private bool Fail() { _recovery = true; _exposure = false; CloseWindow(); return false; }
+    private bool Fail()
+    {
+        bool first = !_recovery;
+        _recovery = true; _exposure = false; CloseWindow();
+        Interlocked.Exchange(ref _revocationRequested, 1);
+        if (first && _journal is IAuthorizationJournalSession session)
+            try { session.MarkUncertain(); } catch (Exception error) when (Ordinary(error)) { }
+        return false;
+    }
+    public void Dispose()
+    {
+        Interlocked.Exchange(ref _revocationRequested, 1); Interlocked.Increment(ref _fence);
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _exposure = false; CloseWindow(); _disposed = true;
+            if (_journal is IAuthorizationJournalSession session)
+            {
+                try { if (_recovery) session.MarkUncertain(); session.Dispose(); }
+                catch (Exception error) when (Ordinary(error)) { _recovery = true; }
+            }
+        }
+    }
     private static bool Ordinary(Exception error) => error is not OutOfMemoryException and not StackOverflowException;
     public override string ToString() => "EnrollmentAuthorization (redacted; native activation unavailable)";
 

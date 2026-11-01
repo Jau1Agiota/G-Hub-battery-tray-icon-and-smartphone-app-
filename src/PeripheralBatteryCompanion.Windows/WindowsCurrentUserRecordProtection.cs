@@ -34,6 +34,22 @@ internal sealed class WindowsCurrentUserRecordProtection
         finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
 
+    internal byte[] ProtectJournalEnvelope(byte[] plaintext, EnrollmentIdentity identity)
+    {
+        RequireNativeApproval();
+        if (plaintext is null || plaintext.Length is < 1 or > DurableAuthorizationJournal.MaximumPlaintextBytes)
+            throw new ArgumentException("Journal envelope bound rejected.");
+        return Transform(plaintext, Binding(identity), protect: true);
+    }
+
+    internal byte[] UnprotectJournalEnvelope(byte[] ciphertext, EnrollmentIdentity identity)
+    {
+        RequireNativeApproval();
+        if (ciphertext is null || ciphertext.Length is < 1 or > DurableAuthorizationJournal.MaximumCiphertextBytes)
+            throw new ArgumentException("Journal ciphertext bound rejected.");
+        return Transform(ciphertext.ToArray(), Binding(identity), protect: false);
+    }
+
     private static void RequireNativeApproval() => throw new InvalidOperationException(
         "GATE E BLOCKED: CurrentUser record protection requires separately approved native execution and provenance.");
 
@@ -45,7 +61,7 @@ internal sealed class WindowsCurrentUserRecordProtection
     {
         // Only called after the unconditional admission hold. No native method is
         // invoked by type construction or static initialization.
-        if (!OperatingSystem.IsWindows() || input.Length is < 1 || input.Length > (protect ? 8192 : 16384))
+        if (!OperatingSystem.IsWindows() || input.Length is < 1 || input.Length > (protect ? DurableAuthorizationJournal.MaximumPlaintextBytes : 16384))
             throw new InvalidOperationException("Protected record operation refused.");
         GCHandle inputPin = default, entropyPin = default;
         NativeBlob output = default;
@@ -61,7 +77,7 @@ internal sealed class WindowsCurrentUserRecordProtection
             bool success = protect
                 ? CryptProtectData(ref source, IntPtr.Zero, ref binding, IntPtr.Zero, IntPtr.Zero, uiForbidden, out output)
                 : CryptUnprotectData(ref source, IntPtr.Zero, ref binding, IntPtr.Zero, IntPtr.Zero, uiForbidden, out output);
-            if (!success || output.Data == IntPtr.Zero || output.Length is < 1 || output.Length > (protect ? 16384 : 8192))
+            if (!success || output.Data == IntPtr.Zero || output.Length is < 1 || output.Length > (protect ? 16384 : DurableAuthorizationJournal.MaximumPlaintextBytes))
                 operationFailed = true;
             else
             {
