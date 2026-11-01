@@ -35,8 +35,9 @@ internal sealed class SecurityProtocolFixture : IDisposable
     internal AuthorizationRecord Record => Journal.Read().Record!;
     internal string Root { get; } = Path.Join(Path.GetTempPath(), "PBC-ProtocolTests-" + Guid.NewGuid().ToString("N"));
     internal bool FailNextStateWrite;
-    internal SecurityProtocolFixture(bool active = true)
+    internal SecurityProtocolFixture(bool active = true, EnrollmentIdentity? identity = null)
     {
+        if (identity is not null) Identity = identity;
         Directory.CreateDirectory(Root);
         Journal = CreateJournal(); Assert.True(Journal.InitializeFreshByLocalOwner());
         Authorization = new(Identity, Journal, Time);
@@ -94,7 +95,8 @@ internal sealed class SecurityProtocolFixture : IDisposable
     internal sealed class FakePeerVerifier : IPeerCertificateVerifier
     {
         internal bool Allow = true;
-        public bool IsAuthenticatedPeer(EnrollmentIdentity expected, PeerBinding observed, DateTimeOffset now) => Allow;
+        internal Func<EnrollmentIdentity, PeerBinding, DateTimeOffset, bool>? Check;
+        public bool IsAuthenticatedPeer(EnrollmentIdentity expected, PeerBinding observed, DateTimeOffset now) => Allow && (Check?.Invoke(expected, observed, now) ?? true);
     }
     private sealed class TestProtection : IAuthorizationEnvelopeProtection
     {

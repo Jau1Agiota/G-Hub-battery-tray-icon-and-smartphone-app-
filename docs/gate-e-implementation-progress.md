@@ -450,3 +450,117 @@ and physical transport cancellation/cleanup need independent review and the
 applicable explicit owner authorization. Owner security acceptance is not inferred
 from managed tests. Gate E remains **BLOCKED and UNAUTHORIZED**; this work does
 not enable production connectivity, startup or Stage E4.
+
+## Windows certificate and held protocol adapters (after `f35bdaa`)
+
+Recorded baseline: 1,115 passed, 0 failed/skipped. No completed Gate B investigation
+was reopened. Production startup/networking and the original native guards are
+unchanged. This milestone adds shared managed certificate/channel policy plus
+explicit Windows adapter source; it does not make the platform accepted.
+
+### Implemented behavior
+
+- `EnrolledCertificatePolicy` snapshots bounded public DER, requires the EXACT
+  enrolled leaf, canonical v3/self-issued structure, positive bounded serial,
+  matching inner/outer ECDSA-with-SHA256 algorithm with absent parameters, bounded
+  positive DER signature scalars, exact enrolled UTC validity and <=90-day lifetime.
+  It rejects unique IDs, trailing data, duplicate extensions and malformed names.
+- The SPKI must be id-ecPublicKey / named P-256, uncompressed and on-curve; its
+  actual encoded bytes must hash to the enrolled SPKI. BasicConstraints must be
+  critical/non-CA, KeyUsage critical/DigitalSignature ONLY, EKU serverAuth ONLY,
+  SAN exactly ONE matching four-byte IP address, with no DNS/CN fallback.
+  The initial source profile allows exactly those four extensions. Even unknown
+  noncritical extensions fail closed; SKI/AKI or other additions need a reviewed
+  profile amendment. This is a conservative subset, not a silent PKI fallback.
+- Only after those checks does the policy invoke `IEnrolledCertificateSignature`
+  with the exact parsed SPKI, TBSCertificate and DER signature. The Windows source
+  imports that public SPKI into ECDsa and verifies SHA-256 / DER ECDSA. **Its native
+  entry point unconditionally denies before provider access; this implementation
+  was compiled but cryptographic verification was NOT EXECUTED.** No replacement
+  production cryptography or trust-all callback was introduced.
+- `Tls13ChannelPolicy` requires authenticated/encrypted/signed observation data,
+  TLS 1.3 exactly, HTTP/1.1 ALPN, exact server origin/identity/leaf, then the complete
+  profile/signature checks. Observation records are DATA, not a capability to
+  manufacture production peer evidence. The default peer verifier still denies.
+- `WindowsServerChannel` source constructs its SslStream over the SAME owned
+  connected socket, rather than accepting an independent asserted endpoint and
+  stream. Construction and handshake access are held. No connect/listen/handshake
+  is performed. `WindowsProtocolSecurityAdapters` reads the actual bound socket
+  endpoint and authenticated stream state on each check; server role checks its
+  LOCAL certificate, without inventing phone mTLS. It owns coordinator/journal
+  lifetime; the separate transport owns channel/socket cleanup.
+- `IWindowsProtocolSecurity` explicitly composes managed pairing/request
+  coordinators with this per-channel verifier and the existing journal/lifecycle,
+  including held local exposure/revocation decisions. Factory, binding access,
+  coordinator creation and native operations all deny before side effects.
+  Nothing is registered in startup, UI, listeners or dependency composition.
+- `IWindowsProtocolEntropy` / `WindowsProtocolEntropy` supply held production
+  RandomNumberGenerator source: 32-byte canonical base64url request nonces,
+  bootstrap delivery through a distinct in-memory-only interface, and a credential
+  protected-store boundary BEFORE returning its SHA-256 verifier. Raw stack
+  buffers are zeroed in finally, including on failed delivery. Failed storage can
+  have persisted partially; there is no automatic retry/delete or success claim.
+  No raw credential is returned or logged. These sources were NOT EXECUTED; the
+  tests prove denial before RNG or delivery/store callbacks. This is not a new
+  Windows-to-phone issuance route: phone bearer generation/protection still belongs
+  to the future Android implementation, not a replacement Windows architecture.
+
+### Genuine evidence and limits
+
+- Initial targeted certificate/channel policy: **35 passed, 0 failed/skipped**.
+- Windows native hold boundaries: **2 passed, 0 failed/skipped**, proving admission
+  denial before channel arguments, signature provider, RNG or store callbacks.
+- Release: **Restore PASS; Build PASS; 1,152 passed, 0 failed, 0 skipped; 2/2 TRX;
+  exit 0** on the same Windows x64 / SDK 10.0.402 environment. This run covered all
+  production source changes and the first 37 new cases over the 1,115 baseline.
+- A subsequent TEST-ONLY fixture extension added certificate-aware pairing/request
+  integration, using the existing real-file journal protocol: **75 relevant managed
+  cases passed, 0 failed/skipped**, including the new integration case and all 39
+  preceding protocol cases. It proves that changed channel policy invalidates a
+  queued response before the writer. The full suite was not redundantly rerun:
+  **1,153 is not claimed as an observed full-suite result**.
+- No failed build/test run occurred in this milestone. No dependency/runner/CI
+  change, native private key, actual credential, TLS handshake, DPAPI or CNG
+  operation was executed. Ordinary public SHA-256 is used; no crypto-free claim.
+- Sequential committed-source Gate B smoke: **15 passed, 0 failed/skipped;
+  discovery 8 -> 15**, evidence `20261101T205206644Z`. As before, event subscription
+  was unavailable and CIM polling/retained handles may miss short-lived descendants;
+  no remaining testhost was observed. The original local verifier correction was
+  not executed or changed. It and the four unrelated untracked files matched their
+  initial SHA-256 hashes and remain excluded from the PR.
+
+The deterministic public certificate fixtures use the P-256 generator point and
+publicly known scalar/nonce=1 integer formula solely to form reproducible DER.
+They are insecure PUBLIC TEST VECTORS, not deployable identities; no signing/key
+provider or random credential generator runs. Their signature callback checks
+exact fixture bytes and can explicitly reject. Passing tests therefore prove
+DER/profile/channel/protocol logic and error propagation, **not native ECDSA
+verification**. Actual native tampered-signature and certificate/key-association
+proof remain pending. The existing uninhabited TLS peer boundary is untouched.
+
+Reproduction and local evidence:
+
+```powershell
+dotnet test tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj --no-restore -c Release --filter 'FullyQualifiedName~EnrolledCertificatePolicyTests|FullyQualifiedName~AuthenticatedPairingTests|FullyQualifiedName~AuthenticatedSnapshotCoordinatorTests|FullyQualifiedName~DurableReplayProtocolTests' --logger 'trx;LogFileName=certificate-protocol-final.trx' --results-directory test-results/gate-e-certificates --verbosity quiet
+dotnet test tests/PeripheralBatteryCompanion.Windows.Tests/PeripheralBatteryCompanion.Windows.Tests.csproj --no-restore -c Release --filter FullyQualifiedName~WindowsProtocolSecurityHoldTests --logger 'trx;LogFileName=windows-protocol-holds.trx' --results-directory test-results/gate-e-certificates --verbosity quiet
+./test.ps1 -Release
+```
+
+The last command above preceded the final test-only case. Logs:
+`test-results/gate-e-certificates/`, `test-results/automated/`, `latest.log` and
+`summary.txt`. Counts are separate observations, not additive full-suite results.
+
+The consolidated [native acceptance proposal](gate-e-native-acceptance-proposal.md)
+defines exact case groups, bounded owned resources, test processes, permitted side
+effects, cleanup and uncertainty handling. It is NOT authorization and does not
+provide a runnable native driver. No hold is removed or token invented. A separately
+reviewed driver/revision and completed resource manifest are prerequisites to any
+owner-selected native batch.
+
+Still pending: actual CNG signature/provider and certificate association; native
+storage/path/ACL/flush/crash evidence; production nonce/secret delivery and Android
+Keystore; actual TLS 1.3 handshake, resumption/0-RTT/options and physical stream
+lifetime proof. Reading stream properties in unexecuted source cannot validate
+those properties. No whole-file rollback, durable all-ever nonce history or
+post-transmission recall guarantee is added. Gate E remains BLOCKED; no Stage E4
+or Windows–Android connectivity is activated.
