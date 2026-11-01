@@ -691,3 +691,36 @@ remains draft, with Gate E BLOCKED and UNAUTHORIZED.
   descendants. No remaining testhost observed. The unrelated local verifier
   correction was not run, changed or included; it and the four unrelated untracked
   files matched their initial SHA-256 preservation hashes.
+
+## Disposable VM preparation only (after `0405d77`)
+
+Added the [owner checklist/setup recipe](gate-e-vm-preparation.md),
+[source-only admission approval packet](gate-e-admission-approval-packet.md), and
+`tools/GateE.NativeAcceptance/preflight.ps1`. No native driver, production security,
+Gate B or admission code changed. No VM/account/credentials/private folders/ACLs
+were provisioned. Historical 1,184-pass Release and 15-pass Gate B results above
+remain historical; those investigations/suites were not repeated for this task.
+
+The read-only preflight checks bound source/index scopes, the eleven staged hashes,
+manifest fields/hash/live binding, fixed NTFS/space, observed ownership/ACL/reparse
+metadata, guest NIC/process/runtime metadata and standard-token information. It
+never runs/loads the harness or tests, probes keys, issues credentials, repairs
+permissions or writes reports. Git reads disable optional locks, fsmonitor,
+external diff and text conversion. Missing target inputs stop host inspection.
+Output always has `ReadyToExecute: false` and separates missing, failed,
+not-observed and owner-required evidence. Observations are not handle-level/native
+proof, VM isolation attestation or authorization.
+
+Validation: `preflight.tests.ps1` finished **33 deterministic policy/AST checks,
+0 failed**; missing-target invocation emitted seven exact missing bindings without
+inspecting this host. Initial policy testing stopped on PowerShell's automatic ISO
+timestamp conversion; parsing now checks the original JSON UTC strings/types and
+the final checks passed. No live VM preflight, build/restore/full suite, Gate B or
+native execution ran in this preparation. No full validation claim is added.
+
+The owner must still supply VM/image/snapshot identity, a standard disposable SID/
+LocalAppData, already approved private paths, reviewed source/build provenance,
+eleven binary hashes, final manifest fingerprint and fresh UTC window. Any missing
+account or ACL setup needs separate custodian authorization. A source-only
+harness-admission revision review and any later native execution are separate
+decisions, neither granted by this packet. Production Gate E remains BLOCKED.
