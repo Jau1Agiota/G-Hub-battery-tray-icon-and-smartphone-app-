@@ -23,6 +23,25 @@ The existing files remain unchanged:
 
 No duplicate compile item was added in the project file. The assembly source is listed once.
 
+## Static directory inventory
+
+A read-only GitHub contents listing of `tests/PeripheralBatteryCompanion.W1Offline.Tests/` was reviewed at this branch. All entries were accounted for:
+
+| File | Intended handling | Reason |
+|---|---|---|
+| `AssemblyInfo.cs` | Explicit `Compile` | Assembly-level xUnit collection behavior attribute |
+| `GateEAuthorizationGate.cs` | Explicit `Compile` | Test subject / authorization guard source |
+| `GateEAuthorizationGateTests.cs` | Explicit `Compile` | Pure guard unit tests, with process-local environment/latch effects |
+| `W1Evidence.cs` | Explicit `Compile` | Evidence model and metadata classification |
+| `W1NativeLifecycle.cs` | Explicit `Compile` | Protected native lifecycle source; inclusion does not authorize execution |
+| `W1OfflineLifecycleTests.cs` | Explicit `Compile` | Contains the protected native test, which must remain skipped |
+| `W1PreflightPlan.cs` | Explicit `Compile` | Plan and permit/preflight source |
+| `xunit.runner.json` | Explicit `None` with output copy | xUnit runner configuration required beside test assembly |
+| `NuGet.Config` | Not a compile/output item | Restore-time package source configuration, consumed by NuGet based on project location; no restore authorized |
+| `global.json` | Not a compile/output item | .NET SDK selection policy discovered from the working-directory ancestry; it is not an assembly runtime config |
+
+This inventory is a source-tree classification only. It does not prove which SDK or NuGet configuration a future process resolves, which files a testhost loads, or that runner settings take effect. Parent-level SDK/MSBuild/NuGet imports and environment influences remain outside this directory inventory.
+
 ## Preserved constraints
 
 - Target framework remains `net10.0-windows`.
@@ -31,7 +50,7 @@ No duplicate compile item was added in the project file. The assembly source is 
 - Default item discovery remains disabled.
 - Existing native lifecycle test retains its explicit xUnit Skip attribute.
 - No native lifecycle source, authorization guard, permit logic, report logic or Gate B/E state was changed.
-- No build, restore, test discovery, test execution or native API was run as part of this source patch.
+- No build, restore, test discovery, test execution or native API was run as part of this source patch or static inventory.
 
 ## Static acceptance
 
@@ -41,22 +60,25 @@ No duplicate compile item was added in the project file. The assembly source is 
 | AssemblyInfo.cs explicitly listed once in Compile | PASS — project file |
 | Runner JSON explicitly copied to output | PASS — project file |
 | Runner JSON content consistent with single-thread/no-parallel policy | PASS — source inspection |
+| All files in test-project directory accounted for | PASS — static directory inventory |
+| NuGet.Config classified as restore-time config | PASS — static classification only |
+| global.json classified as SDK-selection config | PASS — static classification only |
 | Existing native test Skip preserved | PASS — source unchanged |
 | Runtime runner actually loads JSON | NOT VERIFIED |
 | Compiled assembly contains expected assembly attribute | NOT VERIFIED |
 | Testhost executes serially in practice | NOT VERIFIED |
-| Package/testhost/runtime binary provenance | NOT VERIFIED |
+| Effective SDK/NuGet imports and binary provenance | NOT VERIFIED |
 | Build/restore/discovery/test execution | NOT RUN |
 
 ## Remaining E3.3 work
 
-1. Inspect the full test-project directory for any other configuration or source files omitted by `EnableDefaultItems=false`; document each inclusion/exclusion decision.
-2. Independently review the diff and confirm there are no accidental project-property or package changes.
-3. Define an explicitly approved, non-native verification protocol for output-copy and runner configuration. It must not select or execute the protected native test.
-4. Separately review testhost process isolation, retries, environment mutation, static latch effects and runner behavior before any authorization request.
+1. Independently review the diff and confirm there are no accidental project-property or package changes.
+2. Define an explicitly approved, non-native verification protocol for output-copy and runner configuration. It must not select or execute the protected native test.
+3. Separately review testhost process isolation, retries, environment mutation, static latch effects and runner behavior before any authorization request.
+4. Reconcile any findings from Codex's independent PR review before changing this patch.
 
 ## Decision
 
-This patch fixes the two identified project-item omissions at source level. It does **not** establish runtime isolation or make the native test safe to run.
+This patch fixes the two identified project-item omissions at source level. The static directory inventory accounts for all files in the test-project directory. It does **not** establish runtime isolation or make the native test safe to run.
 
 Keep Gate E blocked and the native test skipped. No gate transition or merge is authorized by this document.
