@@ -150,3 +150,36 @@ The owner subsequently approved Gate B offline build and nonnative test executio
 - The native-protected test was excluded. No Gate E native lifecycle execution was authorized or performed.
 - These results do not establish native cryptographic authorization, complete runner-isolation evidence, or Gate E readiness.
 - Verification was local; GitHub CI has not been claimed as passing for this change.
+
+## E3.3 Gate B acceptance reconciliation (2026-11-01)
+
+This is the current status snapshot and supersedes earlier *prospective* / NOT VERIFIED checklists where subsequent evidence exists. Historical source-only statements above remain accurate for their original time and scope.
+
+### Completed evidence (local unless specified)
+
+- Offline restore succeeded with 13 cached NuGet archive SHA-512 comparisons against official NuGet downloads. This does not attest every toolchain component or loaded binary.
+- Debug build completed with zero warnings and zero errors; git diff --check passed.
+- A filtered local xUnit run completed with **22 passed, 0 failed**. The protected native lifecycle test was excluded; it remained explicitly skipped in source.
+- Compiled test assembly metadata was inspected without loading or executing the test DLL; the xUnit assembly-level serial collection behavior attribute was present.
+- Source/output xunit.runner.json SHA-256 hashes matched. In an isolated temporary copy, 86 copied files had zero hash mismatches before the temporary runner JSON was changed to enable diagnostics.
+- The isolated dotnet vstest run with Category!=GateE_Native_Protected reported 22 passed, runner adapter 3.1.5, "parallel test collections = off", successful exit, and zero remaining testhost processes after the run. Diagnostic output supports runner activity but **does not independently prove a JSON file-open event or configuration precedence**, since the compiled assembly attribute also disables parallelism.
+- Two Windows GitHub Actions checks succeeded at commit 8af4c4eff590129296ee857dca8166f7920872a4. Two d33a-code-only jobs were skipped, not passed. These Windows jobs are not represented as a substitute for the isolated W1Offline local test evidence.
+
+### Test-scope reconciliation
+
+The earlier source-only proposal named an allowlist of guard/preflight classes and excluded the existing frozen digest test. The later executed run instead used a negative category filter, Category!=GateE_Native_Protected, and therefore included **FrozenTestVector_CanonicalSerializationAndDigest_MatchesSpecification**, which invokes platform-backed SHA256.HashData. The run was **nonnative-lifecycle**, not crypto-free and not identical to the original proposed allowlist. Record this deviation explicitly; do not retroactively claim the original allowlist was executed. The evidence establishes 22 passing selected tests, not permission for native cryptographic lifecycle execution.
+
+### Source review findings
+
+- GateEAuthorizationGate.EnsureAuthorized always denies and trips its process-local latch on the first denied attempt, regardless of legacy environment token or opaque permit payload.
+- GateEPermit.TryAcquireFromFile, GateEPermit.Matches and W1PreflightPlan.TryConsume fail closed.
+- W1NativeLifecycle.Execute begins with unconditional native approval and execution-provenance holds before any native key creation; the protected test has an explicit Skip and calls the native approval hold first.
+- RunAuthorizedBody has an unconditional report destination verification hold before FileStream creation, although this does not imply that entering the native body is authorized.
+- AssemblyInfo.cs and xunit.runner.json are explicitly included in the project. Serial scheduling settings limit concurrency but are not security isolation.
+- No authorization bypass was identified in the reviewed entry paths. This is a scoped source review, not an independent security certification.
+
+### Acceptance disposition
+
+**Gate B technical evidence: substantially complete for the checks performed, with documented limitations.** Exact runner JSON file-open/config precedence was not independently traced; exact testhost lifetime was not measured beyond the completed-run observation. The earlier allowlist deviation remains disclosed. Formal **independent reviewer approval is pending**: GitHub reported zero submitted reviews and zero approvals. Do not mark formal Gate B acceptance complete or merge PR #30 until the required independent review and any outstanding evidence criteria are resolved.
+
+**Gate E remains BLOCKED.** No protected native lifecycle test was executed or authorized. No Gate E transition, protected-test unskip, or native operation is authorized by this review.
