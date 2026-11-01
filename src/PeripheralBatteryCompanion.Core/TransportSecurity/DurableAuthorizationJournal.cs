@@ -37,16 +37,17 @@ public interface IAuthorizationJournalFiles : IDisposable
 /// Ordinary file tests cannot attest the native protection/durability implementations.
 /// </summary>
 public sealed class DurableAuthorizationJournal(EnrollmentIdentity identity, IAuthorizationJournalStorage storage,
-    IAuthorizationEnvelopeProtection protection) : IAuthorizationJournalSession
+    IAuthorizationEnvelopeProtection protection) : IReplayAuthorizationJournal
 {
     public const int MaximumCiphertextBytes = 16384;
-    public const int MaximumPlaintextBytes = AuthorizationRecordCodec.MaxBytes + 64;
+    public const int MaximumPlaintextBytes = AuthorizationRecordCodec.MaxBytes + ReplayHistory.MaximumBytes + 64;
     public const int MaximumDirectoryBytes = 65536;
     public static IReadOnlyList<string> OwnedFileNames { get; } = Array.AsReadOnly(new[]
     { "lease.lock", "initialized.bin", "state.bin", "checkpoint.bin", "pending.bin", "session.bin", "stop.bin", "state.next", "checkpoint.next" });
     private readonly object _gate = new();
     private IAuthorizationJournalFiles? _files;
     private AuthorizationRecord? _record;
+    private ReplayHistory? _replay;
     private bool _loaded, _poisoned, _disposed, _ownsSession;
     private AuthorizationLoadOutcome _outcome = AuthorizationLoadOutcome.Missing;
 
@@ -110,8 +111,31 @@ public sealed class DurableAuthorizationJournal(EnrollmentIdentity identity, IAu
             long current = _record?.Generation ?? 0;
             if (current == long.MaxValue || current != expectedGeneration || next.Generation != current + 1 ||
                 !identity.Matches(next.Identity) || !ValidTransition(next)) return AuthorizationCommitOutcome.NotCommitted;
-            if (!Publish(next, initializing: false)) return AuthorizationCommitOutcome.Uncertain;
+            var history = next.Revoked ? _replay : ReplayHistory.Empty(next.Generation);
+            if (history is null || !Publish(next, initializing: false, history)) return AuthorizationCommitOutcome.Uncertain;
             _record = next; _outcome = AuthorizationLoadOutcome.VerifiedRecord;
+            _replay = history;
+            return AuthorizationCommitOutcome.Committed;
+        }
+    }
+
+    public ReplayHistory? ReadReplay(long authorizationGeneration)
+    {
+        lock (_gate)
+        {
+            return !_disposed && !_poisoned && _loaded && _record is { Revoked: false } &&
+                _record.Generation == authorizationGeneration && _replay?.AuthorizationGeneration == authorizationGeneration ? _replay : null;
+        }
+    }
+    public AuthorizationCommitOutcome CommitReplay(long authorizationGeneration, long expectedVersion, ReplayHistory next)
+    {
+        lock (_gate)
+        {
+            if (_disposed || _poisoned || !_loaded || !_ownsSession || _record is not { Revoked: false } ||
+                _record.Generation != authorizationGeneration || _replay is null) return AuthorizationCommitOutcome.Uncertain;
+            if (next is null || expectedVersion != _replay.Version || !next.IsSuccessorOf(_replay)) return AuthorizationCommitOutcome.NotCommitted;
+            if (!Publish(_record, false, next)) return AuthorizationCommitOutcome.Uncertain;
+            _replay = next;
             return AuthorizationCommitOutcome.Committed;
         }
     }
@@ -125,13 +149,13 @@ public sealed class DurableAuthorizationJournal(EnrollmentIdentity identity, IAu
             next.IssuedAt == _record.IssuedAt && next.ExpiresAt == _record.ExpiresAt;
     }
 
-    private bool Publish(AuthorizationRecord? next, bool initializing)
+    private bool Publish(AuthorizationRecord? next, bool initializing, ReplayHistory? history = null)
     {
         byte[]? plaintext = null;
         try
         {
             if (_files is null || !CleanInventory()) throw new IOException("Journal inventory rejected.");
-            plaintext = Envelope(next);
+            plaintext = Envelope(next, history);
             byte[] ciphertext = protection.Protect(plaintext);
             if (ciphertext.Length is < 1 or > MaximumCiphertextBytes) throw new IOException("Protected record bound rejected.");
             byte[] checkpoint = Checkpoint(next?.Generation ?? 0, ciphertext);
@@ -153,12 +177,17 @@ public sealed class DurableAuthorizationJournal(EnrollmentIdentity identity, IAu
         finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
     }
 
-    private byte[] Envelope(AuthorizationRecord? record)
+    private byte[] Envelope(AuthorizationRecord? record, ReplayHistory? history)
     {
         using var stream = new MemoryStream(); using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
-        writer.Write("PBCJNL01"u8); writer.Write(Binding()); writer.Write(record?.Generation ?? 0);
+        writer.Write("PBCJNL02"u8); writer.Write(Binding()); writer.Write(record?.Generation ?? 0);
         byte[] payload = record is null ? [] : AuthorizationRecordCodec.Encode(record);
-        try { writer.Write(payload.Length); writer.Write(payload); writer.Flush(); return stream.ToArray(); }
+        try
+        {
+            writer.Write(payload.Length); writer.Write(payload);
+            byte[] replay = history?.Encode() ?? []; writer.Write(replay.Length); writer.Write(replay);
+            writer.Flush(); return stream.ToArray();
+        }
         finally { CryptographicOperations.ZeroMemory(payload); }
     }
 
@@ -168,15 +197,19 @@ public sealed class DurableAuthorizationJournal(EnrollmentIdentity identity, IAu
         try
         {
             plaintext = protection.Unprotect(ciphertext);
-            if (plaintext.Length is < 52 or > MaximumPlaintextBytes) return false;
+            if (plaintext.Length is < 56 or > MaximumPlaintextBytes) return false;
             using var stream = new MemoryStream(plaintext, false); using var reader = new BinaryReader(stream);
-            if (!reader.ReadBytes(8).AsSpan().SequenceEqual("PBCJNL01"u8) || !reader.ReadBytes(32).AsSpan().SequenceEqual(Binding())) return false;
+            // No automatic upgrade/reset of legacy records lacking durable replay state.
+            if (!reader.ReadBytes(8).AsSpan().SequenceEqual("PBCJNL02"u8) || !reader.ReadBytes(32).AsSpan().SequenceEqual(Binding())) return false;
             long generation = reader.ReadInt64(); int length = reader.ReadInt32();
-            if (generation < 0 || length < 0 || length > AuthorizationRecordCodec.MaxBytes || stream.Length - stream.Position != length ||
+            if (generation < 0 || length < 0 || length > AuthorizationRecordCodec.MaxBytes || stream.Length - stream.Position < length + 4 ||
                 !checkpoint.AsSpan().SequenceEqual(Checkpoint(generation, ciphertext))) return false;
-            if (length == 0) return generation == 0;
-            return AuthorizationRecordCodec.TryDecode(reader.ReadBytes(length), identity, out record) &&
-                record is not null && record.Generation == generation;
+            byte[] payload = reader.ReadBytes(length); int replayLength = reader.ReadInt32();
+            if (replayLength < 0 || replayLength > ReplayHistory.MaximumBytes || stream.Length - stream.Position != replayLength) return false;
+            if (length == 0) return generation == 0 && replayLength == 0;
+            if (!AuthorizationRecordCodec.TryDecode(payload, identity, out record) || record is null || record.Generation != generation || replayLength == 0) return false;
+            _replay = ReplayHistory.Decode(reader.ReadBytes(replayLength));
+            return _replay is not null && _replay.AuthorizationGeneration == (record.Revoked ? generation - 1 : generation);
         }
         finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
     }

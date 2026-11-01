@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace PeripheralBatteryCompanion.Core.TransportSecurity;
 
 public enum AuthorizationLoadOutcome { Missing, VerifiedEmpty, VerifiedRecord, Uncertain }
@@ -16,10 +18,13 @@ public interface IAuthorizationJournal
     AuthorizationCommitOutcome Commit(long expectedGeneration, AuthorizationRecord next);
 }
 
-/// <summary>Non-listening lifecycle implementation, unwired from production. It does not authenticate TLS or bearer input.</summary>
+/// <summary>Non-listening lifecycle and bearer-verifier core, unwired from production. It does not authenticate TLS.</summary>
 public sealed class EnrollmentAuthorization : IDisposable
 {
     private readonly object _gate = new();
+    private readonly object _signals = new();
+    private CancellationTokenSource _invalidation = new();
+    private Task _invalidationTask = Task.CompletedTask;
     private readonly EnrollmentIdentity _identity;
     private readonly IAuthorizationJournal _journal;
     private readonly TimeProvider _clock;
@@ -36,6 +41,8 @@ public sealed class EnrollmentAuthorization : IDisposable
     private EnrollmentClaim? _claim;
     private long _credentialTick;
     private TimeSpan _credentialBudget;
+    private bool _exposureStarted;
+    private long _exposureTick;
 
     public EnrollmentAuthorization(EnrollmentIdentity identity, IAuthorizationJournal journal, TimeProvider? clock = null)
     {
@@ -79,6 +86,8 @@ public sealed class EnrollmentAuthorization : IDisposable
             _windowExpiry = _identity.LeafNotAfter - now < TimeSpan.FromSeconds(120) ? _identity.LeafNotAfter : now.AddSeconds(120);
             _windowTick = _lastTick;
             _claim = null;
+            _exposureStarted = false;
+            RotateInvalidation();
             // A successfully revoked record permits a new explicit owner enrollment.
             // This never clears a recovery latch or restores previous authorization.
             Volatile.Write(ref _revocationRequested, 0);
@@ -128,7 +137,42 @@ public sealed class EnrollmentAuthorization : IDisposable
     // Trusted LOCAL exposure decision only. Not a network route or persisted consent.
     public bool ApproveExposureByLocalOwner()
     {
-        lock (_gate) { return _exposure = Current(); }
+        lock (_gate)
+        {
+            if (_exposureStarted) return ExposureCurrent();
+            if (!Current()) return false;
+            _exposureStarted = true; _exposureTick = _lastTick;
+            return _exposure = true;
+        }
+    }
+
+    internal bool TryReadApprovedEnrollment(EnrollmentClaim claim, out AuthorizationRecord? record)
+    {
+        lock (_gate)
+        {
+            record = Current() && _record!.EnrollmentId == claim.EnrollmentId && _record.PhoneId == claim.PhoneId &&
+                _record.TokenSha256 == claim.TokenSha256 ? _record : null;
+            return record is not null;
+        }
+    }
+    internal void RejectPendingEnrollment() { lock (_gate) CloseWindow(); }
+    internal void DenyForSecurityFailure() { lock (_gate) _ = Fail(); }
+    public bool TryAuthenticateBearer(string? authorizationHeader, out ResponseLease? lease)
+    {
+        lease = null;
+        if (Volatile.Read(ref _revocationRequested) != 0) return false;
+        Span<byte> digest = stackalloc byte[32];
+        try
+        {
+            if (!ProtocolCredentials.TryHashBearer(authorizationHeader, digest)) return false;
+            lock (_gate)
+            {
+                if (!ExposureCurrent() || !CryptographicOperations.FixedTimeEquals(digest, Convert.FromHexString(_record!.TokenSha256))) return false;
+                lease = new(this, Interlocked.Read(ref _fence), _record.PhoneId, Generation, _invalidation.Token);
+                return true;
+            }
+        }
+        finally { CryptographicOperations.ZeroMemory(digest); }
     }
 
     public bool TryPrepareAuthenticatedResponse(Guid phoneId, long generation, out ResponseLease? lease)
@@ -137,8 +181,8 @@ public sealed class EnrollmentAuthorization : IDisposable
         if (Volatile.Read(ref _revocationRequested) != 0) return false;
         lock (_gate)
         {
-            if (!_exposure || !Current() || _record!.PhoneId != phoneId || Generation != generation) return false;
-            lease = new ResponseLease(this, Interlocked.Read(ref _fence), phoneId, generation);
+            if (!ExposureCurrent() || _record!.PhoneId != phoneId || Generation != generation) return false;
+            lease = new ResponseLease(this, Interlocked.Read(ref _fence), phoneId, generation, _invalidation.Token);
             return true;
         }
     }
@@ -150,7 +194,7 @@ public sealed class EnrollmentAuthorization : IDisposable
         ArgumentNullException.ThrowIfNull(lease);
         if (Volatile.Read(ref _revocationRequested) != 0 || lease.Fence != Interlocked.Read(ref _fence)) return false;
         lock (_gate) return ReferenceEquals(lease.Owner, this) && lease.Fence == Interlocked.Read(ref _fence) &&
-            _exposure && Current() && _record!.PhoneId == lease.PhoneId && Generation == lease.Generation;
+            ExposureCurrent() && _record!.PhoneId == lease.PhoneId && Generation == lease.Generation;
     }
 
     public bool RevokeByLocalOwner()
@@ -159,6 +203,7 @@ public sealed class EnrollmentAuthorization : IDisposable
         // persistence call cannot keep a previously prepared lease eligible.
         Interlocked.Exchange(ref _revocationRequested, 1);
         Interlocked.Increment(ref _fence);
+        SignalInvalidation();
         lock (_gate)
         {
             _exposure = false; CloseWindow();
@@ -173,16 +218,33 @@ public sealed class EnrollmentAuthorization : IDisposable
     {
         Interlocked.Exchange(ref _revocationRequested, 1);
         Interlocked.Increment(ref _fence);
+        SignalInvalidation();
         lock (_gate) { _exposure = false; CloseWindow(); if (Interlocked.Read(ref _fence) < 0) _ = Fail(); }
     }
 
     private bool Current()
     {
         if (Volatile.Read(ref _revocationRequested) != 0 || !CheckClock(out var now) ||
-            _record is not { Revoked: false } || now < _record.IssuedAt || now >= _record.ExpiresAt ||
-            !BeforeDeadline(_credentialTick, _credentialBudget))
+            _record is not { Revoked: false })
         { _exposure = false; return false; }
+        if (now < _record.IssuedAt || now >= _record.ExpiresAt || !BeforeDeadline(_credentialTick, _credentialBudget))
+        { _exposure = false; Interlocked.Exchange(ref _revocationRequested, 1); SignalInvalidation(); return false; }
+        try
+        {
+            var stored = _journal.Read();
+            if (stored.Outcome != AuthorizationLoadOutcome.VerifiedRecord || stored.Record is null ||
+                (!ReferenceEquals(stored.Record, _record) && !AuthorizationRecordCodec.Encode(stored.Record).AsSpan().SequenceEqual(AuthorizationRecordCodec.Encode(_record))))
+                return Fail();
+        }
+        catch (Exception error) when (Ordinary(error)) { return Fail(); }
+        if (Volatile.Read(ref _revocationRequested) != 0) { _exposure = false; return false; }
         return true;
+    }
+    private bool ExposureCurrent()
+    {
+        if (!_exposure || !Current()) return false;
+        if (BeforeDeadline(_exposureTick, TimeSpan.FromHours(8))) return true;
+        _exposure = false; Interlocked.Exchange(ref _revocationRequested, 1); SignalInvalidation(); return false;
     }
 
     private bool WindowValid(out DateTimeOffset now)
@@ -231,13 +293,16 @@ public sealed class EnrollmentAuthorization : IDisposable
         bool first = !_recovery;
         _recovery = true; _exposure = false; CloseWindow();
         Interlocked.Exchange(ref _revocationRequested, 1);
+        SignalInvalidation();
         if (first && _journal is IAuthorizationJournalSession session)
             try { session.MarkUncertain(); } catch (Exception error) when (Ordinary(error)) { }
         return false;
     }
     public void Dispose()
     {
+        if (Volatile.Read(ref _disposed)) return;
         Interlocked.Exchange(ref _revocationRequested, 1); Interlocked.Increment(ref _fence);
+        SignalInvalidation();
         lock (_gate)
         {
             if (_disposed) return;
@@ -247,6 +312,33 @@ public sealed class EnrollmentAuthorization : IDisposable
                 try { if (_recovery) session.MarkUncertain(); session.Dispose(); }
                 catch (Exception error) when (Ordinary(error)) { _recovery = true; }
             }
+            lock (_signals)
+            {
+                var source = _invalidation;
+                _ = _invalidationTask.ContinueWith(task => { if (task.IsFaulted) _ = task.Exception; source.Dispose(); },
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
+        }
+    }
+    private void SignalInvalidation()
+    {
+        lock (_signals)
+        {
+            if (Volatile.Read(ref _disposed)) return;
+            if (_invalidation.IsCancellationRequested) return;
+            _invalidationTask = _invalidation.CancelAsync();
+            _ = _invalidationTask.ContinueWith(task => { _ = task.Exception; }, CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+    }
+    private void RotateInvalidation()
+    {
+        lock (_signals)
+        {
+            var old = _invalidation; var finished = _invalidationTask;
+            _invalidation = new(); _invalidationTask = Task.CompletedTask;
+            _ = finished.ContinueWith(task => { if (task.IsFaulted) _ = task.Exception; old.Dispose(); },
+                CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
     }
     private static bool Ordinary(Exception error) => error is not OutOfMemoryException and not StackOverflowException;
@@ -258,8 +350,9 @@ public sealed class EnrollmentAuthorization : IDisposable
         internal long Fence { get; }
         internal Guid PhoneId { get; }
         internal long Generation { get; }
-        internal ResponseLease(EnrollmentAuthorization owner, long fence, Guid phoneId, long generation)
-        { Owner = owner; Fence = fence; PhoneId = phoneId; Generation = generation; }
+        internal CancellationToken Stop { get; }
+        internal ResponseLease(EnrollmentAuthorization owner, long fence, Guid phoneId, long generation, CancellationToken stop)
+        { Owner = owner; Fence = fence; PhoneId = phoneId; Generation = generation; Stop = stop; }
         public override string ToString() => "ResponseLease (redacted; not authentication evidence)";
     }
 }

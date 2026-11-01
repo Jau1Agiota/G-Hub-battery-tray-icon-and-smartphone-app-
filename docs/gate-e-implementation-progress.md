@@ -305,3 +305,148 @@ restoration of all old files remains the explicit E3.1 unsupported-rollback limi
 Production connectivity, live credentials and Stage E4 remain disabled. Gate E is
 still BLOCKED and UNAUTHORIZED; this milestone implements the architecture without
 claiming native validation or security acceptance.
+
+## Authenticated pairing and durable replay milestone (after `3764fa4`)
+
+The preceding 1,076-pass journal/custody milestone above is historical. This
+milestone adds executable managed protocol logic, not a listener or a native trust
+adapter. E3.1 remains the contract; production startup and networking are unwired.
+
+### Functional integration
+
+- `PairingSession` binds bootstrap verification to the exact endpoint, identity
+  generation, full server leaf and mandatory authenticated-channel verifier.
+  Canonical bearer material is hashed and compared in constant time. The session
+  holds only a supplied bootstrap hash, permits one claim, bounds claim attempts to
+  eight, strictly decodes the four-field 1 KiB claim, requires the full local
+  transcript confirmation, and checks durable approval before exposing status.
+  Status is limited to one attempt per five seconds and the original 120-second
+  window; only approved phone/generation/issue/expiry metadata is returned.
+- `PeerBinding` is copied public binding DATA, never TLS evidence or a phone
+  certificate. `IPeerCertificateVerifier` must eventually prove the live server
+  channel, possession, exact certificate/profile/SPKI and origin for its role.
+  Its default implementation always denies. Tests inject synthetic proof and
+  noncertificate leaf bytes. The existing uninhabited `AuthenticatedTlsPeer` and
+  disabled TLS boundary are unchanged. No trust-all production adapter was added.
+- `EnrollmentAuthorization` now authenticates the canonical bearer against the
+  committed verifier, checks authoritative journal state on release, limits exposure
+  to eight hours, and attaches cancellation to generation/fence-bound leases.
+  Revocation signals denial/cancellation BEFORE waiting for persistence. Expiry,
+  uncertain state, disposal and exposure shutdown also invalidate release.
+- `AuthenticatedSnapshotCoordinator` admits at most four queued/active responses;
+  bounds headers to 32 fields / 8 KiB and bodies to 64 KiB; enforces protocol,
+  route, framing, no compression, peer and bearer checks; limits requests to
+  60 global / 10 authenticated-phone per 60 seconds; and rejects reused nonces.
+  It reads immutable publication bytes without refreshing providers or serializing
+  a new measurement. Five seconds covers preparation, queue delay and the write.
+  Peer, authorization and time are checked again before/after the writer.
+- Cancellation invalidates queued responses and is passed to active writers.
+  An unfinished writer that ignores cancellation suspends further transmissions
+  and retains its admission slot until its actual task completes. No lock spans
+  the write. Bytes already handed to/transmitted by a writer cannot be recalled;
+  task completion is not OS transport shutdown or physical cleanup evidence.
+- `DurableSnapshotReceiver` correlates exactly one attempt/nonce, rejects stale
+  callbacks and invalid peer/generation/framing/digest/instance/synthetic bodies,
+  and commits replay state BEFORE making received bytes visible. Display access
+  rechecks expiry/revocation; pause hides bytes without discarding high-water marks.
+  Failed validation/commit latches recovery rather than resetting trust.
+
+### Durable replay storage and limits
+
+`IReplayAuthorizationJournal` extends the actual journal transaction; no separate
+fake production persistence was introduced. The same protected envelope atomically
+contains authorization/tombstone plus replay metadata: generation, compare-version,
+up to 64 ordered publisher UUID/revision/body-digest entries, and the last accepted
+nonce digest. Earlier publishers are permanently retired. A lower revision, a
+changed body at equal revision, or a retired publisher is rejected. Equal revision
+with identical bytes and a fresh nonce is `Duplicate`: channel liveness ONLY, never
+a new measurement timestamp. A 65th publisher requires explicit recovery with no
+eviction or mutation of the committed high-water state.
+
+The envelope is now `PBCJNL02`. Plaintext maximum is **12,352 bytes** (previously
+8,256); replay metadata is bounded to 4,096 bytes. Authorization JSON remains
+8,192 bytes; ciphertext 16 KiB, directory 64 KiB and the same nine filenames remain
+unchanged. Legacy envelopes and existing trust missing replay state deny restart;
+there is deliberately no silent migration, initialization or history reset.
+Tombstones retain the retired generation's replay metadata. New owner enrollment
+after retirement starts a separate generation. Native acceptance must review these
+new envelope bytes and bounds before approving protected operations.
+
+Nonce correlation persists the LAST accepted nonce digest and remembers up to
+4,096 used nonces per receiver session (server also bounds its session cache to
+4,096 and then suspends). It is NOT a durable all-ever nonce database. Production
+must supply a fresh cryptographically random 32-byte nonce for every attempt,
+without retry/reuse across restarts. The current API accepts a candidate nonce;
+it cannot prove caller entropy or reject every older nonce after process restart.
+The production nonce/credential generator and platform-backed trust composition
+are still pending; deterministic test inputs establish correlation logic only.
+Full consistent file rollback is still unsupported, and ordinary file-test flush
+callbacks do not establish native durability, ACL or DPAPI security.
+
+The receiver is a client-role core. Sharing a Windows journal in managed integration
+tests is NOT an Android Keystore backend or a proposed cross-device shared file.
+Platform-specific client storage, QR parsing, protected bearer generation/storage,
+certificate profile/signature/SPKI-to-leaf validation and actual TLS 1.3 proof remain
+separate acceptance work. Certificate/public metadata equality alone cannot enable
+any production path.
+
+### Genuine verification
+
+Windows x64 10.0.26200; .NET SDK 10.0.402 / host 10.0.13. No Android workloads are
+installed. Native DPAPI/CNG, actual credentials, sockets and protected lifecycle
+tests were not executed. Public protocol/checkpoint SHA-256 is used; these tests
+are not described as crypto-free.
+
+- First focused run: **34 passed, 3 failed, 0 skipped**. Three new assertions used
+  `ImmutableArray` backing-storage equality rather than byte-sequence equality;
+  explicit sequence comparisons corrected the assertions without weakening the
+  required bytes. The failed TRX is retained.
+- Corrected focused run: **37 passed, 0 failed, 0 skipped**. Two additional display
+  invalidation cases and final denial/resource-cleanup fixes then justified the
+  complete Release run.
+- **Final Release: Restore PASS; Build PASS; 1,115 passed, 0 failed, 0 skipped;
+  2/2 TRX files, exit 0.** This is 39 new cases over the recorded 1,076 baseline.
+  No existing assertion, native skip or security hold was removed.
+- **Gate B: 15 passed, 0 failed, 0 skipped; discovery 8 -> 15**, sequential
+  committed-source verifier, evidence session `20261101T202518890Z`. A temporary
+  adjacent copy of `git show HEAD:tests/PeripheralBatteryCompanion.W1Offline.Tests/GateB/verify.ps1`
+  was executed and then removed, preserving the unrelated local verifier correction.
+  The procedure and evidence limitations are unchanged; no broad investigation was
+  repeated. The four unrelated untracked files and verifier correction were checked
+  against their initial SHA-256 hashes and excluded from this milestone.
+  Process observation used CIM polling with retained handles because event
+  subscription was denied. Observed execution testhost PID 32236, parent 52936,
+  start `2026-11-01T20:25:30.1606758Z`, exit `2026-11-01T20:25:31.5723361Z`,
+  exit code 0; remaining testhosts empty. Polling may miss short-lived descendants;
+  this is not complete OS-event tracing. See `allowlisted-execution.process.json`.
+
+| Managed coverage | Evidence |
+| --- | --- |
+| Bootstrap and exact identity/leaf/origin; default proof denial | `AuthenticatedPairingTests` |
+| One claim, full transcript, status bounds and malformed JSON | `AuthenticatedPairingTests` |
+| End-to-end immutable server body through durable receiver; duplicate liveness | `AuthenticatedSnapshotCoordinatorTests` |
+| Malformed/mismatched credentials and headers; changed peer before write | `AuthenticatedSnapshotCoordinatorTests` |
+| Four-slot admission, queued revocation, uncooperative writer, queue/exposure deadlines | `AuthenticatedSnapshotCoordinatorTests` |
+| Real-file restart high-water, retired/65th publishers, nonce/stale callback rejection | `DurableReplayProtocolTests` |
+| Response context/framing/digest, commit faults, missing history, revoked/expired display | `DurableReplayProtocolTests` |
+
+Reproduce (ordinary permitted checks; Gate B must run sequentially):
+
+```powershell
+dotnet test tests/PeripheralBatteryCompanion.Tests/PeripheralBatteryCompanion.Tests.csproj --no-restore --configuration Release --filter 'FullyQualifiedName~PeripheralBatteryCompanion.Tests.AuthenticatedPairingTests|FullyQualifiedName~PeripheralBatteryCompanion.Tests.AuthenticatedSnapshotCoordinatorTests|FullyQualifiedName~PeripheralBatteryCompanion.Tests.DurableReplayProtocolTests' --logger 'trx;LogFileName=gate-e-pairing-replay.trx' --results-directory test-results/gate-e-pairing-replay --verbosity minimal
+./test.ps1 -Release
+```
+
+Focused failed/corrected TRX files are in `test-results/gate-e-pairing-replay/`;
+the final 39 cases are included in `test-results/automated/`. Overall logs and
+summary remain in `test-results/latest.log` and `test-results/summary.txt`.
+
+### Protected acceptance remains pending
+
+No native hold/permit/provenance/skip/report boundary changed. Actual Windows
+certificate/key association and TLS, native storage/ACL/durability, cryptographic
+nonce and bearer issuance/storage, Android Keystore/recreation, crash/power-loss,
+and physical transport cancellation/cleanup need independent review and the
+applicable explicit owner authorization. Owner security acceptance is not inferred
+from managed tests. Gate E remains **BLOCKED and UNAUTHORIZED**; this work does
+not enable production connectivity, startup or Stage E4.

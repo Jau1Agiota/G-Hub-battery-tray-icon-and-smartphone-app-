@@ -3,7 +3,7 @@ using PeripheralBatteryCompanion.Core.TransportSecurity;
 namespace PeripheralBatteryCompanion.Windows;
 
 /// <summary>Production composition. All construction is held before identity, ACL, file or DPAPI access.</summary>
-internal sealed class WindowsAuthorizationJournal : IAuthorizationJournalSession
+internal sealed class WindowsAuthorizationJournal : IReplayAuthorizationJournal
 {
     private readonly WindowsAuthorizationDirectory _directory;
     private readonly DurableAuthorizationJournal _journal;
@@ -38,6 +38,8 @@ internal sealed class WindowsAuthorizationJournal : IAuthorizationJournalSession
     public AuthorizationLoad Read() => _journal.Read();
     public AuthorizationCommitOutcome Commit(long expectedGeneration, AuthorizationRecord next) => _journal.Commit(expectedGeneration, next);
     public void MarkUncertain() => _journal.MarkUncertain();
+    public ReplayHistory? ReadReplay(long generation) => _journal.ReadReplay(generation);
+    public AuthorizationCommitOutcome CommitReplay(long generation, long expectedVersion, ReplayHistory next) => _journal.CommitReplay(generation, expectedVersion, next);
     public void Dispose() { try { _journal.Dispose(); } finally { _directory.Dispose(); } }
 
     private sealed class EnvelopeProtection(EnrollmentIdentity identity) : IAuthorizationEnvelopeProtection
