@@ -1,0 +1,23 @@
+VSTest version 18.7.0 (x64)
+
+The following Tests are available:
+Logging Vstest Diagnostics in file: <REPO>\test-results\e3-3-gate-b\20261101T132922366Z\probe-discovery.vstest.log
+Logging TestHost Diagnostics in file: <REPO>\test-results\e3-3-gate-b\20261101T132922366Z\probe-discovery.vstest.host.26-11-01_10-29-30_89705_5.log
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.13)
+[xUnit.net 00:00:00.17]   Discovering: PeripheralBatteryCompanion.GateB.Tests (app domain = off, method display = ClassAndMethod, method display options = None)
+[xUnit.net 00:00:00.27]   Discovered:  PeripheralBatteryCompanion.GateB.Tests (15 test cases to be run)
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.PermitOperations_AreInert_ForValidInvalidAndMissingPlans
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: null)
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "")
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "report.txt")
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "artifacts\\report.txt")
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "D:report.txt")
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "\\artifacts\\report.txt")
+    PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.SerializeCanonical_MatchesLiteralFifteenFieldBytes_WithoutHashing
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.MissingPlanAndPayload_Deny
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.ExpiredPlan_Denies
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "valid")
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "future")
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "malformed")
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.RepeatedDenial_TripsLatch
+    PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.NativeApprovalAndProvenanceHolds_Deny

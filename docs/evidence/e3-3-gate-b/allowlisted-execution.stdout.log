@@ -1,0 +1,33 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+Logging Vstest Diagnostics in file: <REPO>\test-results\e3-3-gate-b\20261101T132922366Z\allowlisted-execution.vstest.log
+A total of 1 test files matched the specified pattern.
+<REPO>\test-results\e3-3-gate-b\20261101T132922366Z\baseline\PeripheralBatteryCompanion.GateB.Tests.dll
+Logging TestHost Diagnostics in file: <REPO>\test-results\e3-3-gate-b\20261101T132922366Z\allowlisted-execution.vstest.host.26-11-01_10-29-34_06875_5.log
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.13)
+[xUnit.net 00:00:00.13]   Discovering: PeripheralBatteryCompanion.GateB.Tests
+[xUnit.net 00:00:00.21]   Discovered:  PeripheralBatteryCompanion.GateB.Tests
+[xUnit.net 00:00:00.25]   Starting:    PeripheralBatteryCompanion.GateB.Tests
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.ExpiredPlan_Denies [7 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.NativeApprovalAndProvenanceHolds_Deny [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.RepeatedDenial_TripsLatch [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.MissingPlanAndPayload_Deny [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "valid") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "future") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.GateBDenialTests.PlanCannotAuthorize(kind: "malformed") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.PermitOperations_AreInert_ForValidInvalidAndMissingPlans [5 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: null) [2 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "") [< 1 ms]
+[xUnit.net 00:00:00.45]   Finished:    PeripheralBatteryCompanion.GateB.Tests
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "report.txt") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "artifacts\\report.txt") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "D:report.txt") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.ReportDestination_RejectsPathsDependentOnCurrentDirectory(path: "\\artifacts\\report.txt") [< 1 ms]
+  Passed PeripheralBatteryCompanion.W1Offline.Tests.W1PreflightPlanTests.SerializeCanonical_MatchesLiteralFifteenFieldBytes_WithoutHashing [< 1 ms]
+
+Test Run Successful.
+Total tests: 15
+     Passed: 15
+ Total time: 1.3793 Seconds
+Results File: <REPO>\test-results\e3-3-gate-b\20261101T132922366Z\allowlisted-execution\results.trx

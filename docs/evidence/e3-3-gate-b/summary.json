@@ -1,0 +1,8 @@
+{
+  "Passed": 15,
+  "Failed": 0,
+  "Skipped": 0,
+  "BaselineDiscovered": 8,
+  "ProbeDiscovered": 15,
+  "EvidenceDirectory": "<REPO>\\test-results\\e3-3-gate-b\\20261101T132922366Z"
+}

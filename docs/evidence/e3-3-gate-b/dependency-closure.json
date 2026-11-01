@@ -1,0 +1,54 @@
+[
+  {
+    "Package": "Microsoft.CodeCoverage/17.14.1",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "Microsoft.NET.Test.Sdk/17.14.1",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "Microsoft.TestPlatform.ObjectModel/17.14.1",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "Microsoft.TestPlatform.TestHost/17.14.1",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "Newtonsoft.Json/13.0.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit/2.9.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.abstractions/2.0.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.analyzers/1.18.0",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.assert/2.9.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.core/2.9.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.extensibility.core/2.9.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.extensibility.execution/2.9.3",
+    "AssetsContentHashMatchesOriginal": true
+  },
+  {
+    "Package": "xunit.runner.visualstudio/3.1.5",
+    "AssetsContentHashMatchesOriginal": true
+  }
+]

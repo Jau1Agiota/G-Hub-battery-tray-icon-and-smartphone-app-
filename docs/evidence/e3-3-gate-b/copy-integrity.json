@@ -1,0 +1,862 @@
+[
+  {
+    "File": "Microsoft.TestPlatform.CommunicationUtilities.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.CommunicationUtilities.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.CoreUtilities.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.CoreUtilities.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.CrossPlatEngine.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.CrossPlatEngine.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.PlatformAbstractions.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.PlatformAbstractions.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.Utilities.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.TestPlatform.Utilities.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.CodeCoverage.Shim.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.CodeCoverage.Shim.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.TestPlatform.Common.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.TestPlatform.Common.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.TestPlatform.ObjectModel.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Microsoft.VisualStudio.TestPlatform.ObjectModel.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Newtonsoft.Json.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "Newtonsoft.Json.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.deps.json",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.deps.json",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.pdb",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.pdb",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.runtimeconfig.json",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "PeripheralBatteryCompanion.GateB.Tests.runtimeconfig.json",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "testhost.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "testhost.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "testhost.exe",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "testhost.exe",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.abstractions.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.abstractions.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.assert.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.assert.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.core.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.core.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.execution.dotnet.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.execution.dotnet.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.runner.json",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.runner.json",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": false
+  },
+  {
+    "File": "xunit.runner.visualstudio.testadapter.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "xunit.runner.visualstudio.testadapter.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "cs\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "de\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "es\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "fr\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "it\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ja\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ko\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pl\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "pt-BR\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "ru\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "tr\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hans\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CoreUtilities.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "baseline",
+    "IdenticalToBuildOutput": true
+  },
+  {
+    "File": "zh-Hant\\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+    "Copy": "json-probe",
+    "IdenticalToBuildOutput": true
+  }
+]
