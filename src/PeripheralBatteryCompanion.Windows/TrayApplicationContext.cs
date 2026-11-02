@@ -1,10 +1,15 @@
 using PeripheralBatteryCompanion.Core;
 using PeripheralBatteryCompanion.Core.Presentation;
+using PeripheralBatteryCompanion.Core.SnapshotService;
 
 namespace PeripheralBatteryCompanion.Windows;
 
 internal sealed class TrayApplicationContext : ApplicationContext
 {
+    private readonly PublishedSnapshotStore _publishedSnapshots = new(Guid.NewGuid());
+    private readonly CachedSnapshotPublisher _snapshotPublisher;
+    private LanPreviewServer? _lanPreview;
+    private LanPreviewSettingsForm? _lanSettings;
     private readonly Control _dispatcher = new();
     private readonly NotifyIcon _tray;
     private readonly ContextMenuStrip _menu = new();
@@ -33,6 +38,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     public TrayApplicationContext()
     {
+        _snapshotPublisher = new(_publishedSnapshots);
         _hyperXStartupState = new(_hyperXSettings);
         var durable = new HyperXDurableTransport(_hyperXTransport, _hyperXStartupState);
         _hyperX = new(new HyperXReceiverDiscovery(), new NgenuityPresenceProbe(), durable, allowWithoutNgenuity: true);
@@ -65,6 +71,13 @@ internal sealed class TrayApplicationContext : ApplicationContext
             if (Closing) return;
             _interaction.OpenPanel(); ApplyPanelVisibility(); _popup.SetHyperXAdvancedVisible(true);
         })));
+        _menu.Items.Add("LAN preview…", null, (_, _) =>
+        {
+            if (Closing) return;
+            if (_lanSettings is { IsDisposed: false }) { _lanSettings.Activate(); return; }
+            _lanSettings = new(_lanPreview, StartLanPreview, StopLanPreviewAsync);
+            _lanSettings.Show();
+        });
         _menu.Items.Add("Exit Application", null, async (_, _) => await CloseAsync());
         _menu.Opening += (_, e) =>
         {
@@ -97,6 +110,17 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _monitor.Updated += OnUpdated;
         _monitor.Start();
         _hyperXScheduleTask = MonitorHyperXAsync();
+        // Explicit local session-only opt-in, also usable without hunting the tray overflow.
+        var arguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (arguments.Length == 3 && arguments[0] == "--lan-preview" &&
+            System.Net.IPAddress.TryParse(arguments[1], out var selectedAddress) &&
+            int.TryParse(arguments[2], out var selectedPort) && selectedPort is >= 1024 and <= 65535)
+        {
+            var result = StartLanPreview(selectedAddress, selectedPort);
+            _lanSettings = new(_lanPreview, StartLanPreview, StopLanPreviewAsync);
+            _lanSettings.Show();
+            if (_lanPreview is null) MessageBox.Show(_lanSettings, result, "LAN preview");
+        }
     }
 
     private void TogglePanel()
@@ -155,6 +179,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private void DisplayHyperX()
     {
         if (Closing) return;
+        _snapshotPublisher.OnHyperXCacheChanged(_hyperX.Current);
         _popup.DisplayHyperX(HyperXPanelView.From(_hyperX));
         _popup.DisplayHyperXMonitoring(_hyperXAutomatic.Status);
         _popup.DisplayHyperXCompact(HyperXCompactView.From(_hyperX, _hyperXAutomatic.Status));
@@ -217,6 +242,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void Display(BatteryMonitoringState state)
     {
+        _snapshotPublisher.OnLogitechCacheChanged(state);
         _lastKeyboardState = state;
         var view = BatteryPanelView.From(state);
         _popup.Display(view); // Hidden panels update without activation or extra database reads.
@@ -241,11 +267,32 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _lastTooltip = text;
     }
 
+    private string StartLanPreview(System.Net.IPAddress address, int port)
+    {
+        if (Closing) return "Application is closing.";
+        if (_lanPreview is not null) return $"Already listening at http://{_lanPreview.Endpoint}{LanPreviewServer.Path}; stop before changing it.";
+        try
+        {
+            _lanPreview = new(_publishedSnapshots, address, port);
+            return $"http://{_lanPreview.Endpoint}{LanPreviewServer.Path} · No authentication or encryption.";
+        }
+        catch (Exception e) when (e is ArgumentException or System.Net.Sockets.SocketException)
+        { return "Could not bind the selected interface/port. No firewall or network settings changed."; }
+    }
+
+    private async Task StopLanPreviewAsync()
+    {
+        var server = _lanPreview; _lanPreview = null;
+        if (server is not null) await server.DisposeAsync();
+    }
+
     private async Task CloseAsync()
     {
         if (Closing) return;
         _interaction.RequestExit();
         _menu.Enabled = false;
+        _lanSettings?.Close();
+        await StopLanPreviewAsync();
         ApplyPanelVisibility();
         await _hyperXStop.CancelAsync();
         await _hyperXScheduleTask;
@@ -264,6 +311,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
     {
         if (disposing)
         {
+            _lanSettings?.Dispose();
+            _snapshotPublisher.Dispose();
+            _publishedSnapshots.Dispose();
             _hyperXDevices.Dispose();
             _tray.Dispose();
             _popup.Dispose();
